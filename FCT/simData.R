@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Jun 28 2021 (09:35) 
 ## Version: 
-## Last-Updated: Jun 28 2021 (15:19) 
+## Last-Updated: Jun 28 2021 (17:15) 
 ##           By: Brice Ozenne
-##     Update #: 83
+##     Update #: 86
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -14,15 +14,25 @@
 ##----------------------------------------------------------------------
 ## 
 ### Code:
+
+
+## * simData (Documentation)
 ##' @title Simulate Data
 ##' @description Simulate two informative biomarkers and a number of non-informative biomarker of treatment response.
 ##' 
 ##' @param n [integer, >0] number of observations
 ##' @param p.noise [integer, >0] number of irrelevant covariates
-##' @param scenario [character] type of association between the biomarkers and the treatment response. Can be linear, quadratic, or normal/abnormal
+##' @param scenario [character] type of association between the biomarkers and the treatment response. Can be \code{"linear"} (no interaction, linear effects), \code{"abnormal"} (normal values vs. extreme values), or \code{"interaction"} (high values for both X1 and X2 vs. other values).
 ##' @param effect [numeric, >0] how strongly the biomarkers predicts treatment response (in term of log odd-ratio). 0 means no association between any of the biomarkers and treatment response
+##' @param shift [numeric] intercept for the linear predictor. 
 ##' @param rho [numeric] how correlated the biomarkers are. When correlated, the biomakers are divided into two groups of biomarkers, each containing an informative one. Biomarkers are correlated withing group but not between groups.
-##' @param plot [logical] should a map of the simulated risk be output with respect to the informative biomarkers.
+##' @param sigma [numeric] variance of the predictor values.
+##' @param plot [logical] should a map of the simulated risk be output with respect to the informative biomarkers. Set to 1 to export the plot (attribute plot) and 2 to display the plot when running the function.
+##' @param plot.nbins [integer, >0] number of categories for each biomarker.
+##' @param plot.xlim [numeric vector of length 2] lower and upper limits of the x-axis.
+##' @param plot.xlim [numeric vector of length 2] lower and upper limits of the y-axis.
+
+## * simData (examples)
 ##'
 ##' @examples
 ##' set.seed(10)
@@ -59,6 +69,7 @@
 ##'
 ##' 
 
+## * simData (code)
 simData <- function(n, p.noise, scenario, effect, shift = 0, rho = 0, sigma = 1,
                     plot = FALSE, plot.nbins = 20, plot.xlim = c(-2,2), plot.ylim = c(-2,2)){
 
@@ -85,6 +96,8 @@ simData <- function(n, p.noise, scenario, effect, shift = 0, rho = 0, sigma = 1,
     if(length(effect)!=1){
         stop("Argument \'effect\' must have length 1. \n")
     }
+
+    scenario <- match.arg(scenario, c("linear","abnormal","interaction"))
     
     ## ** generate names for the covariates
     allX <- c("X1","X2")

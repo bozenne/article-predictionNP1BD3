@@ -1,0 +1,20 @@
+\begin{thebibliography}{1}
+
+\bibitem{konukoglu2014approximate}
+Ender Konukoglu and Melanie Ganz.
+\newblock Approximate false positive rate control in selection frequency for
+  random forest.
+\newblock {\em arXiv preprint arXiv:1410.2838}, 2014.
+
+\bibitem{probst2019hyperparameters}
+Philipp Probst, Marvin~N Wright, and Anne-Laure Boulesteix.
+\newblock Hyperparameters and tuning strategies for random forest.
+\newblock {\em Wiley Interdisciplinary Reviews: Data Mining and Knowledge
+  Discovery}, 9(3):e1301, 2019.
+
+\bibitem{probst2017tune}
+Philipp Probst and Anne-Laure Boulesteix.
+\newblock To tune or not to tune the number of trees in random forest.
+\newblock {\em J. Mach. Learn. Res.}, 18(1):6673--6690, 2017.
+
+\end{thebibliography}

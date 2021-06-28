@@ -1,0 +1,437 @@
+#+TITLE: Simulation study: "Leveraging multimodal data to predict outcomes of antidepressant treatment"
+#+Author: 
+
+#+begin_src R :exports both :results output :session *R* :cache no
+path <- "~/Documents/GitHub/article-predictionNP1BD3/"
+setwd(path)
+source("./FCT/simData.R")
+#+end_src
+
+#+RESULTS:
+
+* Introduction
+
+We proposed a three step strategy to build and assess predictive
+models for antidepressant treatment response:
+- *step 1*: a logistic regression with linear effects and no interest
+  on a subset of 10 biomarkers
+- *step 2*: a random forest approach on a subset of 10
+  biomarkers. Variable importance of each biomarker will be assessed
+  and a more complex logistic regression (with non-linear effects and
+  interaction) will be built using only important biomarkers.
+- *step 3*: SuperLearner will be train on a large set of biomarkers.
+
+5-fold cross validation will be used to assess the predictive
+performances in term of AUC, brier score, and calibration.
+
+\bigskip
+
+However, there are some difficulties:
+  
+- What is the power of the random forest test vs. logistic? \newline Of
+  variable importance to detect useful biomarkers? \newline Of the complex
+  logistic regression to identify complex patterns?
+
+- there are several way to assess variable importance in random
+  forest, e.g. =impurity= based on the Gini index (function
+  =importance_pvalues= in ranger) or the method developped by
+  cite:konukoglu2014approximate (implemented in the R package
+  forestControl).
+
+- is the 5-fold cross validation a good way to estimate predictive
+  performances (bias, variance)[fn::Martin N. asked something similar
+  at the Brain Drug annual meeting]? Many other approaches exists so
+  it would be nice to show that this one leads to reasonable
+  results[fn::We could use repeated 10-fold CV where is fold has the same prevalence].
+  
+- how to choose the hyperparameters of the machine learning approach?
+  E.g. in random forest we need to choose:
+     1. a number of trees (argument =num.trees= in ranger, by default 500)
+     2. a number of features considered for splitting a node (argument =mtry= in ranger, by default square root of the number of predictors)
+     3. minimal number of data points to split a node (argument =min.node.size= in ranger, by default 1),
+     4. maximum tree depth (argument =max.depth= in ranger, by default unlimited),
+     5. objective function (argument =splitrule= in ranger, by default ="gini"=)
+     6. sampling of the observations (argument =replace= in ranger, by default =TRUE=)
+  For superLearner we need to choose:
+     1. the library of learner we want to consider (argument
+        =SL.library= in SuperLearner).
+     2. how do we want to combine the learners? Take the best or
+        combine the prediction of each learner in the best way
+        possible.
+     3. plus the hyperparameters corresponding to each learner.
+  
+ 
+
+* Objectives
+
+Assess the validity of the predictive approach:
+- in term of type 1 error control, i.e. conclude that there a predictive
+  value when in fact there is none at most \(\alpha\)% of the time.
+- in term of type 2 error control, i.e. conclude that we cannot identify a predictive
+  value when in fact there is one at most \(\beta\)% of the time.
+
+\bigskip
+
+Estimate the hyperparameters of the machine learning
+approaches. \newline From the existing litterature on Random Forests,
+the main parameter to tune is =mtry=
+cite:probst2019hyperparameters. Other parameters such as =num.tree=
+can be set to arbitrary large value that is computationnally feasible
+citep:probst2017tune.  \newline The super learner library should at
+least contain Random Forests and elastic-net regularized logistic
+regression.
+
+* Generative model
+
+To perform the simulation study, we first start by defining a number
+of scenario that should ressemble real data. As there are many parameters we can vary, we will fix:
+- the sample size to \(n=80\).
+- the number of predictors to \(p=10\) and the number of useful
+  predictors 2 (unless when we are under the null where it is 0).
+- the marginal distribution of each predictor to a multivariate normal
+  distribution with mean 0 and variance 1. @@latex:\textcolor{red}{Can
+  be changed to better reflect real data!}@@
+We will vary:
+- the strenght of the predictors (strong, weak, or null)
+- the type of interaction between the predictors considering 3
+  scenarios: either no interaction, or normal values vs. abnormal
+  values, or no main effect and only an interaction.
+- the correlation between the predictors. The predictors will be
+  divided in two groups and the within group correlation will be
+  vary. Each group contain a single useful predictor.
+
+Visually this can is summarized in autoref:fig:sim-scenario and  autoref:fig:sim-correlation.
+#+begin_src R :exports none :results output :session *R* :cache no
+n <- 1e6
+set.seed(10)
+
+dfStrong.linear <- simData(n, p.noise = 8, scenario = "linear", effect = 1.5, plot = TRUE, plot.nbins = 20)
+dfWeak.linear <- simData(n, p.noise = 8, scenario = "linear", effect = 0.5, plot = TRUE, plot.nbins = 20)
+dfNull.linear <- simData(n, p.noise = 8, scenario = "linear", effect = 0, plot = TRUE, plot.nbins = 20)
+
+dfStrong.abnormal <- simData(n, p.noise = 8, scenario = "abnormal", effect = 1, sigma = 1.4, plot = TRUE, plot.nbins = 20)
+dfWeak.abnormal <- simData(n, p.noise = 8, scenario = "abnormal", effect = 0.5, sigma = 1.1, plot = TRUE, plot.nbins = 20)
+dfNull.abnormal <- simData(n, p.noise = 8, scenario = "abnormal", effect = 0, plot = TRUE, plot.nbins = 20)
+
+dfStrong.interaction <- simData(n, p.noise = 8, scenario = "interaction", effect = 2, sigma = 1.5, plot = TRUE, plot.nbins = 20)
+dfWeak.interaction <- simData(n, p.noise = 8, scenario = "interaction", effect = 0.5, sigma = 1.5, plot = TRUE, plot.nbins = 20)
+dfNull.interaction <- simData(n, p.noise = 8, scenario = "interaction", effect = 0, plot = TRUE, plot.nbins = 20)
+#+end_src
+
+#+RESULTS:
+
+#+begin_src R :exports none :results output :session *R* :cache no
+library(ggpubr)
+library(data.table)
+dtgg <- as.data.table(rbind(cbind(attr(dfStrong.linear,"gridR"), scenario = "linear", effect = "strong", prevalence = mean(dfStrong.linear$Y)),
+                            cbind(attr(dfWeak.linear,"gridR"), scenario = "linear", effect = "weak", prevalence = mean(dfWeak.linear$Y)),
+                            cbind(attr(dfNull.linear,"gridR"), scenario = "linear", effect = "null", prevalence = mean(dfNull.linear$Y)),
+                            cbind(attr(dfStrong.abnormal,"gridR"), scenario = "abnormal", effect = "strong", prevalence = mean(dfStrong.abnormal$Y)),
+                            cbind(attr(dfWeak.abnormal,"gridR"), scenario = "abnormal", effect = "weak", prevalence = mean(dfWeak.abnormal$Y)),
+                            cbind(attr(dfNull.abnormal,"gridR"), scenario = "abnormal", effect = "null", prevalence = mean(dfNull.abnormal$Y)),
+                            cbind(attr(dfStrong.interaction,"gridR"), scenario = "interaction", effect = "strong", prevalence = mean(dfStrong.interaction$Y)),
+                            cbind(attr(dfWeak.interaction,"gridR"), scenario = "interaction", effect = "weak", prevalence = mean(dfWeak.interaction$Y)),
+                            cbind(attr(dfNull.interaction,"gridR"), scenario = "interaction", effect = "null", prevalence = mean(dfNull.interaction$Y))
+                            ))
+dtgg[,scenario := factor(scenario, c("linear","interaction","abnormal"))]
+dtgg[,effect := factor(effect, c("strong","weak","null"))]
+
+gg <- ggplot2::ggplot(dtgg, ggplot2::aes(x=X1,y=X2,fill=Probability)) + ggplot2::geom_raster()
+gg  <-  gg + ggplot2::scale_fill_gradientn(colours = c("green", "yellow", "orange", "red"), values = c(0,0.5,0.75,1), limits = c(0,1))
+gg  <-  gg + ggplot2::theme(legend.key.size = ggplot2::unit(3,"line"))
+##gg  <-  gg + ggplot2::ggtitle(paste0("Prevalence = ",mean(Y)))
+gg  <-  gg + ggplot2::facet_grid(effect~scenario, labeller = label_both)
+gg  <-  gg + ggplot2::geom_text(x = 0, y = 2.2, aes(label = paste0("Prevalence=",round(100*prevalence,2),"%")))
+gg <- gg + theme(title = element_text(size=12),
+                 strip.text.x = element_text(size=12),
+                 strip.text.y = element_text(size=12),
+                 axis.line = element_line(size = 1.25),
+                 axis.ticks = element_line(size = 2),
+                 axis.ticks.length=unit(.25, "cm"))
+ggsave(gg, filename = file.path("REPORT","Figures","fig-scenario.pdf"))
+#+end_src
+
+#+RESULTS:
+: Saving 7 x 7 in image
+
+#+name: fig:sim-scenario
+#+ATTR_LaTeX: :width 1\textwidth :placement
+#+CAPTION: Probability of treatment response as a function of the useful biomarkers in each scenario.
+[[./Figures/fig-scenario.pdf]]
+
+#+begin_src R :exports none :results output :session *R* :cache no
+df.corHigh <- simData(n, p.noise = 8, scenario = "linear", rho = 0.9, effect = 1.5, plot = TRUE, plot.nbins = 20)
+df.corMid <- simData(n, p.noise = 8, scenario = "linear", rho = 0.5, effect = 1.5, plot = TRUE, plot.nbins = 20)
+df.corLow <- simData(n, p.noise = 8, scenario = "linear", rho = 0.1, effect = 1.5, plot = TRUE, plot.nbins = 20)
+
+M.corHigh <- cor(df.corHigh[,-1])
+M.corMid <- cor(df.corMid[,-1])
+M.corLow <- cor(df.corLow[,-1])
+#+end_src
+
+#+RESULTS:
+
+
+#+begin_src R :exports none :results output :session *R* :cache no
+df.cor <- rbind(cbind(reshape2::melt(M.corHigh), correlation = "high"),
+                cbind(reshape2::melt(M.corMid), correlation = "moderate"),
+                cbind(reshape2::melt(M.corLow), correlation = "low"))
+df.cor$Var1 <- factor(df.cor$Var1, levels = c("X1","X3","X5","X7","X9","X2","X4","X6","X8","X10"))
+df.cor$Var2 <- factor(df.cor$Var2, levels = c("X1","X3","X5","X7","X9","X2","X4","X6","X8","X10"))
+df.cor$correlation <- factor(df.cor$correlation, levels = c("low","moderate","high"))
+gg <- ggplot(data = df.cor, aes(x = Var1, y = Var2, fill = value)) + facet_grid(~correlation) + geom_tile()
+gg <- gg + scale_fill_gradient2(low = "blue", high = "red", mid = "white",  midpoint = 0, limit = c(-1,1), space = "Lab")
+gg <- gg + xlab("") + ylab("")
+gg <- gg + theme(title = element_text(size=12),
+                 strip.text.x = element_text(size=12),
+                 strip.text.y = element_text(size=12),
+                 axis.line = element_line(size = 1.25),
+                 axis.ticks = element_line(size = 2),
+                 axis.ticks.length=unit(.25, "cm"))
+ggsave(gg, filename = file.path("REPORT","Figures","fig-correlation.pdf"))
+#+end_src
+#+RESULTS:
+: Saving 13.5 x 8.72 in image
+
+#+name: fig:sim-correlation
+#+ATTR_LaTeX: :width 1\textwidth :placement
+#+CAPTION: Correlation structure of the predictors.
+[[./Figures/fig-correlation.pdf]]
+
+
+* References
+#+LaTeX: \begingroup
+#+LaTeX: \renewcommand{\section}[2]{}
+bibliographystyle:unsrt
+[[bibliography:bibliography.bib]]
+# help: https://gking.harvard.edu/files/natnotes2.pdf
+#+LaTeX: \endgroup
+
+* CONFIG :noexport:
+# #+LaTeX_HEADER:\affil{Department of Biostatistics, University of Copenhagen, Copenhagen, Denmark}
+#+LANGUAGE:  en
+#+LaTeX_CLASS: org-article
+#+LaTeX_CLASS_OPTIONS: [12pt]
+#+OPTIONS:   title:t author:t toc:nil todo:nil date:nil
+#+OPTIONS:   H:3 num:t 
+#+OPTIONS:   TeX:t LaTeX:t
+
+#+LATEX_HEADER: %
+#+LATEX_HEADER: %%%% specifications %%%%
+#+LATEX_HEADER: %
+
+** Latex command
+#+LATEX_HEADER: \usepackage{ifthen}
+#+LATEX_HEADER: \usepackage{xifthen}
+#+LATEX_HEADER: \usepackage{xargs}
+#+LATEX_HEADER: \usepackage{xspace}
+
+#+LATEX_HEADER: \newcommand\Rlogo{\textbf{\textsf{R}}\xspace} % 
+
+** Reference external document
+#+LaTeX_HEADER:\usepackage{xr} %% read the .aux of the external file
+#+LaTeX_HEADER: \externaldocument[SM-]{SM-article-Ustatistic-nuisance}
+
+** Notations
+# ## observations
+#+LATEX_HEADER: \newcommand\Xobs{\tilde{X}}
+#+LATEX_HEADER: \newcommand\Yobs{\tilde{Y}}
+#+LATEX_HEADER: \newcommand\xobs{\tilde{x}}
+#+LATEX_HEADER: \newcommand\yobs{\tilde{y}}
+#+LATEX_HEADER: \newcommand\Xcens{\delta}
+#+LATEX_HEADER: \newcommand\Ycens{\varepsilon}
+
+# ## counting process
+#+LATEX_HEADER: \newcommand\Xcount{N_{X}}
+#+LATEX_HEADER: \newcommand\Ycount{N_{Y}}
+#+LATEX_HEADER: \newcommand\Xrisk{R_{X}}
+#+LATEX_HEADER: \newcommand\Yrisk{R_{Y}}
+
+# ## GPC
+#+LATEX_HEADER: \newcommand\DeltaHat{\hat{\Delta}}
+
+#+LATEX_HEADER: \newcommand\U{U}
+#+LATEX_HEADER: \newcommand\UHat{\hat{U}}
+#+LATEX_HEADER: \newcommand\Ufav{U^{+}}
+#+LATEX_HEADER: \newcommand\Udefav{U^{-}}
+#+LATEX_HEADER: \newcommand\UfavHat{\UHat^{+}}
+#+LATEX_HEADER: \newcommand\UdefavHat{\UHat^{-}}
+
+#+LATEX_HEADER: \newcommand\s{s}
+#+LATEX_HEADER: \newcommand\sfav{s^{+}}
+#+LATEX_HEADER: \newcommand\sdefav{s^{-}}
+
+# ## iid decomposition
+#+LaTeX_HEADER: \newcommand\IF{h}
+#+LaTeX_HEADER: \newcommand\IFfav{h^{+}}
+#+LaTeX_HEADER: \newcommand\IFdefav{h^{-}}
+
+#+LaTeX_HEADER: \newcommand\IFfavHat{\hat{h}^{+}}
+#+LaTeX_HEADER: \newcommand\IFdefavHat{\hat{h}^{-}}
+
+#+LaTeX_HEADER: \newcommand\sigmaApprox{\tilde{\sigma}}
+#+LaTeX_HEADER: \newcommand\sigmaHat{\hat{\sigma}}
+
+# ## parameters
+#+LATEX_HEADER: \newcommand\param{\eta}
+#+LATEX_HEADER: \newcommand\Vparam{\boldsymbol{\eta}}
+#+LATEX_HEADER: \newcommand\VparamHat{\hat{\Vparam}}
+
+#+LATEX_HEADER: \newcommand\Xsurv{S_{X}}
+#+LATEX_HEADER: \newcommand\Ysurv{S_{Y}}
+#+LATEX_HEADER: \newcommand\XsurvHat{\hat{S}_{X}}
+#+LATEX_HEADER: \newcommand\YsurvHat{\hat{S}_{Y}}
+
+#+LaTeX_HEADER: \newcommand\Xhazard{\lambda_{X}}
+#+LaTeX_HEADER: \newcommand\Yhazard{\lambda_{Y}}
+#+LaTeX_HEADER: \newcommand\XhazardHat{\hat{\lambda}_{X}}
+#+LaTeX_HEADER: \newcommand\YhazardHat{\hat{\lambda}_{Y}}
+
+** Code
+# Documentation at https://org-babel.readthedocs.io/en/latest/header-args/#results
+# :tangle (yes/no/filename) extract source code with org-babel-tangle-file, see http://orgmode.org/manual/Extracting-source-code.html 
+# :cache (yes/no)
+# :eval (yes/no/never)
+# :results (value/output/silent/graphics/raw/latex)
+# :export (code/results/none/both)
+#+PROPERTY: header-args :session *R* :tangle yes :cache no ## extra argument need to be on the same line as :session *R*
+
+# Code display:
+#+LATEX_HEADER: \RequirePackage{fancyvrb} % fancybox
+#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
+
+# ## change font size input
+# ## #+ATTR_LATEX: :options basicstyle=\ttfamily\scriptsize
+# ## change font size output
+# ## \RecustomVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\tiny,formatcom = {\color[rgb]{0.5,0,0}}}
+
+** Display 
+#+LATEX_HEADER: \RequirePackage{colortbl} % arrayrulecolor to mix colors
+#+LATEX_HEADER: \RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
+#+LaTeX_HEADER:\renewcommand{\baselinestretch}{1}
+#+LATEX_HEADER:\geometry{top=1cm}
+
+#+LaTeX_HEADER: \hypersetup{
+#+LaTeX_HEADER:  citecolor=[rgb]{0,0.5,0},
+#+LaTeX_HEADER:  urlcolor=[rgb]{0,0,0.5},
+#+LaTeX_HEADER:  linkcolor=[rgb]{0,0,0.5},
+#+LaTeX_HEADER: }
+
+** Box
+# #+LaTeX_HEADER: \usepackage{fancybox} % box
+#+LaTeX_HEADER: \usepackage[framemethod=tikz]{mdframed}
+#+LaTeX_HEADER: \usetikzlibrary{shadows}
+#+LaTeX_HEADER: \newmdenv[shadow=true,shadowcolor=black!100,shadowsize=10pt,font=\sffamily,leftmargin=5pt,rightmargin=5pt]{shadedbox}
+
+** Image
+#+LATEX_HEADER: \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
+#+LATEX_HEADER: \RequirePackage{capt-of} % 
+#+LATEX_HEADER: \RequirePackage{caption} % newlines in graphics
+
+** Algorithm
+#+LATEX_HEADER: \RequirePackage{amsmath}
+#+LATEX_HEADER: \RequirePackage{algorithm}
+#+LATEX_HEADER: \RequirePackage[noend]{algpseudocode}
+
+** Math
+#+LATEX_HEADER: \RequirePackage{dsfont}
+#+LATEX_HEADER: \RequirePackage{amsmath,stmaryrd,graphicx}
+#+LATEX_HEADER: \RequirePackage{prodint} % product integral symbol (\PRODI)
+
+# ## lemma
+# #+LaTeX_HEADER: \RequirePackage{amsthm}
+# #+LaTeX_HEADER: \newtheorem{theorem}{Theorem}
+# #+LaTeX_HEADER: \newtheorem{lemma}[theorem]{Lemma}
+
+*** Template for shortcut
+#+LATEX_HEADER: \newcommand\defOperator[7]{%
+#+LATEX_HEADER:	\ifthenelse{\isempty{#2}}{
+#+LATEX_HEADER:		\ifthenelse{\isempty{#1}}{#7{#3}#4}{#7{#3}#4 \left#5 #1 \right#6}
+#+LATEX_HEADER:	}{
+#+LATEX_HEADER:	\ifthenelse{\isempty{#1}}{#7{#3}#4_{#2}}{#7{#3}#4_{#1}\left#5 #2 \right#6}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommand\defUOperator[5]{%
+#+LATEX_HEADER: \ifthenelse{\isempty{#1}}{
+#+LATEX_HEADER:		#5\left#3 #2 \right#4
+#+LATEX_HEADER: }{
+#+LATEX_HEADER:	\ifthenelse{\isempty{#2}}{\underset{#1}{\operatornamewithlimits{#5}}}{
+#+LATEX_HEADER:		\underset{#1}{\operatornamewithlimits{#5}}\left#3 #2 \right#4}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommand{\defBoldVar}[2]{	
+#+LATEX_HEADER:	\ifthenelse{\equal{#2}{T}}{\boldsymbol{#1}}{\mathbf{#1}}
+#+LATEX_HEADER: }
+
+*** Shortcuts
+
+**** Probability
+#+LATEX_HEADER: \newcommandx\Cov[2][1=,2=]{\defOperator{#1}{#2}{C}{ov}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Esp[2][1=,2=]{\defOperator{#1}{#2}{E}{}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Prob[2][1=,2=]{\defOperator{#1}{#2}{P}{}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Qrob[2][1=,2=]{\defOperator{#1}{#2}{Q}{}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Var[2][1=,2=]{\defOperator{#1}{#2}{V}{ar}{\lbrack}{\rbrack}{\mathbb}}
+
+#+LATEX_HEADER: \newcommandx\Binom[2][1=,2=]{\defOperator{#1}{#2}{B}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Gaus[2][1=,2=]{\defOperator{#1}{#2}{N}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Wishart[2][1=,2=]{\defOperator{#1}{#2}{W}{ishart}{(}{)}{\mathcal}}
+
+#+LATEX_HEADER: \newcommandx\Likelihood[2][1=,2=]{\defOperator{#1}{#2}{L}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Information[2][1=,2=]{\defOperator{#1}{#2}{I}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Score[2][1=,2=]{\defOperator{#1}{#2}{S}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Hessian[2][1=,2=]{\defOperator{#1}{#2}{H}{}{(}{)}{\mathcal}}
+
+**** Operators
+#+LATEX_HEADER: \usepackage{prodint} % product integral symbol (\PRODI)
+
+#+LATEX_HEADER: \newcommandx\Vois[2][1=,2=]{\defOperator{#1}{#2}{V}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Ind[1][1=]{\defOperator{}{#1}{1}{}{(}{)}{\mathds}}
+
+#+LATEX_HEADER: \newcommandx\Max[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{min}}
+#+LATEX_HEADER: \newcommandx\Min[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{max}}
+#+LATEX_HEADER: \newcommandx\argMax[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmax}}
+#+LATEX_HEADER: \newcommandx\argMin[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmin}}
+#+LATEX_HEADER: \newcommandx\cvD[2][1=D,2=n \rightarrow \infty]{\xrightarrow[#2]{#1}}
+
+#+LATEX_HEADER: \newcommandx\Hypothesis[2][1=,2=]{
+#+LATEX_HEADER:         \ifthenelse{\isempty{#1}}{
+#+LATEX_HEADER:         \mathcal{H}
+#+LATEX_HEADER:         }{
+#+LATEX_HEADER: 	\ifthenelse{\isempty{#2}}{
+#+LATEX_HEADER: 		\mathcal{H}_{#1}
+#+LATEX_HEADER: 	}{
+#+LATEX_HEADER: 	\mathcal{H}^{(#2)}_{#1}
+#+LATEX_HEADER:         }
+#+LATEX_HEADER:         }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommandx\dpartial[4][1=,2=,3=,4=\partial]{
+#+LATEX_HEADER: 	\ifthenelse{\isempty{#3}}{
+#+LATEX_HEADER: 		\frac{#4 #1}{#4 #2}
+#+LATEX_HEADER: 	}{
+#+LATEX_HEADER: 	\left.\frac{#4 #1}{#4 #2}p\right\rvert_{#3}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommandx\dTpartial[3][1=,2=,3=]{\dpartial[#1][#2][#3][d]}
+
+#+LATEX_HEADER: \newcommandx\ddpartial[3][1=,2=,3=]{
+#+LATEX_HEADER: 	\ifthenelse{\isempty{#3}}{
+#+LATEX_HEADER: 		\frac{\partial^{2} #1}{\partial #2^2}
+#+LATEX_HEADER: 	}{
+#+LATEX_HEADER: 	\frac{\partial^2 #1}{\partial #2\partial #3}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: } 
+
+**** General math
+
+#+LATEX_HEADER: \newcommand\Real{\mathbb{R}}
+#+LATEX_HEADER: \newcommand\Rational{\mathbb{Q}}
+#+LATEX_HEADER: \newcommand\Natural{\mathbb{N}}
+#+LATEX_HEADER: \newcommand\trans[1]{{#1}^\intercal}%\newcommand\trans[1]{{\vphantom{#1}}^\top{#1}}
+#+LATEX_HEADER: \newcommand{\independent}{\mathrel{\text{\scalebox{1.5}{$\perp\mkern-10mu\perp$}}}}
+#+LaTeX_HEADER: \newcommand\half{\frac{1}{2}}
+#+LaTeX_HEADER: \newcommand\normMax[1]{\left|\left|#1\right|\right|_{max}}
+#+LaTeX_HEADER: \newcommand\normTwo[1]{\left|\left|#1\right|\right|_{2}}

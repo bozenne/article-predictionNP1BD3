@@ -2,7 +2,7 @@
 #+Author: 
 
 #+begin_src R :exports both :results output :session *R* :cache no
-path <- "~/Documents/GitHub/article-predictionNP1BD3/"
+path <- "c:/Users/hpl802/Documents/GitHub/article-predictionNP1BD3/"
 setwd(path)
 source("./FCT/simData.R")
 #+end_src
@@ -119,6 +119,7 @@ dfNull.interaction <- simData(n, p.noise = 8, scenario = "interaction", effect =
 #+end_src
 
 #+RESULTS:
+: Indlæser krævet navnerum: ggplot2
 
 #+begin_src R :exports none :results output :session *R* :cache no
 library(ggpubr)
@@ -137,7 +138,7 @@ dtgg[,scenario := factor(scenario, c("linear","interaction","abnormal"))]
 dtgg[,effect := factor(effect, c("strong","weak","null"))]
 
 gg <- ggplot2::ggplot(dtgg, ggplot2::aes(x=X1,y=X2,fill=Probability)) + ggplot2::geom_raster()
-gg  <-  gg + ggplot2::scale_fill_gradientn(colours = c("green", "yellow", "orange", "red"), values = c(0,0.5,0.75,1), limits = c(0,1))
+gg  <-  gg + ggplot2::scale_fill_gradientn(colours = c("red", "orange","yellow", "green","darkgreen"), values = c(0,0.25,0.5,0.85,1), limits = c(0,1))
 gg  <-  gg + ggplot2::theme(legend.key.size = ggplot2::unit(3,"line"))
 ##gg  <-  gg + ggplot2::ggtitle(paste0("Prevalence = ",mean(Y)))
 gg  <-  gg + ggplot2::facet_grid(effect~scenario, labeller = label_both)

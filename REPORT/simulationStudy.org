@@ -149,7 +149,7 @@ gg <- gg + theme(title = element_text(size=12),
                  axis.line = element_line(size = 1.25),
                  axis.ticks = element_line(size = 2),
                  axis.ticks.length=unit(.25, "cm"))
-ggsave(gg, filename = file.path("REPORT","Figures","fig-scenario.pdf"))
+ggsave(gg, filename = file.path("REPORT","figures","fig-scenario.pdf"))
 #+end_src
 
 #+RESULTS:
@@ -158,7 +158,7 @@ ggsave(gg, filename = file.path("REPORT","Figures","fig-scenario.pdf"))
 #+name: fig:sim-scenario
 #+ATTR_LaTeX: :width 1\textwidth :placement
 #+CAPTION: Probability of treatment response as a function of the useful biomarkers in each scenario.
-[[./Figures/fig-scenario.pdf]]
+[[./figures/fig-scenario.pdf]]
 
 #+begin_src R :exports none :results output :session *R* :cache no
 df.corHigh <- simData(n, p.noise = 8, scenario = "linear", rho = 0.9, effect = 1.5, plot = TRUE, plot.nbins = 20)
@@ -189,7 +189,7 @@ gg <- gg + theme(title = element_text(size=12),
                  axis.line = element_line(size = 1.25),
                  axis.ticks = element_line(size = 2),
                  axis.ticks.length=unit(.25, "cm"))
-ggsave(gg, filename = file.path("REPORT","Figures","fig-correlation.pdf"))
+ggsave(gg, filename = file.path("REPORT","figures","fig-correlation.pdf"))
 #+end_src
 #+RESULTS:
 : Saving 13.5 x 8.72 in image
@@ -197,7 +197,7 @@ ggsave(gg, filename = file.path("REPORT","Figures","fig-correlation.pdf"))
 #+name: fig:sim-correlation
 #+ATTR_LaTeX: :width 1\textwidth :placement
 #+CAPTION: Correlation structure of the predictors.
-[[./Figures/fig-correlation.pdf]]
+[[./figures/fig-correlation.pdf]]
 
 
 * References

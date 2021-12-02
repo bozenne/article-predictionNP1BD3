@@ -1,0 +1,15 @@
+\begin{thebibliography}{}
+
+\bibitem[LeDell et~al., 2015]{ledell2015computationally}
+LeDell, E., Petersen, M., and van~der Laan, M. (2015).
+\newblock Computationally efficient confidence intervals for cross-validated
+  area under the roc curve estimates.
+\newblock {\em Electronic journal of statistics}, 9(1):1583.
+
+\bibitem[Moons et~al., 2006]{moons2006using}
+Moons, K.~G., Donders, R.~A., Stijnen, T., and Harrell~Jr, F.~E. (2006).
+\newblock Using the outcome for imputation of missing predictor values was
+  preferred.
+\newblock {\em Journal of clinical epidemiology}, 59(10):1092--1101.
+
+\end{thebibliography}

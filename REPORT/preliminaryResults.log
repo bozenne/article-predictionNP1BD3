@@ -1,10 +1,7 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (MiKTeX 21.8) (preloaded format=pdflatex 2021.8.26)  2 DEC 2021 18:56
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (MiKTeX 21.8) (preloaded format=pdflatex 2021.8.26)  9 DEC 2021 17:32
 entering extended mode
-**c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/REPORT/preliminaryR
-esults.tex
-
-(c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/REPORT/preliminaryRe
-sults.tex
+**./preliminaryResults.tex
+(preliminaryResults.tex
 LaTeX2e <2021-06-01> patch level 1
 L3 programming layer <2021-07-12>
 (C:\Program Files\MiKTeX 2.9\tex/latex/base\article.cls
@@ -1240,18 +1237,18 @@ LaTeX Font Info:    External font `lmex10' loaded for size
  [2
 
 ]
-[3
+[3] [4
 
-] [4
+] [5
 
 ]
-<./figures/gg-missingPattern.pdf, id=89, 578.16pt x 448.67625pt>
+<./figures/gg-missingPattern.pdf, id=93, 578.16pt x 505.89pt>
 File: ./figures/gg-missingPattern.pdf Graphic file (type pdf)
 <use ./figures/gg-missingPattern.pdf>
 Package pdftex.def Info: ./figures/gg-missingPattern.pdf  used on input line 34
-0.
-(pdftex.def)             Requested size: 430.00462pt x 333.6994pt.
- [5
+6.
+(pdftex.def)             Requested size: 387.00153pt x 338.62032pt.
+ [6
 
  <./figures/gg-missingPattern.pdf>]
 (C:\Program Files\MiKTeX 2.9\tex/latex/listings\lstlang1.sty
@@ -1262,46 +1259,75 @@ File: lstlang2.sty 2020/03/24 1.8d listings language file
 )
 (C:\Program Files\MiKTeX 2.9\tex/latex/listings\lstlang3.sty
 File: lstlang3.sty 2020/03/24 1.8d listings language file
-) [6] [7]
+) [7] [8] [9]
+<./figures/gg-perfW8-hist2.pdf, id=128, 867.24pt x 433.62pt>
+File: ./figures/gg-perfW8-hist2.pdf Graphic file (type pdf)
+<use ./figures/gg-perfW8-hist2.pdf>
+Package pdftex.def Info: ./figures/gg-perfW8-hist2.pdf  used on input line 532.
 
-LaTeX Warning: Reference `:fig:perfW8' on page 8 undefined on input line 510.
+(pdftex.def)             Requested size: 430.00462pt x 215.00316pt.
+<./figures/gg-perfW8-roc.pdf, id=129, 867.24pt x 433.62pt>
+File: ./figures/gg-perfW8-roc.pdf Graphic file (type pdf)
+<use ./figures/gg-perfW8-roc.pdf>
+Package pdftex.def Info: ./figures/gg-perfW8-roc.pdf  used on input line 538.
+(pdftex.def)             Requested size: 430.00462pt x 215.00316pt.
 
-[8]
-<./figures/gg-perfW8-densCali.pdf, id=116, 867.24pt x 448.67625pt>
-File: ./figures/gg-perfW8-densCali.pdf Graphic file (type pdf)
-<use ./figures/gg-perfW8-densCali.pdf>
-Package pdftex.def Info: ./figures/gg-perfW8-densCali.pdf  used on input line 5
-23.
-(pdftex.def)             Requested size: 430.00462pt x 222.46855pt.
- [9
+[10
 
- <./figures/gg-perfW8-densCali.pdf>] [10
+ <./figures/gg-perfW8-hist2.pdf> <./figures/gg-perfW8-roc.pdf>]
+<./figures/gg-perfW8-cali.pdf, id=147, 867.24pt x 433.62pt>
+File: ./figures/gg-perfW8-cali.pdf Graphic file (type pdf)
+<use ./figures/gg-perfW8-cali.pdf>
+Package pdftex.def Info: ./figures/gg-perfW8-cali.pdf  used on input line 546.
+(pdftex.def)             Requested size: 430.00462pt x 215.00316pt.
+ [11
 
-] (preliminaryResults.bbl)
+ <./figures/gg-perfW8-cali.pdf>] [12
+
+]
+<./figures/gg-perfW12-hist2.pdf, id=170, 867.24pt x 433.62pt>
+File: ./figures/gg-perfW12-hist2.pdf Graphic file (type pdf)
+<use ./figures/gg-perfW12-hist2.pdf>
+Package pdftex.def Info: ./figures/gg-perfW12-hist2.pdf  used on input line 624
+.
+(pdftex.def)             Requested size: 430.00462pt x 215.00316pt.
+<./figures/gg-perfW12-roc.pdf, id=171, 867.24pt x 433.62pt>
+File: ./figures/gg-perfW12-roc.pdf Graphic file (type pdf)
+<use ./figures/gg-perfW12-roc.pdf>
+Package pdftex.def Info: ./figures/gg-perfW12-roc.pdf  used on input line 630.
+(pdftex.def)             Requested size: 430.00462pt x 215.00316pt.
+ [13
+
+ <./figures/gg-perfW12-hist2.pdf> <./figures/gg-perfW12-roc.pdf>]
+<./figures/gg-perfW12-cali.pdf, id=190, 867.24pt x 433.62pt>
+File: ./figures/gg-perfW12-cali.pdf Graphic file (type pdf)
+<use ./figures/gg-perfW12-cali.pdf>
+Package pdftex.def Info: ./figures/gg-perfW12-cali.pdf  used on input line 639.
+
+(pdftex.def)             Requested size: 430.00462pt x 215.00316pt.
+ [14
+
+ <./figures/gg-perfW12-cali.pdf>] (preliminaryResults.bbl)
 \Changes@OutFile=\write6
 \openout6 = `preliminaryResults.soc'.
 
 \tf@loc=\write7
 \openout7 = `preliminaryResults.loc'.
 
-
-[11
+ [15
 
 ] (preliminaryResults.aux)
-
-LaTeX Warning: There were undefined references.
-
 Package rerunfilecheck Info: File `preliminaryResults.out' has not changed.
 (rerunfilecheck)             Checksum: FB2C66BD44CFA2685BDBE4B257219126;1417.
  ) 
 Here is how much of TeX's memory you used:
- 28774 strings out of 478868
- 497972 string characters out of 2856724
- 981457 words of memory out of 3000000
- 46046 multiletter control sequences out of 15000+600000
- 474082 words of font info for 97 fonts, out of 8000000 for 9000
+ 28824 strings out of 478868
+ 499115 string characters out of 2856724
+ 982384 words of memory out of 3000000
+ 46082 multiletter control sequences out of 15000+600000
+ 480061 words of font info for 99 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 114i,8n,117p,556b,1841s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 114i,8n,117p,493b,1841s stack positions out of 5000i,500n,10000p,200000b,80000s
 pdfTeX warning (dest): name{Hfootnote.3} has been referenced but does not exi
 st, replaced by a fixed one
 
@@ -1312,19 +1338,21 @@ pdfTeX warning (dest): name{Hfootnote.1} has been referenced but does not exist
 , replaced by a fixed one
 
 {C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-ec.enc}{C:/Program Files/MiK
-TeX 2.9/fonts/enc/dvips/lm/lm-mathit.enc}{C:/Program Files/MiKTeX 2.9/fonts/enc
-/dvips/lm/lm-ts1.enc}<C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmbx12.
-pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmmi12.pfb><C:/Program F
-iles/MiKTeX 2.9/fonts/type1/public/lm/lmr10.pfb><C:/Program Files/MiKTeX 2.9/fo
-nts/type1/public/lm/lmr12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/l
-m/lmr17.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr7.pfb><C:/Pro
-gram Files/MiKTeX 2.9/fonts/type1/public/lm/lmr8.pfb><C:/Program Files/MiKTeX 2
-.9/fonts/type1/public/lm/lmri12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/pu
-blic/lm/lmtt10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmtt12.pf
-b>
-Output written on preliminaryResults.pdf (11 pages, 360570 bytes).
+TeX 2.9/fonts/enc/dvips/lm/lm-mathsy.enc}{C:/Program Files/MiKTeX 2.9/fonts/enc
+/dvips/lm/lm-mathit.enc}{C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-ts1.
+enc}<C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmbx12.pfb><C:/Program F
+iles/MiKTeX 2.9/fonts/type1/public/lm/lmbx6.pfb><C:/Program Files/MiKTeX 2.9/fo
+nts/type1/public/lm/lmmi12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/
+lm/lmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr12.pfb><C:/P
+rogram Files/MiKTeX 2.9/fonts/type1/public/lm/lmr17.pfb><C:/Program Files/MiKTe
+X 2.9/fonts/type1/public/lm/lmr7.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/p
+ublic/lm/lmr8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmri12.pfb
+><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy10.pfb><C:/Program File
+s/MiKTeX 2.9/fonts/type1/public/lm/lmtt10.pfb><C:/Program Files/MiKTeX 2.9/font
+s/type1/public/lm/lmtt12.pfb>
+Output written on preliminaryResults.pdf (15 pages, 702891 bytes).
 PDF statistics:
- 196 PDF objects out of 1000 (max. 8388607)
- 33 named destinations out of 1000 (max. 500000)
- 103 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 276 PDF objects out of 1000 (max. 8388607)
+ 42 named destinations out of 1000 (max. 500000)
+ 128 words of extra memory for PDF output out of 10000 (max. 10000000)
 

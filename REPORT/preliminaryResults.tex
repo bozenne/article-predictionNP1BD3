@@ -1,4 +1,4 @@
-% Created 2021-12-02 to 18:56
+% Created 2021-12-09 to 17:32
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -191,7 +191,7 @@ linkcolor=[rgb]{0,0,0.5},
 \maketitle
 
 \section{Data}
-\label{sec:org6ea3379}
+\label{sec:orga85803e}
 
 The data (n=98) we use has been provided by Emily Beaman. She processed
 relevant data from the CIMBI database. In addition we compute:
@@ -219,7 +219,7 @@ The corresponding R code is in the file \texttt{0-data-management.R} available o
 \clearpage
 
 \section{Data analysis}
-\label{sec:orgc849712}
+\label{sec:org5175886}
 
 After discussion with neuroscientist, we have identified 10 candidate
 biomarkers\footnote{fMRI is missing in the list} for predicting recovery after SSRI treatment:
@@ -252,15 +252,22 @@ recovery we fitted a logistic regression with gender and age vs. a
 logistic regression with gender and age plus all biomarkers (as
 additive effects). A likelihood ratio test was used to compare the two
 models, i.e. assess the assocation over all biomarkers. Wald tests
-were used to test the association for each biomarker. \newline This
-was performed 4 times: using week 8 or week 12 as the outcome, using
-complete case analysis (excluding CATS, CAR, and neuroticism as
-biomarkers) or using multiple imputation (MI) to handle missing
-values. MI was performed using linear regression for continuous
-variables, logistic regression for binary variables, and a a
-proportional odds model for categorical variables based on all
-variables (outcome, age, gender, biomarkers) as suggested in
-\cite{moons2006using}.
+were used to test the association for each biomarker. P-value were
+adjusted for multiple comparison (i.e. FWER control) using a max-test
+adjustment. \newline This procedure was performed 4 times: using week
+8 or week 12 as the outcome, using complete case analysis (excluding
+CATS, CAR, and neuroticism as biomarkers) or using multiple imputation
+(MI) to handle missing values. When using MI, the original data was
+cloned 100 times. In each clone, missing values were imputed using
+Fully Conditional Specification (FCS) implemented by the MICE
+algorithm \citep{van2011mice}. This algorithm alternates between
+learning the relationship between variables, using a linear regression
+for continuous variables, logistic regression for binary variables,
+and a a proportional odds model for categorical variables with all
+variables (outcome, age, gender, biomarkers) as predictors (as
+suggested in \cite{moons2006using}), and impute by sampling from the
+resulting distributions (rougthly speaking, a noisy version of the
+best prediction).
 
 \clearpage
 
@@ -272,16 +279,15 @@ variables (outcome, age, gender, biomarkers) as suggested in
  than 0.5, and whether it was greater than a model with only age and
  gender. We also compared the performance with a random forest
  (default hyperparameters: mtry = 3, 500 trees, node size 1). The AUC
- was estimated via cross-validation (100 repetitions, test set of
- approximately 10\%). An AUC was computed for each fold and then
- averaged acrossed folds \citep{ledell2015computationally}. The p-value
- was computed via a permutation test (2500 repetitions). \newline
- Calibration plot were also computed using the local polynomial
- regression fitting (loess). \newline Missing value was handled either
- using complete case analysis (excluding CATS, CAR, and neuroticism as
- biomarkers) or predicting the recovery probability for a given
- subject based on a logistic model containing all biomarkers for which
- the subject has available data.
+ was estimated via 10 fold cross-validation repeted 100 times. An AUC
+ was computed over all folds of a given repetition and then averaged
+ acrossed repetions. The p-value was computed via a permutation test
+ (100 repetitions). \newline Calibration plot were also computed using
+ the local polynomial regression fitting (loess). \newline Missing
+ value was handled either using complete case analysis (excluding
+ CATS, CAR, and neuroticism as biomarkers) or predicting the recovery
+ probability for a given subject based on a logistic model containing
+ all biomarkers for which the subject has available data.
 
 \bigskip
 
@@ -291,10 +297,10 @@ The corresponding R code is in the file \texttt{1-prediction.R} available on
 \clearpage
 
 \section{Results}
-\label{sec:orgab9a0b6}
+\label{sec:org3aa9c7f}
 
 \subsection{Descriptive statistics}
-\label{sec:orgd70b583}
+\label{sec:org47b4198}
 
 The dataset contained 85 patients, 84 with the outcome at week 8 and
 81 with the outcome at week 12. Some summary statistics are displayed
@@ -337,13 +343,13 @@ were excluded from some analyses.
 
 \begin{figure}[!h]
 \centering
-\includegraphics[trim={0 0 0 0},width=1\textwidth]{./figures/gg-missingPattern.pdf}
+\includegraphics[trim={0 0 0 0},width=0.9\textwidth]{./figures/gg-missingPattern.pdf}
 \caption{\label{fig:missingPattern}Missing data patterns}
 \end{figure}
 
 
 \subsection{Association study (week 8)}
-\label{sec:org9440ff5}
+\label{sec:orga1dfee0}
 
 \textbf{Complete case}: excluding CATS, CAR, and neuroticism, we fitted two
 logistic regressions (one with and one without the biomarkers) on the
@@ -406,8 +412,10 @@ summary(pool(e.glm_impw8))[,c(1,2,3,5:6)]
 13        neuroticism  0.0351547075 0.0211703226 68.99083 0.101339384
 \end{verbatim}
 
+\bigskip
+
 \subsection{Association study (week 12)}
-\label{sec:org90e18de}
+\label{sec:org4429a7f}
 
 \textbf{Complete case}: excluding CATS, CAR, and neuroticism, we fitted two
 logistic regressions (one with and one without the biomarkers) on the
@@ -472,26 +480,26 @@ summary(pool(e.glm_impw12))[,c(1,2,3,5:6)]
 \end{verbatim}
 
 \subsection{Predictive value (week 8)}
-\label{sec:orgf5ae7a9}
+\label{sec:org68ddcb4}
 
 \textbf{Complete case}: excluding CATS, CAR, and neuroticism, we assessed the
 predictive performance of two logistic regressions (one with
 \texttt{glm\_ccw8} and one without the biomarkers \texttt{glm0\_ccw8}) as well as a
 random forest model (\texttt{rf\_ccw8}) on the 75 patients with complete data:
 \begin{verbatim}
-      method metric     model  estimate
- 1: internal    auc glm0_ccw8 0.6276901
- 2: internal    auc  glm_ccw8 0.8113343
- 3: internal    auc   rf_ccw8 1.0000000
- 4: internal  brier glm0_ccw8 0.2387024
- 5: internal  brier  glm_ccw8 0.1748545
- 6: internal  brier   rf_ccw8 0.0000000
- 7:       cv    auc glm0_ccw8 0.6058810
- 8:       cv    auc  glm_ccw8 0.7187083
- 9:       cv    auc   rf_ccw8 0.5611190
-10:       cv  brier glm0_ccw8 0.2565422
-11:       cv  brier  glm_ccw8 0.2298009
-12:       cv  brier   rf_ccw8 0.4425000
+     method metric     model   estimate
+1  internal    auc glm0_ccw8 0.62769010
+2  internal    auc  glm_ccw8 0.81133429
+3  internal    auc   rf_ccw8 1.00000000
+4  internal  brier glm0_ccw8 0.23870239
+5  internal  brier  glm_ccw8 0.17485453
+6  internal  brier   rf_ccw8 0.09276568
+7        cv    auc glm0_ccw8 0.52305595
+8        cv    auc  glm_ccw8 0.67530846
+9        cv    auc   rf_ccw8 0.55341822
+10       cv  brier glm0_ccw8 0.25887838
+11       cv  brier  glm_ccw8 0.23932881
+12       cv  brier   rf_ccw8 0.25372824
 \end{verbatim}
 
 After cross-validation, we observe that both the AUC and brier score
@@ -502,13 +510,14 @@ model with biomarker has a higher AUC (i.e., better discrimination)
 and lower brier score (i.e., smaller discrepancy between prediction
 and observed outcome) compared to the logistic model without
 biomarkers. The permutation test confirmed that the logistic model
-with biomarkers was informative (p=0.003388554 for the AUC and
-p=0.003012048 for the brier score) while there was no clear evidence
-with the logistic model without covariates (p=0.1216114 for the AUC
-and p=0.8189006 for the brier score). This difference between the
-predictions from the two models (after cross validation) is
-illustrated in \autoref{:fig:perfW8}, as well as the calibration of the
-model with biomarkers.
+with biomarkers was informative (p=0.02 for the AUC and p=0.01 for the
+brier score \Warning \textcolor{red}{to re-run with more
+permutations}) while there was no clear evidence with the logistic
+model without covariates (p=0.11 for the AUC and p=0.27 for the brier
+score). This difference between the predictions from the models (after
+cross validation) is illustrated in \autoref{fig:predW8}, as well as
+the corresponding ROC \autoref{fig:rocW8} and calibration curves
+\autoref{fig:caliW8}.
 
 \bigskip
 
@@ -520,10 +529,23 @@ supporting that the proposed cross-validation procedure is unbiased
 
 \begin{figure}[!h]
 \centering
-\includegraphics[trim={0 0 0 0},width=1\textwidth]{./figures/gg-perfW8-densCali.pdf}
-\caption{\label{fig:perfW8}Distribution of the predicted probability of recovery according to the actual recovery for the logistic model without biomarkers (left) and with biomarkers (right). Calibration curve for the latter model: discrepancy of the smoother (in blue) from the identity line (in red) reflect poor calibration.}
+\includegraphics[trim={0 0 0 0},width=1\textwidth]{./figures/gg-perfW8-hist2.pdf}
+\caption{\label{fig:predW8}Distribution of the predicted probability of recovery according to the actual recovery for the various predictive models for week 8.}
 \end{figure}
 
+\begin{figure}[!h]
+\centering
+\includegraphics[trim={0 0 0 0},width=1\textwidth]{./figures/gg-perfW8-roc.pdf}
+\caption{\label{fig:rocW8}Roc curve associated to the cross-validated predictions for the various models (thick lines) for week 8. It is obtained by applying a smoother (lowess) on the 100 ROC curve obtain for each model and each of the 100 repetitions of the 10 fold cross validations (thin lines).}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[!h]
+\centering
+\includegraphics[trim={0 0 0 0},width=1\textwidth]{./figures/gg-perfW8-cali.pdf}
+\caption{\label{fig:caliW8}Calibration curve associated to the cross-validated predictions for the various models (thick lines) for week 8.}
+\end{figure}
 
 \bigskip
 
@@ -552,33 +574,72 @@ calibration.
 \clearpage
 
 \subsection{Predictive value (week 12)}
-\label{sec:orgec70e35}
+\label{sec:org0464d4e}
 
 \textbf{Complete case}: excluding CATS, CAR, and neuroticism, we assessed the
 predictive performance of two logistic regressions (one with
 \texttt{glm\_ccw12} and one without the biomarkers \texttt{glm0\_ccw12}) as well as a
 random forest model (\texttt{rf\_ccw12}) on the 72 patients with complete data:
 \begin{verbatim}
-      method metric      model  estimate
- 1: internal    auc glm0_ccw12 0.6603774
- 2: internal    auc  glm_ccw12 0.7944389
- 3: internal    auc   rf_ccw12 0.0000000
- 4: internal  brier glm0_ccw12 0.1816008
- 5: internal  brier  glm_ccw12 0.1493762
- 6: internal  brier   rf_ccw12 0.6554699
- 7:       cv    auc glm0_ccw12 0.6200357
- 8:       cv    auc  glm_ccw12 0.6058274
- 9:       cv    auc   rf_ccw12 0.2321845
-10:       cv  brier glm0_ccw12 0.2116598
-11:       cv  brier  glm_ccw12 0.2404126
-12:       cv  brier   rf_ccw12 0.4660306
+     method metric      model   estimate
+1  internal    auc glm0_ccw12 0.66037736
+2  internal    auc  glm_ccw12 0.79443893
+3  internal    auc   rf_ccw12 1.00000000
+4  internal  brier glm0_ccw12 0.18160078
+5  internal  brier  glm_ccw12 0.14937617
+6  internal  brier   rf_ccw12 0.05981177
+7        cv    auc glm0_ccw12 0.57554121
+8        cv    auc  glm_ccw12 0.60582920
+9        cv    auc   rf_ccw12 0.76768620
+10       cv  brier glm0_ccw12 0.19544784
+11       cv  brier  glm_ccw12 0.21388319
+12       cv  brier   rf_ccw12 0.16378866
 \end{verbatim}
 
-Random forests still seems to underperform but, compared to week 8,
-adding the biomarkers do not seems to greatly improve the AUC and lead
-to a worse Brier score.
+After cross-validation, we observe that both the AUC and brier score
+of the logistic regression with biomarkers are similar to the logistic
+regression without biomarkers. This time it the random forest approach
+that shows a higher AUC (i.e., better discrimination) and lower brier
+score (i.e., smaller discrepancy between prediction and observed
+outcome) compared to the logistic model without biomarkers. The
+permutation test confirmed that the logistic model with biomarkers was
+informative (p=0.01 for the AUC and p=0.01 for the brier score
+\Warning \textcolor{red}{to re-run with more permutations}) while
+there was no clear evidence for the other logistic models (p>0.1 for
+the AUC and brier score). This difference between the predictions from
+the models (after cross validation) is illustrated in
+\autoref{fig:predW12}, as well as the corresponding ROC
+\autoref{fig:rocW12} and calibration curves \autoref{fig:caliW12}.
 
 \bigskip
+
+Note that the average AUC estimated by the permutation test was 0.5,
+supporting that the proposed cross-validation procedure is unbiased
+(under the null).
+
+\clearpage
+
+\begin{figure}[!h]
+\centering
+\includegraphics[trim={0 0 0 0},width=1\textwidth]{./figures/gg-perfW12-hist2.pdf}
+\caption{\label{fig:predW12}Distribution of the predicted probability of recovery according to the actual recovery for the various predictive models for week 12.}
+\end{figure}
+
+\begin{figure}[!h]
+\centering
+\includegraphics[trim={0 0 0 0},width=1\textwidth]{./figures/gg-perfW12-roc.pdf}
+\caption{\label{fig:rocW12}Roc curve associated to the cross-validated predictions for the various models (thick lines) for week 12. It is obtained by applying a smoother (lowess) on the 100 ROC curve obtain for each model and each of the 100 repetitions of the 10 fold cross validations (thin lines).}
+\end{figure}
+
+
+\clearpage
+
+\begin{figure}[!h]
+\centering
+\includegraphics[trim={0 0 0 0},width=1\textwidth]{./figures/gg-perfW12-cali.pdf}
+\caption{\label{fig:caliW12}Calibration curve associated to the cross-validated predictions for the various models (thick lines) for week 12.}
+\end{figure}
+
 
 \textbf{Full data}: as a sensitivity analysis, we now used all patients and
 all biomarkers and modified the cross-validation procedure to handle
@@ -601,7 +662,7 @@ worse performances when adding the biomarkers.
 \clearpage
 
 \section{Conclusion}
-\label{sec:org2387613}
+\label{sec:orgcd6bdc4}
 
 There is evidence that some biomarkers (EEG, to a lesser extend
 cognition) are predictive of recovery at week 8. The corresponding
@@ -626,7 +687,7 @@ Generally the results where robust to how missing data were handled
 
 
 \section{References}
-\label{sec:org27e8ebd}
+\label{sec:org2d2c201}
 \begingroup
 \renewcommand{\section}[2]{}
 \bibliographystyle{apalike}

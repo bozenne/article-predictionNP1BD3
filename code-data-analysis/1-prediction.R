@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  1 2021 (13:12) 
 ## Version: 
-## Last-Updated: dec  2 2021 (18:44) 
+## Last-Updated: dec  9 2021 (17:30) 
 ##           By: Brice Ozenne
-##     Update #: 34
+##     Update #: 52
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -115,8 +115,12 @@ anova(e.glm_ccw8,e.glm0_ccw8, test = "Chisq")
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 
-e.ranger_ccw8 <- ranger(ff_ccw8, data = dfWR.NP1_ccw8, importance = "permutation")
-importance_pvalues(e.ranger_ccw8, method = "altmann", 
+## table(EEG = dfWR.NP1_ccw8$EEG_vigilance, recovery = dfWR.NP1_ccw8$Y_w8, cluster3 = dfWR.NP1_ccw8$cognitive_cluster3)
+
+e.ranger_ccw8 <- ranger(ff_ccw8, data = dfWR.NP1_ccw8, probability = TRUE)
+e.rangerPerm_ccw8 <- ranger(ff_ccw8, data = dfWR.NP1_ccw8, importance = "permutation")
+
+importance_pvalues(e.ranger_ccw8Perm, method = "altmann", 
                    formula = ff_ccw8, data = dfWR.NP1_ccw8)
 ##                     importance    pvalue
 ## sex               -0.006133188 0.8613861
@@ -162,8 +166,10 @@ anova(e.glm_ccw12,e.glm0_ccw12, test = "Chisq")
 ## 2        69     76.256 -7   -11.88   0.1046
 ## ---
 
-e.ranger_ccw12 <- ranger(ff_ccw12, data = dfWR.NP1_ccw12, importance = "permutation")
-importance_pvalues(e.ranger_ccw12, method = "altmann", 
+e.ranger_ccw12 <- ranger(ff_ccw12, data = dfWR.NP1_ccw12, probability = TRUE)
+e.rangerPerm_ccw12 <- ranger(ff_ccw12, data = dfWR.NP1_ccw12, importance = "permutation")
+
+importance_pvalues(e.rangerPerm_ccw12, method = "altmann", 
                    formula = ff_ccw12, data = dfWR.NP1_ccw12)
 ##                     importance     pvalue
 ## sex               -0.001959833 0.66336634
@@ -274,87 +280,133 @@ summary(pool(e.glm_impw12))
 
 ## * Prediction: complete data
 ## ** week 8
+## *** assess performance
 set.seed(10)
-ePerf.ccw8 <- as.data.table(performance(list(glm0_ccw8 = e.glm0_ccw8, glm_ccw8 = e.glm_ccw8, rf_ccw8 = ranger(ff_ccw8, data = dfWR.NP1_ccw8, probability = TRUE)),
-                                        data = dfWR.NP1_ccw8, fold.number = 100, fold.size = 8))
+ePerf.ccw8 <- performance(list(glm0_ccw8 = e.glm0_ccw8, glm_ccw8 = e.glm_ccw8, rf_ccw8 = e.ranger_ccw8),
+                          data = dfWR.NP1_ccw8, fold.number = 100, fold.size = 0.1)
 ePerf.ccw8
-##       method metric     model   estimate          se      lower     upper      p.value p.value_comp
-##  1: internal    auc glm0_ccw8 0.62769010 0.065372873 0.48583237 0.7404929 0.0753593107           NA
-##  2: internal    auc  glm_ccw8 0.81133429 0.052319172 0.68202876 0.8920563 0.0001019312 1.130793e-02
-##  3: internal    auc   rf_ccw8 1.00000000 0.000000000 1.00000000 1.0000000 0.0000000000 2.801347e-04
-##  4: internal  brier glm0_ccw8 0.23870239 0.009886525 0.22009079 0.2588878           NA           NA
-##  5: internal  brier  glm_ccw8 0.17485453 0.020745065 0.13857624 0.2206302           NA 7.973921e-04
-##  6: internal  brier   rf_ccw8 0.09426488 0.006777196 0.08187524 0.1085294           NA 1.747974e-05
-##  7:       cv    auc glm0_ccw8 0.60504762 0.051618437 0.49616688 0.6975264 0.0581009344           NA
-##  8:       cv    auc  glm_ccw8 0.72050000 0.048066159 0.61355669 0.8025301 0.0002337026 6.427393e-02
-##  9:       cv    auc   rf_ccw8 0.58383929 0.041934280 0.49706539 0.6608275 0.0578800366 5.176730e-03
-## 10:       cv  brier glm0_ccw8 0.25654546 0.023120518 0.21500667 0.3061095           NA           NA
-## 11:       cv  brier  glm_ccw8 0.22957101 0.059417334 0.13823243 0.3812626           NA 5.532493e-01
-## 12:       cv  brier   rf_ccw8 0.25217593 0.014991855 0.22443972 0.2833398           NA 6.791321e-01
+##      method metric     model   estimate          se      lower     upper      p.value p.value_comp
+## 1  internal    auc glm0_ccw8 0.62769010 0.065372873 0.48583237 0.7404929 0.0753593107           NA
+## 2  internal    auc  glm_ccw8 0.81133429 0.052319172 0.68202876 0.8920563 0.0001019312 1.130793e-02
+## 3  internal    auc   rf_ccw8 1.00000000 0.000000000 1.00000000 1.0000000 0.0000000000 2.801347e-04
+## 4  internal  brier glm0_ccw8 0.23870239 0.009886525 0.22009079 0.2588878           NA           NA
+## 5  internal  brier  glm_ccw8 0.17485453 0.021244163 0.13780314 0.2218680           NA 1.016948e-03
+## 6  internal  brier   rf_ccw8 0.09426488 0.006777196 0.08187524 0.1085294           NA 2.532701e-05
+## 7        cv    auc glm0_ccw8 0.52333572 0.062966746 0.39375920 0.6377029 0.7140942014           NA
+## 8        cv    auc  glm_ccw8 0.67472740 0.060196096 0.54138807 0.7770317 0.0125103596 5.671532e-02
+## 9        cv    auc   rf_ccw8 0.55047346 0.050755558 0.44573656 0.6433601 0.3335094385 2.656139e-02
+## 10       cv  brier glm0_ccw8 0.25887419 0.014290417 0.23232748 0.2884542           NA           NA
+## 11       cv  brier  glm_ccw8 0.23957752 0.029954201 0.18750851 0.3061055           NA 4.651872e-01
+## 12       cv  brier   rf_ccw8 0.25586413 0.012963184 0.23167750 0.2825758           NA 5.361605e-01
 
-dt.CVpred_ccw8 <- as.data.table(cbind(do.call(rbind,lapply(apply(attr(attr(ePerf.ccw8,"predictions")$cv,"index"),3,list),"[[",1)),
-                                 do.call(rbind,lapply(apply(attr(ePerf.ccw8,"predictions")$cv,3,list),"[[",1))))
-dt.CVpred_ccw8$Y <- dfWR.NP1_ccw8$Y_w8[dt.CVpred_ccw8$observation]
+## *** DENSITY PLOT
+dt.CVpred_ccw8 <- as.data.table(ePerf.ccw8, type = "prediction-cv", format = "long")
+dt.CVpred_ccw8$model.lab <- factor(dt.CVpred_ccw8$model, levels = c("glm0_ccw8","glm_ccw8","rf_ccw8"),
+                                   labels = c("logistic model \n no biomarkers", "logistic model \n biomarkers", "random forest \n biomarkers"))
+## SANITY CHECK
+## with(dt.CVpred_ccw8[model=="glm_ccw8"], auc(outcome, prediction, fold, observation))
 
-ggplot(dt.CVpred_ccw8,aes(x=glm0_ccw8, fill = Y, group = Y)) + geom_density(alpha = 0.5, adjust = 0.4) + geom_rug()
-ggplot(dt.CVpred_ccw8,aes(x=glm_ccw8, fill = Y, group = Y)) + geom_density(alpha = 0.5, adjust = 0.4) + geom_rug()
-ggplot(dt.CVpred_ccw8,aes(x=rf_ccw8, fill = Y, group = Y)) + geom_density(alpha = 0.5, adjust = 0.4) + geom_rug()
+ggHist_w8 <- ggplot(dt.CVpred_ccw8,aes(x=prediction, fill = as.factor(outcome)))
+ggHist_w8 <- ggHist_w8 + geom_histogram(alpha = 0.5) + labs(x = "Predicted probability of recovery", y = "number of CV predictions", fill = "Observed \n recovery")
+ggHist_w8 <- ggHist_w8 + facet_wrap(~model.lab)
 
-ggplot(dt.CVpred_ccw8,aes(x=glm0_ccw8, y = as.numeric(Y))) + geom_smooth() + geom_rug() + geom_abline(slope = 1, intercept = 0, color = "red")
-ggplot(dt.CVpred_ccw8,aes(x=glm_ccw8, y = as.numeric(Y))) + geom_smooth() + geom_rug() + geom_abline(slope = 1, intercept = 0, color = "red")
-ggplot(dt.CVpred_ccw8,aes(x=rf_ccw8, y = as.numeric(Y))) + geom_smooth() + geom_rug() + geom_abline(slope = 1, intercept = 0, color = "red")
+mybreaks <- seq(0,1,length.out=20)
+dt.hist_ccw8 <- dt.CVpred_ccw8[,.(ls.outcome = list(rep(.SD$outcome[1],length(hist(.SD$prediction, plot = FALSE, breaks = mybreaks)$mids))),
+                                  ls.model = list(rep(.SD$model.lab[1],length(hist(.SD$prediction, plot = FALSE, breaks = mybreaks)$mids))),
+                                  ls.pc = list(hist(.SD$prediction, plot = FALSE, breaks = mybreaks)$counts/sum(hist(.SD$prediction, plot = FALSE, breaks = mybreaks)$counts)),
+                                  ls.breaks = list(hist(.SD$prediction, plot = FALSE, breaks = mybreaks)$mids)),
+                               by = c("outcome","model.lab"), .SDcols = c("prediction","outcome","model.lab")]
+dt.hist_ccw8[,c("outcome","model.lab") := NULL]
+dt.hist_ccw8 <- as.data.table(lapply(dt.hist_ccw8,unlist))
 
-## repeated with permuted endpoint to get ok p-values
-n.perm <- 5000
+ggHist2_w8 <- ggplot(dt.hist_ccw8, aes(x=ls.breaks,y=ls.pc,fill=as.character(ls.outcome)))
+ggHist2_w8 <- ggHist2_w8 + geom_col(position = "dodge") + labs(x = "Predicted probability of recovery", y = "proportion of CV predictions", fill = "Observed \n recovery")
+ggHist2_w8 <- ggHist2_w8 + facet_wrap(~ls.model)
+ggHist2_w8
+
+ggDens_w8 <- ggplot(dt.CVpred_ccw8,aes(x=prediction, fill = as.factor(outcome)))
+ggDens_w8 <- ggDens_w8 + geom_density(alpha = 0.25, adjust = 0.75) + labs(x = "Predicted probability of recovery", y = "Density of CV predictions", fill = "Observed \n recovery")
+ggDens_w8 <- ggDens_w8 + facet_wrap(~model.lab)
+
+
+## *** CALIBRATION PLOT
+ggCali_w8 <- ggplot(dt.CVpred_ccw8,aes(x=prediction, y = outcome))
+ggCali_w8 <- ggCali_w8 + geom_smooth() + geom_rug() + geom_abline(slope = 1, intercept = 0, color = "red")
+ggCali_w8 <- ggCali_w8 + facet_wrap(~model.lab)
+
+## *** ROC CURVES
+dt.CVroc_ccw8 <- as.data.table(ePerf.ccw8, type = "roc-cv")                                                      
+dt.CVroc_ccw8$model.lab <- factor(dt.CVroc_ccw8$model, levels = c("glm0_ccw8","glm_ccw8","rf_ccw8"),
+                                   labels = c("logistic model - no biomarkers", "logistic model - biomarkers", "random forest - biomarkers"))
+## SANITY CHECK
+## ggroc(roc(outcome ~ prediction, data = dt.CVpred_ccw8[fold == 3 & model == "glm_ccw8"]))
+## ggplot(dt.CVroc_ccw8[fold==3 & model == "glm_ccw8"], aes(x=1-sp,y=se)) + geom_step() + geom_abline(slope=1,intercept=0,color = "black")
+
+ggROC_w8 <- ggplot(dt.CVroc_ccw8,aes(x=1-sp,color=model.lab))
+ggROC_w8 <- ggROC_w8 + geom_step(aes(y=se,group=interaction(fold,model.lab)),alpha=0.1, size = 1) + geom_abline(slope=1,intercept=0,color = "black")
+ggROC_w8 <- ggROC_w8 + geom_smooth(aes(y=se,group=model.lab), se = FALSE, size = 3)
+ggROC_w8 <- ggROC_w8 + labs(x="1-specificity", y="sensitivity")
+
+
+## *** permutation test
+n.perm <- 100
 ls.resperm <- vector(mode = "list", length = n.perm)
-for(iPerm in 1:n.perm){
-    cat(iPerm," ")
+
+warper_w8 <- function(i, trace = FALSE, fold.number){
     iData <- copy(dfWR.NP1_ccw8)
     iData$Y_w8 <- sample(iData$Y_w8)
     iEPerf <- suppressWarnings(performance(list(glm0_ccw8 = e.glm0_ccw8, glm_ccw8 = e.glm_ccw8, rf_ccw8 = e.ranger_ccw8),
-                                           data = iData, fold.number = 100, fold.size = 8, trace = FALSE))
-    ls.resperm[[iPerm]] <- cbind(perm = iPerm, iEPerf)
+                                           data = iData, fold.number = fold.number, fold.size = 0.1, trace = trace))
+    return(cbind(perm = i, as.data.table(iEPerf, type = "metric")))
 }
-dt.resperm <- as.data.table(do.call(rbind, ls.resperm))
+## warper_w8(1, fold.number = 10)
 
-dt.resperm[metric == "auc",.(estimate = mean(estimate), type1error = mean(p.value<=0.05)), by = c("method","model")]
-##      method     model  estimate type1error
-## 1: internal glm0_ccw8 0.5001299 0.05045181
-## 2: internal  glm_ccw8 0.5005380 0.05233434
-## 3: internal   rf_ccw8 0.5005083 0.06137048
-## 4:       cv glm0_ccw8 0.4994576 0.29066265
-## 5:       cv  glm_ccw8 0.4992033 0.27334337
-## 6:       cv   rf_ccw8 0.5002419 0.25753012
+cpus <- 7
 
-betahat <- ePerf.ccw8[method == "cv" & metric == "auc" & model == "glm_ccw8",estimate]
-betahat.perm <- dt.resperm[method == "cv" & metric == "auc" & model == "glm_ccw8",estimate]
-mean(betahat<=betahat.perm)
-## [1] 0.003388554
+cl <- snow::makeSOCKcluster(cpus)
+doSNOW::registerDoSNOW(cl)
 
-betahat <- ePerf.ccw8[method == "cv" & metric == "brier" & model == "glm_ccw8",estimate]
+pb <- txtProgressBar(max = n.perm, style=3)
+opts <- list(progress = function(n) setTxtProgressBar(pb, n))
+
+parallel::clusterExport(cl, varlist = c("ff_ccw8","warper_w8"))
+
+ls.perm_w8 <- foreach::`%dopar%`(
+                           foreach::foreach(i=1:n.perm, .options.snow=opts, .packages = c("BuyseTest","data.table","ranger")), {
+                               warper_w8(i, fold.number = 10)
+                           })
+
+
+dt.resperm_w8 <- as.data.table(do.call(rbind, ls.perm_w8))
+
+dt.resperm_w8[metric == "auc",.(estimate = mean(estimate), sd = sd(estimate), type1error = mean(p.value<=0.05)), by = c("method","model")]
+##      method     model  estimate         sd type1error
+## 1: internal glm0_ccw8 0.5017719 0.06581663       0.04
+## 2: internal  glm_ccw8 0.4985725 0.06846851       0.06
+## 3: internal   rf_ccw8 0.5060115 0.06844682       0.06
+## 4:       cv glm0_ccw8 0.4027030 0.09982635       0.46
+## 5:       cv  glm_ccw8 0.4730674 0.10588802       0.28
+## 6:       cv   rf_ccw8 0.4713885 0.09941016       0.29
+
+dtPerfCV.ccw8 <- as.data.table(ePerf.ccw8)[method=="cv"]
+dtPerfCV.ccw8[,perm := list(list(dt.resperm_w8[method == "cv" & metric == .SD$metric[1] & model == .SD$model[1],estimate])),by = c("metric","model"),.SDcols = c("metric","model")]
+
+dtPerfCV.ccw8[metric == "auc", .(p.value = mean(estimate <= perm[[1]])), by = "model"]
+##        model p.value
+## 1: glm0_ccw8    0.11
+## 2:  glm_ccw8    0.02
+## 3:   rf_ccw8    0.23
+dtPerfCV.ccw8[metric == "brier", .(p.value = mean(estimate >= perm[[1]])), by = "model"]
+##        model p.value
+## 1: glm0_ccw8    0.27
+## 2:  glm_ccw8    0.01
+## 3:   rf_ccw8    0.19
+
+betahat <- as.data.table(ePerf.ccw8)[method == "cv" & metric == "brier" & model == "glm_ccw8",estimate]
 betahat.perm <- dt.resperm[method == "cv" & metric == "brier" & model == "glm_ccw8",estimate]
 mean(betahat>=betahat.perm)
- ## [1] 0.003012048
+## [1] 0.02
 
-betahat <- ePerf.ccw8[method == "cv" & metric == "auc" & model == "glm0_ccw8",estimate]
-betahat.perm <- dt.resperm[method == "cv" & metric == "auc" & model == "glm0_ccw8",estimate]
-mean(betahat<=betahat.perm)
-## [1] 0.1216114
-
-betahat <- ePerf.ccw8[method == "cv" & metric == "brier" & model == "glm0_ccw8",estimate]
-betahat.perm <- dt.resperm[method == "cv" & metric == "brier" & model == "glm0_ccw8",estimate]
-mean(betahat<=betahat.perm)
-## [1] 0.8189006
-
-## betahat <- ePerf.ccw8[method == "cv" & metric == "auc" & model %in% c("glm0_ccw8","glm_ccw8"),diff(estimate)]
-## betahat.perm <- dt.resperm[method == "cv" & metric == "auc" & model %in% c("glm0_ccw8","glm_ccw8"),diff(estimate),by = "perm"][[2]]
-## mean(betahat<=betahat.perm)
-## ## [1] 0.1393072
-
-## betahat <- ePerf.ccw8[method == "cv" & metric == "brier" & model %in% c("glm0_ccw8","glm_ccw8"),diff(estimate)]
-## betahat.perm <- dt.resperm[method == "cv" & metric == "brier" & model %in% c("glm0_ccw8","glm_ccw8"),diff(estimate),by = "perm"][[2]]
-## mean(betahat>=betahat.perm)
-## ## [1] 0.004141566
 
 ## saveRDS(list(estimate = ePerf.ccw8,
 ##             perm = dt.resperm),
@@ -367,34 +419,138 @@ mean(betahat<=betahat.perm)
 ##                           data = dfWR.NP1_ccw8, fold.number = 100, fold.size = 8, individual.fit = TRUE))
 
 ## ** week 12
+## performance(list(glm0_ccw12 = e.glm0_ccw12, glm_ccw12 = e.glm_ccw12, rf_ccw12 = ranger(ff_ccw12, data = dfWR.NP1_ccw12, probability = FALSE)),
+##                           data = dfWR.NP1_ccw12)
 set.seed(10)
-ePerf.ccw12 <- as.data.table(performance(list(glm0_ccw12 = e.glm0_ccw12, glm_ccw12 = e.glm_ccw12, rf_ccw12 = ranger(ff_ccw12, data = dfWR.NP1_ccw12, probability = TRUE)),
-                                        data = dfWR.NP1_ccw12, fold.number = 100, fold.size = 8))
+ePerf.ccw12 <- performance(list(glm0_ccw12 = e.glm0_ccw12, glm_ccw12 = e.glm_ccw12, rf_ccw12 = ranger(ff_ccw12, data = dfWR.NP1_ccw12, probability = TRUE)),
+                          data = dfWR.NP1_ccw12, fold.number = 100, fold.size = 0.1)
 ePerf.ccw12
-##      method metric      model  estimate         se     lower     upper      p.value p.value_comp
-##  1: internal    auc glm0_ccw12 0.6603774 0.06489009 0.5168380 0.7703840 3.025560e-02           NA
-##  2: internal    auc  glm_ccw12 0.7944389 0.05642037 0.6561561 0.8818996 3.531358e-04 4.727703e-02
-##  3: internal    auc   rf_ccw12 0.0000000 0.00000000 0.0000000 0.0000000 0.000000e+00 0.000000e+00
-##  4: internal  brier glm0_ccw12 0.1816008 0.01908824 0.1477907 0.2231456           NA           NA
-##  5: internal  brier  glm_ccw12 0.1493762 0.02147420 0.1126972 0.1979928           NA 4.420267e-02
-##  6: internal  brier   rf_ccw12 0.6554699 0.02475623 0.6087010 0.7058323           NA 0.000000e+00
-##  7:       cv    auc glm0_ccw12 0.6200357 0.05189989 0.5098140 0.7124024 3.380535e-02           NA
-##  8:       cv    auc  glm_ccw12 0.6058274 0.04587958 0.5097117 0.6888767 3.185505e-02 7.783598e-01
-##  9:       cv    auc   rf_ccw12 0.2321845 0.03926630 0.1600416 0.3123321 1.246880e-10 8.623630e-08
-## 10:       cv  brier glm0_ccw12 0.2116598 0.02880101 0.1621114 0.2763524           NA           NA
-## 11:       cv  brier  glm_ccw12 0.2404126 0.04349642 0.1686376 0.3427363           NA 2.905956e-01
-## 12:       cv  brier   rf_ccw12 0.4660306 0.03430842 0.4034134 0.5383671           NA 9.047755e-04
-dt.CVpred_ccw12 <- as.data.table(cbind(do.call(rbind,lapply(apply(attr(attr(ePerf.ccw12,"predictions")$cv,"index"),3,list),"[[",1)),
-                                 do.call(rbind,lapply(apply(attr(ePerf.ccw12,"predictions")$cv,3,list),"[[",1))))
-dt.CVpred_ccw12$Y <- dfWR.NP1_ccw12$Y_w12[dt.CVpred_ccw12$observation]
+##      method metric      model   estimate          se      lower      upper      p.value p.value_comp
+## 1  internal    auc glm0_ccw12 0.66037736 0.064890095 0.51683800 0.77038402 0.0302556016           NA
+## 2  internal    auc  glm_ccw12 0.79443893 0.056420373 0.65615610 0.88189965 0.0003531358 4.727703e-02
+## 3  internal    auc   rf_ccw12 1.00000000 0.000000000 1.00000000 1.00000000 0.0000000000 2.312484e-04
+## 4  internal  brier glm0_ccw12 0.18160078 0.019088243 0.14779068 0.22314562           NA           NA
+## 5  internal  brier  glm_ccw12 0.14937617 0.021474198 0.11269724 0.19799279           NA 4.420267e-02
+## 6  internal  brier   rf_ccw12 0.05981177 0.008366624 0.04546931 0.07867829           NA 7.978087e-08
+## 7        cv    auc glm0_ccw12 0.57554121 0.065379483 0.43751627 0.69128809 0.2698480466           NA
+## 8        cv    auc  glm_ccw12 0.60582920 0.069408323 0.45637198 0.72602365 0.1559872593 6.387422e-01
+## 9        cv    auc   rf_ccw12 0.76768620 0.053208545 0.64277968 0.85372398 0.0002363900 1.115376e-02
+## 10       cv  brier glm0_ccw12 0.19544784 0.024274226 0.15321926 0.24931499           NA           NA
+## 11       cv  brier  glm_ccw12 0.21388319 0.032330959 0.15904042 0.28763767           NA 3.795072e-01
+## 12       cv  brier   rf_ccw12 0.16378866 0.021343825 0.12687061 0.21144949           NA 1.539530e-02
 
-ggplot(dt.CVpred_ccw12,aes(x=glm0_ccw12, fill = Y, group = Y)) + geom_density(alpha = 0.5, adjust = 0.4) + geom_rug()
-ggplot(dt.CVpred_ccw12,aes(x=glm_ccw12, fill = Y, group = Y)) + geom_density(alpha = 0.5, adjust = 0.4) + geom_rug()
-ggplot(dt.CVpred_ccw12,aes(x=rf_ccw12, fill = Y, group = Y)) + geom_density(alpha = 0.5, adjust = 0.4) + geom_rug()
+## *** DENSITY PLOT
+dt.CVpred_ccw12 <- as.data.table(ePerf.ccw12, type = "prediction-cv", format = "long")
+dt.CVpred_ccw12$model.lab <- factor(dt.CVpred_ccw12$model, levels = c("glm0_ccw12","glm_ccw12","rf_ccw12"),
+                                   labels = c("logistic model - no biomarkers", "logistic model - biomarkers", "random forest - biomarkers"))
+## SANITY CHECK
+## with(dt.CVpred_ccw12[model=="glm_ccw12"], auc(outcome, prediction, fold, observation))
 
-ggplot(dt.CVpred_ccw12,aes(x=glm0_ccw12, y = as.numeric(Y))) + geom_smooth() + geom_rug() + geom_abline(slope = 1, intercept = 0, color = "red")
-ggplot(dt.CVpred_ccw12,aes(x=glm_ccw12, y = as.numeric(Y))) + geom_smooth() + geom_rug() + geom_abline(slope = 1, intercept = 0, color = "red")
-ggplot(dt.CVpred_ccw12,aes(x=rf_ccw12, y = as.numeric(Y))) + geom_smooth() + geom_rug() + geom_abline(slope = 1, intercept = 0, color = "red")
+ggHist_w12 <- ggplot(dt.CVpred_ccw12,aes(x=prediction, fill = as.factor(outcome)))
+ggHist_w12 <- ggHist_w12 + geom_histogram(alpha = 0.5) + labs(x = "Predicted probability of recovery", y = "number of CV predictions", fill = "Observed \n recovery")
+ggHist_w12 <- ggHist_w12 + facet_wrap(~model.lab)
+
+
+mybreaks <- seq(0,1,length.out=20)
+dt.hist_ccw12 <- dt.CVpred_ccw12[,.(ls.outcome = list(rep(.SD$outcome[1],length(hist(.SD$prediction, plot = FALSE, breaks = mybreaks)$mids))),
+                                  ls.model = list(rep(.SD$model.lab[1],length(hist(.SD$prediction, plot = FALSE, breaks = mybreaks)$mids))),
+                                  ls.pc = list(hist(.SD$prediction, plot = FALSE, breaks = mybreaks)$counts/sum(hist(.SD$prediction, plot = FALSE, breaks = mybreaks)$counts)),
+                                  ls.breaks = list(hist(.SD$prediction, plot = FALSE, breaks = mybreaks)$mids)),
+                               by = c("outcome","model.lab"), .SDcols = c("prediction","outcome","model.lab")]
+dt.hist_ccw12[,c("outcome","model.lab") := NULL]
+dt.hist_ccw12 <- as.data.table(lapply(dt.hist_ccw12,unlist))
+
+ggHist2_w12 <- ggplot(dt.hist_ccw12, aes(x=ls.breaks,y=ls.pc,fill=as.character(ls.outcome)))
+ggHist2_w12 <- ggHist2_w12 + geom_col(position = "dodge") + labs(x = "Predicted probability of recovery", y = "proportion of CV predictions", fill = "Observed \n recovery")
+ggHist2_w12 <- ggHist2_w12 + facet_wrap(~ls.model)
+ggHist2_w12
+
+ggDens_w12 <- ggplot(dt.CVpred_ccw12,aes(x=prediction, fill = as.factor(outcome)))
+ggDens_w12 <- ggDens_w12 + geom_density(alpha = 0.25, adjust = 0.75) + labs(x = "Predicted probability of recovery", y = "Density of CV predictions", fill = "Observed \n recovery")
+ggDens_w12 <- ggDens_w12 + facet_wrap(~model.lab)
+
+## *** CALIBRATION PLOT
+ggCali_w12 <- ggplot(dt.CVpred_ccw12,aes(x=prediction, y = outcome))
+ggCali_w12 <- ggCali_w12 + geom_smooth() + geom_rug() + geom_abline(slope = 1, intercept = 0, color = "red")
+ggCali_w12 <- ggCali_w12 + facet_wrap(~model.lab)
+
+## *** ROC CURVES
+dt.CVroc_ccw12 <- as.data.table(ePerf.ccw12, type = "roc-cv")                                                      
+dt.CVroc_ccw12$model.lab <- factor(dt.CVroc_ccw12$model, levels = c("glm0_ccw12","glm_ccw12","rf_ccw12"),
+                                   labels = c("logistic model - no biomarkers", "logistic model - biomarkers", "random forest - biomarkers"))
+## SANITY CHECK
+## ggroc(roc(outcome ~ prediction, data = dt.CVpred_ccw12[fold == 3 & model == "glm_ccw12"]))
+## ggplot(dt.CVroc_ccw12[fold==3 & model == "glm_ccw12"], aes(x=1-sp,y=se)) + geom_step() + geom_abline(slope=1,intercept=0,color = "black")
+
+ggROC_w12 <- ggplot(dt.CVroc_ccw12,aes(x=1-sp,color=model.lab))
+ggROC_w12 <- ggROC_w12 + geom_step(aes(y=se,group=interaction(fold,model.lab)),alpha=0.1, size = 1) + geom_abline(slope=1,intercept=0,color = "black")
+ggROC_w12 <- ggROC_w12 + geom_smooth(aes(y=se,group=model.lab), se = FALSE, size = 3)
+ggROC_w12 <- ggROC_w12 + labs(x="1-specificity", y="sensitivity")
+
+
+
+## *** permutation test
+n.perm <- 100
+ls.resperm <- vector(mode = "list", length = n.perm)
+
+warper_w12 <- function(i, trace = FALSE, fold.number){
+    iData <- copy(dfWR.NP1_ccw12)
+    iData$Y_w12 <- sample(iData$Y_w12)
+    iEPerf <- suppressWarnings(performance(list(glm0_ccw12 = e.glm0_ccw12, glm_ccw12 = e.glm_ccw12, rf_ccw12 = e.ranger_ccw12),
+                                           data = iData, fold.number = fold.number, fold.size = 0.1, trace = trace))
+    return(cbind(perm = i, as.data.table(iEPerf, type = "metric")))
+}
+## warper_w12(1, fold.number = 10)
+
+cpus <- 7
+
+cl <- snow::makeSOCKcluster(cpus)
+doSNOW::registerDoSNOW(cl)
+
+pb <- txtProgressBar(max = n.perm, style=3)
+opts <- list(progress = function(n) setTxtProgressBar(pb, n))
+
+parallel::clusterExport(cl, varlist = c("ff_ccw12","warper_w12"))
+
+system.time(
+    ls.perm_w12 <- foreach::`%dopar%`(
+                                foreach::foreach(i=1:n.perm, .options.snow=opts, .packages = c("BuyseTest","data.table","ranger")), {
+                                    warper_w12(i, fold.number = 10)
+                                })
+)
+## bruger   system forløbet 
+##     0.26     0.10   354.00 
+
+dt.resperm_w12 <- as.data.table(do.call(rbind, ls.perm_w12))
+
+dt.resperm_w12[metric == "auc",.(estimate = mean(estimate), sd = sd(estimate), type1error = mean(p.value<=0.05)), by = c("method","model")]
+##      method      model  estimate         sd type1error
+## 1: internal glm0_ccw12 0.5015889 0.07802765       0.05
+## 2: internal  glm_ccw12 0.5047368 0.07940914       0.06
+## 3: internal   rf_ccw12 0.5120357 0.08221397       0.09
+## 4:       cv glm0_ccw12 0.4244886 0.10874097       0.32
+## 5:       cv  glm_ccw12 0.4748888 0.10481419       0.28
+## 6:       cv   rf_ccw12 0.4913347 0.10015871       0.19
+
+dtPerfCV.ccw12 <- as.data.table(ePerf.ccw12)[method=="cv"]
+dtPerfCV.ccw12[,perm := list(list(dt.resperm_w12[method == "cv" & metric == .SD$metric[1] & model == .SD$model[1],estimate])),by = c("metric","model"),.SDcols = c("metric","model")]
+
+dtPerfCV.ccw12[metric == "auc", .(p.value = mean(estimate <= perm[[1]])), by = "model"]
+##         model p.value
+## 1: glm0_ccw12    0.10
+## 2:  glm_ccw12    0.12
+## 3:   rf_ccw12    0.00
+dtPerfCV.ccw12[metric == "brier", .(p.value = mean(estimate >= perm[[1]])), by = "model"]
+##         model p.value
+## 1: glm0_ccw12    0.12
+## 2:  glm_ccw12    0.10
+## 3:   rf_ccw12    0.00
+
+betahat <- as.data.table(ePerf.ccw12)[method == "cv" & metric == "brier" & model == "rf_ccw12",estimate]
+betahat.perm <- dt.resperm_w12[method == "cv" & metric == "brier" & model == "rf_ccw12",estimate]
+mean(betahat>=betahat.perm)
+## [1] 0.02
+
 
 ## * Prediction: handling missing values
 

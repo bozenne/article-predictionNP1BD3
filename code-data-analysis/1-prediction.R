@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  1 2021 (13:12) 
 ## Version: 
-## Last-Updated: dec  9 2021 (17:30) 
+## Last-Updated: dec 13 2021 (17:15) 
 ##           By: Brice Ozenne
-##     Update #: 52
+##     Update #: 56
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -118,6 +118,7 @@ anova(e.glm_ccw8,e.glm0_ccw8, test = "Chisq")
 ## table(EEG = dfWR.NP1_ccw8$EEG_vigilance, recovery = dfWR.NP1_ccw8$Y_w8, cluster3 = dfWR.NP1_ccw8$cognitive_cluster3)
 
 e.ranger_ccw8 <- ranger(ff_ccw8, data = dfWR.NP1_ccw8, probability = TRUE)
+## ranger(ff_ccw8, data = dfWR.NP1_ccw8, probability = TRUE, num.trees = 5000, mtry = 1, min.node.size = 5)
 e.rangerPerm_ccw8 <- ranger(ff_ccw8, data = dfWR.NP1_ccw8, importance = "permutation")
 
 importance_pvalues(e.ranger_ccw8Perm, method = "altmann", 
@@ -137,6 +138,13 @@ importance_pvalues(e.ranger_ccw8Perm, method = "altmann",
 dfWR.NP1_ccw12 <- dfWR.NP1[rowSums(is.na(dfWR.NP1[,.SD,.SDcols = c("Y_w12",nameR.predictor)]))==0,]
 ff_ccw12 <- Y_w12 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance
 e.glm0_ccw12 <- glm(Y_w12 ~ female + age, data = dfWR.NP1_ccw12, family = binomial(link = "logit"))
+summary(e.glm0_ccw12)
+Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)  
+## (Intercept)  -2.1459     1.6759  -1.280   0.2004  
+## female       -0.2110     0.6229  -0.339   0.7347  
+## age           0.1290     0.0647   1.995   0.0461 *
+## ---
 e.glm_ccw12 <- glm(ff_ccw12, data = dfWR.NP1_ccw12, family = binomial(link = "logit"))
 summary(e.glm_ccw12)
 ## Coefficients:
@@ -167,6 +175,7 @@ anova(e.glm_ccw12,e.glm0_ccw12, test = "Chisq")
 ## ---
 
 e.ranger_ccw12 <- ranger(ff_ccw12, data = dfWR.NP1_ccw12, probability = TRUE)
+## ranger(ff_ccw12, data = dfWR.NP1_ccw12, probability = TRUE, mtry = 5, num.trees = 5000)
 e.rangerPerm_ccw12 <- ranger(ff_ccw12, data = dfWR.NP1_ccw12, importance = "permutation")
 
 importance_pvalues(e.rangerPerm_ccw12, method = "altmann", 
@@ -559,8 +568,8 @@ set.seed(10)
 
 e.glm0_w8 <- glm(Y_w8 ~ female + age, family = binomial(link = "logit"), data = dfWR.NP1_w8)
 e.glm_w8 <- glm(Y_w8 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism, family = binomial(link = "logit"), data = dfWR.NP1_w8)
-e.ranger_w8 <- randomForest(Y_w8f ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
-                            data = dfWR.NP1_w8, na.action = na.roughfix)
+e.ranger_w8 <- ranger(formula = Y_w8f ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
+                      data = na.omit(dfWR.NP1_w8))
 
 ## performance(e.ranger_w8, fold.number = 100, fold.size = 8)
 ##     method metric         model   estimate          se      lower     upper   p.value
@@ -570,8 +579,8 @@ e.ranger_w8 <- randomForest(Y_w8f ~ female + age + MR_OFCthick + HAMD17 + low_hs
 ## 4       cv  brier randomForest1 0.26984952 0.017368838 0.23786698 0.3061323        NA
 
 set.seed(11)
-ePerf.w8 <- as.data.table(performance(list(glm0_w8 = e.glm0_w8, glm_w8 = e.glm_w8), ## rf_w8 = e.ranger_w8),
-                                         data = dfWR.NP1_w8, fold.number = 100, fold.size = 8, individual.fit = TRUE))
+ePerf.w8 <- performance(list(glm0_w8 = e.glm0_w8, glm_w8 = e.glm_w8, rf_w8 = e.ranger_w8),
+                        data = dfWR.NP1_w8, fold.number = 100, fold.size = 0.1, individual.fit = TRUE)
 ePerf.w8
 ##      method metric   model  estimate          se     lower     upper      p.value p.value_comp
 ## 1: internal    auc glm0_w8 0.5991949 0.062785456 0.4654191 0.7096529 1.391341e-01           NA

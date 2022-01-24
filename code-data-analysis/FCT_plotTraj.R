@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 24 2022 (13:51) 
 ## Version: 
-## Last-Updated: jan 24 2022 (14:43) 
+## Last-Updated: jan 24 2022 (20:35) 
 ##           By: Brice Ozenne
-##     Update #: 60
+##     Update #: 62
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -62,7 +62,7 @@ ggTraj_hlme <- function(object, alpha = 0.8, color = "class", plot = TRUE, order
         if(is.null(dt.pred$prob2)){dt.pred$prob2 <- 0}
         if(is.null(dt.pred$prob3)){dt.pred$prob3 <- 0}
     }else if(color == "prob"){
-        vec.color <- c("Red", "Blue", "Green", "Orange", "Purple", "Brown", "Gray")
+        vec.color <- c("Blue", "Red", "Green", "Orange", "Purple", "Brown", "Gray")
         if(nClass>7){
             stop("Argument \'color\' equals  to \"prob\" supports max. 7 classes \n")
         }

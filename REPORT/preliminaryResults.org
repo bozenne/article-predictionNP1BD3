@@ -518,7 +518,7 @@ supporting that the proposed cross-validation procedure is unbiased
 \clearpage
 
 #+BEGIN_SRC R :exports none :results output :session *R* :cache no
-ggsave(ggHist_w12 + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")),
+ggsave(ggHist_w12 + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm"))b,
        filename = file.path("REPORT","figures","gg-perfW12-hist.pdf"), width = 12, height = 6)
 ggsave(ggHist2_w12 + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")),
        filename = file.path("REPORT","figures","gg-perfW12-hist2.pdf"), width = 12, height = 6)

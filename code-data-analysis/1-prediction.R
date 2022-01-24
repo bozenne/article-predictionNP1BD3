@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  1 2021 (13:12) 
 ## Version: 
-## Last-Updated: jan 24 2022 (16:55) 
+## Last-Updated: jan 24 2022 (21:08) 
 ##           By: Brice Ozenne
-##     Update #: 73
+##     Update #: 84
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -41,7 +41,9 @@ library(lcmm)
 ## devtools::install_github("NightingaleHealth/ggforestplot")
 library(ggforestplot)
 
-source(file.path(path.FCT,"runAnalysis.R"))
+source(file.path(path.FCT,"FCT_forestplot.R"))
+source(file.path(path.FCT,"FCT_glhtPool.R"))
+source(file.path(path.FCT,"FCT_plotTraj.R"))
 source(file.path(path.code,"0-data-management.R"))
 
 ## * Description
@@ -109,7 +111,15 @@ gg_color_hue <- function(n) {
 }
 gg_desc <- ggplot(dfLR.NP1, aes(x=visit, y = HAMD6.jit, group = CIMBI_ID, color = Y_w4812)) + geom_point() + geom_line()
 gg_desc <- gg_desc + facet_wrap(~Y_w4812) + guides(color = "none") + scale_color_manual(values = gg_color_hue(3)[c(2,3,1)])
+gg_desc <- gg_desc + labs(x="",y = "HAMD-6")
 ## ggplot(dfLR.NP1, aes(x=visit, y = HAMD17, group = CIMBI_ID, color = as.factor(Y))) + geom_point() + facet_wrap(~CIMBI_ID)
+
+if(FALSE){
+    ggsave(gg_desc + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")),
+           filename = "../figures/spaghetti-HAMD6.pdf")
+    ggsave(gg_desc + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")),
+           filename = "../figures/spaghetti-HAMD6.png")
+}
 
 ## ** transition
 df.trans <- data.frame(week4 = c("nr2nr" = sum(dfWR.NP1$Y_w4==0, na.rm = TRUE),
@@ -150,7 +160,7 @@ ls.hlme <- list(hlme(HAMD17 ~ visit, subject = "CIMBI_ID", data = dfLR.NP1_NNA,
      
 ggTraj_hlme(ls.hlme[[1]], color = "prob", facet = TRUE, nrow = 1)
 ggTraj_hlme(ls.hlme[[2]], color = "prob", facet = TRUE, nrow = 1, order.class = c(2:1))
-ggTraj_hlme(ls.hlme[[3]], color = "prob", facet = TRUE, nrow = 1, order.class = c("stable" = 3,"partial recovery"=1,"recovery"=2))
+gg_desc2 <- ggTraj_hlme(ls.hlme[[3]], color = "prob", facet = TRUE, nrow = 1, order.class = c("stable" = 3,"partial recovery"=1,"recovery"=2))
 ggTraj_hlme(ls.hlme[[4]], color = "prob", facet = TRUE, nrow = 1, order.class = c(4,3,1,2))
     
 compare.hlme <- summarytable(ls.hlme[[1]], bb = ls.hlme[[2]], ls.hlme[[3]], ls.hlme[[4]],
@@ -160,11 +170,20 @@ colnames(compare.hlme)[3] <- "cv"
 colnames(compare.hlme)[4] <- "nb. parameters"
 compare.hlme
 
+if(FALSE){
+    ggsave(gg_desc2$plot + xlab("") + theme(text = element_text(size=20), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+                                 axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")),
+           filename = "../figures/spaghetti-HAMD17.pdf")
+    ggsave(gg_desc2$plot + xlab("") + theme(text = element_text(size=20), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+                                 axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")),
+           filename = "../figures/spaghetti-HAMD17.png")
+}
+
 ## * Analysis: complete case 
 ## ** week 4
 dfWR.NP1_ccw4 <- dfWR.NP1[rowSums(is.na(dfWR.NP1[,.SD,.SDcols = c("Y_w4",nameR.predictor)]))==0,]
-dfWR.NP1_ccw4S <- cbind(dfWR.NP1_ccw4[,c("Y_w4","female","cognitive_cluster2","cognitive_cluster3")],
-                      scale(dfWR.NP1_ccw4[,c("age","MR_OFCthick", "HAMD17", "low_hsCRP", "lvpet", "EEG_vigilance")])
+dfWR.NP1_ccw4S <- cbind(dfWR.NP1_ccw4[,c("Y_w4","female","low_hsCRP","cognitive_cluster2","cognitive_cluster3")],
+                      scale(dfWR.NP1_ccw4[,c("age","MR_OFCthick", "HAMD17", "lvpet", "EEG_vigilance")])
                       )
 
 ff_ccw4 <- Y_w4 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance
@@ -217,8 +236,8 @@ importance_pvalues(e.rangerPerm_ccw4, method = "altmann",
 
 ## ** week 8
 dfWR.NP1_ccw8 <- dfWR.NP1[rowSums(is.na(dfWR.NP1[,.SD,.SDcols = c("Y_w8",nameR.predictor)]))==0,]
-dfWR.NP1_ccw8S <- cbind(dfWR.NP1_ccw8[,c("Y_w8","female","cognitive_cluster2","cognitive_cluster3")],
-                        scale(dfWR.NP1_ccw8[,c("age","MR_OFCthick", "HAMD17", "low_hsCRP", "lvpet", "EEG_vigilance")])
+dfWR.NP1_ccw8S <- cbind(dfWR.NP1_ccw8[,c("Y_w8","female","low_hsCRP","cognitive_cluster2","cognitive_cluster3")],
+                        scale(dfWR.NP1_ccw8[,c("age","MR_OFCthick", "HAMD17", "lvpet", "EEG_vigilance")])
                         )
 
 ff_ccw8 <- Y_w8 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance
@@ -281,8 +300,8 @@ importance_pvalues(e.ranger_ccw8Perm, method = "altmann",
 
 ## ** week 12
 dfWR.NP1_ccw12 <- dfWR.NP1[rowSums(is.na(dfWR.NP1[,.SD,.SDcols = c("Y_w12",nameR.predictor)]))==0,]
-dfWR.NP1_ccw12S <- cbind(dfWR.NP1_ccw12[,c("Y_w12","female","cognitive_cluster2","cognitive_cluster3")],
-                      scale(dfWR.NP1_ccw12[,c("age","MR_OFCthick", "HAMD17", "low_hsCRP", "lvpet", "EEG_vigilance")])
+dfWR.NP1_ccw12S <- cbind(dfWR.NP1_ccw12[,c("Y_w12","female","low_hsCRP","cognitive_cluster2","cognitive_cluster3")],
+                      scale(dfWR.NP1_ccw12[,c("age","MR_OFCthick", "HAMD17", "lvpet", "EEG_vigilance")])
                       )
 
 ff_ccw12 <- Y_w12 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance
@@ -341,7 +360,7 @@ importance_pvalues(e.rangerPerm_ccw12, method = "altmann",
 
 
 ## * Analysis: after multiple imputation
-n.imputed <- 10 ## number of imputed datasets
+n.imputed <- 25 ## number of imputed datasets
 
 ## ** week 4
 dfWR.NP1_w4 <- dfWR.NP1[!is.na(dfWR.NP1$Y_w4),]
@@ -355,11 +374,11 @@ Mlink_w4[setdiff(names(which(colSums(is.na(dfWR.NP1_2impw4))>0)),"Y_w4"),] <- 1
 diag(Mlink_w4) <- 0
 
 dfWRimp.NP1_w4 <- mice(dfWR.NP1_2impw4,
-                m=n.imputed,
-                maxit = 50, # number of iterations to obtain the imputed dataset
-                predictorMatrix = Mlink_w4,
-                method = c("","","","","","logreg","norm.predict","polr","norm.predict","norm.predict","norm.predict","norm.predict"), 
-                seed = 500, printFlag = FALSE)
+                       m=n.imputed,
+                       maxit = 50, # number of iterations to obtain the imputed dataset
+                       predictorMatrix = Mlink_w4,
+                       method = c("","","","","","logreg","norm.predict","polr","norm.predict","norm.predict","norm.predict","norm.predict"), 
+                       seed = 500, printFlag = FALSE)
 summary(dfWRimp.NP1_w4)
 str(dfWRimp.NP1_w4$imp)
 ## stripplot(dfWRimp.NP1_w4, hsCRP ~ .imp, pch=20,cex=2)
@@ -604,6 +623,13 @@ ggDens_w8 <- ggplot(dt.CVpred_ccw8,aes(x=prediction, fill = as.factor(outcome)))
 ggDens_w8 <- ggDens_w8 + geom_density(alpha = 0.25, adjust = 0.75) + labs(x = "Predicted probability of recovery", y = "Density of CV predictions", fill = "Observed \n recovery")
 ggDens_w8 <- ggDens_w8 + facet_wrap(~model.lab)
 
+if(FALSE){
+    ggsave(ggHist2_w8 + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")),
+           filename = "../figures/hist-predCV-week8.pdf")
+    ggsave(ggHist2_w8 + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")),
+           filename = "../figures/hist-predCV-week8.png")
+}
+
 
 ## *** CALIBRATION PLOT
 ggCali_w8 <- ggplot(dt.CVpred_ccw8,aes(x=prediction, y = outcome))
@@ -623,6 +649,12 @@ ggROC_w8 <- ggROC_w8 + geom_step(aes(y=se,group=interaction(fold,model.lab)),alp
 ggROC_w8 <- ggROC_w8 + geom_smooth(aes(y=se,group=model.lab), se = FALSE, size = 3)
 ggROC_w8 <- ggROC_w8 + labs(x="1-specificity", y="sensitivity")
 
+if(FALSE){
+    ggsave(ggROC_w8 + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")) + labs(color=""),
+           filename = "../figures/roc-CV-week8.pdf")
+    ggsave(ggROC_w8 + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")) + labs(color=""),
+           filename = "../figures/roc-CV-week8.png")
+}
 
 ## *** permutation test
 n.perm <- 100
@@ -745,6 +777,14 @@ ggDens_w12 <- ggplot(dt.CVpred_ccw12,aes(x=prediction, fill = as.factor(outcome)
 ggDens_w12 <- ggDens_w12 + geom_density(alpha = 0.25, adjust = 0.75) + labs(x = "Predicted probability of recovery", y = "Density of CV predictions", fill = "Observed \n recovery")
 ggDens_w12 <- ggDens_w12 + facet_wrap(~model.lab)
 
+if(FALSE){
+    ggsave(ggHist2_w12 + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")),
+           filename = "../figures/hist-predCV-week12.pdf")
+    ggsave(ggHist2_w12 + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")),
+           filename = "../figures/hist-predCV-week12.png")
+}
+
+
 ## *** CALIBRATION PLOT
 ggCali_w12 <- ggplot(dt.CVpred_ccw12,aes(x=prediction, y = outcome))
 ggCali_w12 <- ggCali_w12 + geom_smooth() + geom_rug() + geom_abline(slope = 1, intercept = 0, color = "red")
@@ -763,6 +803,12 @@ ggROC_w12 <- ggROC_w12 + geom_step(aes(y=se,group=interaction(fold,model.lab)),a
 ggROC_w12 <- ggROC_w12 + geom_smooth(aes(y=se,group=model.lab), se = FALSE, size = 3)
 ggROC_w12 <- ggROC_w12 + labs(x="1-specificity", y="sensitivity")
 
+if(FALSE){
+    ggsave(ggROC_w12 + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")) + labs(color=""),
+           filename = "../figures/roc-CV-week12.pdf")
+    ggsave(ggROC_w12 + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")) + labs(color=""),
+           filename = "../figures/roc-CV-week12.png")
+}
 
 
 ## *** permutation test
@@ -904,52 +950,115 @@ e.glm_ccw4S <- update(e.glm_ccw4, data = dfWR.NP1_ccw4S)
 e.glm_ccw8S <- update(e.glm_ccw8, data = dfWR.NP1_ccw8S)
 e.glm_ccw12S <- update(e.glm_ccw12, data = dfWR.NP1_ccw12S)
 
+C <- glht(e.glm_ccw4S)$linfct[-1,]
 
-dtS.ass_cc <- rbind(cbind(time = "week 4", method = "MI", cbind(term = rownames(summary(e.glm_ccw4S)$coef), data.table(summary(e.glm_ccw4S)$coef))),
-                    cbind(time = "week 8", method = "MI", cbind(term = rownames(summary(e.glm_ccw8S)$coef), data.table(summary(e.glm_ccw8S)$coef))),
-                    cbind(time = "week 12", method = "MI", cbind(term = rownames(summary(e.glm_ccw12S)$coef), data.table(summary(e.glm_ccw12S)$coef))))
+dtS.ass_cc <- rbind(cbind(time = "week 4", method = "c", cbind(term = rownames(summary(e.glm_ccw4S)$coef)[-1],
+                                                                data.table(summary(e.glm_ccw4S)$coef)[-1,-3],
+                                                                confint(glht(e.glm_ccw4S,C))$confint[,2:3])),
+                    cbind(time = "week 8", method = "cc", cbind(term = rownames(summary(e.glm_ccw8S)$coef)[-1],
+                                                                data.table(summary(e.glm_ccw8S)$coef)[-1,-3],
+                                                                confint(glht(e.glm_ccw8S,C))$confint[,2:3])),
+                    cbind(time = "week 12", method = "cc", cbind(term = rownames(summary(e.glm_ccw12S)$coef)[-1],
+                                                                 data.table(summary(e.glm_ccw12S)$coef)[-1,-3],
+                                                                 confint(glht(e.glm_ccw12S,C))$confint[,2:3])))
 names(dtS.ass_cc)[names(dtS.ass_cc)=="Estimate"] <- "estimate"
 names(dtS.ass_cc)[names(dtS.ass_cc)=="Std. Error"] <- "std.error"
 names(dtS.ass_cc)[names(dtS.ass_cc)=="Pr(>|z|)"] <- "p.value"
+names(dtS.ass_cc)[names(dtS.ass_cc)=="lwr"] <- "lower.adj"
+names(dtS.ass_cc)[names(dtS.ass_cc)=="upr"] <- "upper.adj"
 dtS.ass_cc$lower <- dtS.ass_cc$estimate + qnorm(0.025) * dtS.ass_cc$std.error
 dtS.ass_cc$upper <- dtS.ass_cc$estimate + qnorm(0.975) * dtS.ass_cc$std.error
-dtS.ass_cc$time <- factor(dtS.ass_cc$time, levels = as.character(unique(dtS.ass_cc$time)))
+dtS.ass_cc$time <- factor(dtS.ass_cc$time, levels = rev(as.character(unique(dtS.ass_cc$time))))
+
+dtS.ass_cc$term <- factor(dtS.ass_cc$term,
+                          levels = c("female","age","MR_OFCthick","HAMD17","low_hsCRP","lvpet","cognitive_cluster2","cognitive_cluster3","EEG_vigilance","CATS","Cortisol","Neuroticism"),     
+                          labels = c("female","age","MR (OFC thickness)","HAMD17","hsCRP","PET (serotonin)","cognition (cluster 2)","cognition (cluster 3)","EEG (vigilance)","CATS","Cortisol","Neuroticism"),     
+                          )
+
+dtS.ass_cc <- rbind(dtS.ass_cc,
+                    data.frame(time = c("week 4","week 8", "week 12"), method = "cc", term = c("CATS","Cortisol","Neuroticism"), estimate = NA, std.error = NA, p.value = NA, lower.adj = NA, upper.adj = NA, lower = NA, upper = NA)
+                    )
+
+ggforest.ass_cc <- forestplot(dtS.ass_cc) + labs(color = "Analysis at:", x = "log odd ratio from logistic model")
+ggforest.ass_cc <- ggforest.ass_cc + ggtitle(paste0("Complete case analysis (n=",NROW(dfWR.NP1_ccw4S),"/",NROW(dfWR.NP1_ccw8S),"/",NROW(dfWR.NP1_ccw12S),")"))
+ggforest.ass_cc
+
+## ** Association (missing data)
+
+## *** week 4
+dfWRimp.NP1_w4C <- dfWRimp.NP1_w4
+for(iVar in c("age","MR_OFCthick", "HAMD17", "lvpet", "EEG_vigilance","CATS_scoretotal","CAR_AUCi","neuroticism")){
+    dfWRimp.NP1_w4C$imp[[iVar]] <- (dfWRimp.NP1_w4$imp[[iVar]]-mean(dfWRimp.NP1_w4C$data[[iVar]], na.rm=TRUE))/sd(dfWRimp.NP1_w4C$data[[iVar]], na.rm=TRUE)
+    dfWRimp.NP1_w4C$data[[iVar]] <- (dfWRimp.NP1_w4$data[[iVar]]-mean(dfWRimp.NP1_w4C$data[[iVar]], na.rm=TRUE))/sd(dfWRimp.NP1_w4C$data[[iVar]], na.rm=TRUE)
+}
+
+e.glm_impw4C <- with(data = dfWRimp.NP1_w4C,
+                     expr = glm(Y_w4 ~ sex + age + MR_OFCthick + HAMD17 + hsCRP + lvpet + cognitive_cluster + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
+                                family = binomial(link = "logit"))
+                     )
+
+## same p-vlaues except intercept
+## summary(e.glm_impw4$analyses[[1]])$coef
+## summary(e.glm_impw4C$analyses[[1]])$coef
+
+## summary(pool(eS.glm_impw4S$analyses))
+## summary(pool(eS.glm_impw4$analyses))
+
+## week 8
+dfWRimp.NP1_w8C <- dfWRimp.NP1_w8
+for(iVar in c("age","MR_OFCthick", "HAMD17", "lvpet", "EEG_vigilance","CATS_scoretotal","CAR_AUCi","neuroticism")){
+    dfWRimp.NP1_w8C$imp[[iVar]] <- (dfWRimp.NP1_w8$imp[[iVar]]-mean(dfWRimp.NP1_w8C$data[[iVar]], na.rm=TRUE))/sd(dfWRimp.NP1_w8C$data[[iVar]], na.rm=TRUE)
+    dfWRimp.NP1_w8C$data[[iVar]] <- (dfWRimp.NP1_w8$data[[iVar]]-mean(dfWRimp.NP1_w8C$data[[iVar]], na.rm=TRUE))/sd(dfWRimp.NP1_w8C$data[[iVar]], na.rm=TRUE)
+}
+
+e.glm_impw8C <- with(data = dfWRimp.NP1_w8C,
+                     expr = glm(Y_w8 ~ sex + age + MR_OFCthick + HAMD17 + hsCRP + lvpet + cognitive_cluster + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
+                                family = binomial(link = "logit"))
+                     )
+
+## week 12
+dfWRimp.NP1_w12C <- dfWRimp.NP1_w12
+for(iVar in c("age","MR_OFCthick", "HAMD17", "lvpet", "EEG_vigilance","CATS_scoretotal","CAR_AUCi","neuroticism")){
+    dfWRimp.NP1_w12C$imp[[iVar]] <- (dfWRimp.NP1_w12$imp[[iVar]]-mean(dfWRimp.NP1_w12C$data[[iVar]], na.rm=TRUE))/sd(dfWRimp.NP1_w12C$data[[iVar]], na.rm=TRUE)
+    dfWRimp.NP1_w12C$data[[iVar]] <- (dfWRimp.NP1_w12$data[[iVar]]-mean(dfWRimp.NP1_w12C$data[[iVar]], na.rm=TRUE))/sd(dfWRimp.NP1_w12C$data[[iVar]], na.rm=TRUE)
+}
+
+e.glm_impw12C <- with(data = dfWRimp.NP1_w12C,
+                     expr = glm(Y_w12 ~ sex + age + MR_OFCthick + HAMD17 + hsCRP + lvpet + cognitive_cluster + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
+                                family = binomial(link = "logit"))
+                     )
+
+## assemble
+dtS.ass_imp <- rbind(cbind(time = "week 4", method = "MI", data.table(summary(pool(e.glm_impw4C))[-1,],confint(glhtPool(e.glm_impw4C))$confint[,2:3])),
+                     cbind(time = "week 8", method = "MI", data.table(summary(pool(e.glm_impw8C))[-1,],confint(glhtPool(e.glm_impw8C))$confint[,2:3])),
+                     cbind(time = "week 12", method = "MI", data.table(summary(pool(e.glm_impw12C))[-1,],confint(glhtPool(e.glm_impw12C))$confint[,2:3])))
+dtS.ass_imp$lower <- dtS.ass_imp$estimate + qt(0.025, df = dtS.ass_imp$df) * dtS.ass_imp$std.error
+dtS.ass_imp$upper <- dtS.ass_imp$estimate + qt(0.975, df = dtS.ass_imp$df) * dtS.ass_imp$std.error
+names(dtS.ass_imp)[names(dtS.ass_imp)=="lwr"] <- "lower.adj"
+names(dtS.ass_imp)[names(dtS.ass_imp)=="upr"] <- "upper.adj"
 
 
-ggForest.ass_cc <- ggforestplot::forestplot(
-                                     df = as.data.frame(dtS.ass_cc[dtS.ass_cc$term!="(Intercept)",]),
-                                     name = term,
-                                     estimate = estimate,
-                                     se = std.error,
-                                     pvalue = p.value,
-                                     psignif = 0.05,
-                                     xlab = "Adjusted log odd ratio",
-                                     logodds = FALSE,
-                                     title = "Outcome: >50% improvement in HAMD6 (complete case analysis)",
-                                     colour = time
-                                 )
-ggForest.ass_cc
+dtS.ass_imp$term <- factor(dtS.ass_imp$term,
+                          levels = c("sexfemale","age","MR_OFCthick","HAMD17","hsCRPlow","lvpet","cognitive_cluster2","cognitive_cluster3","EEG_vigilance","CATS_scoretotal","CAR_AUCi","neuroticism"),     
+                          labels = c("female","age","MR (OFC thickness)","HAMD17","hsCRP","PET (serotonin)","cognition (cluster 2)","cognition (cluster 3)","EEG (vigilance)","CATS","Cortisol","Neuroticism"))
+dtS.ass_imp$time <- factor(dtS.ass_imp$time, levels = rev(as.character(unique(dtS.ass_imp$time))))
 
 
-dtS.ass <- rbind(cbind(time = "week 4", method = "MI", data.table(summary(pool(e.glm_impw4)))),
-                 cbind(time = "week 8", method = "MI", data.table(summary(pool(e.glm_impw8)))),
-                 cbind(time = "week 12", method = "MI", data.table(summary(pool(e.glm_impw12)))))
-dtS.ass$lower <- dtS.ass$estimate + qt(0.025, df = dtS.ass$df) * dtS.ass$std.error
-dtS.ass$upper <- dtS.ass$estimate + qt(0.975, df = dtS.ass$df) * dtS.ass$std.error
+ggforest.ass_imp <- forestplot(dtS.ass_imp) + labs(color = "Analysis at:", x = "log odd ratio from logistic model")
+ggforest.ass_imp <- ggforest.ass_imp + ggtitle(paste0("Multiple imputation (n=",NROW(dfWRimp.NP1_w4C$data),"/",NROW(dfWRimp.NP1_w8C$data),"/",NROW(dfWRimp.NP1_w12C$data),")"))
+ggforest.ass_imp
 
 
-ggforestplot::forestplot(
-  df = as.data.frame(dtS.ass),
-  name = term,
-  estimate = estimate,
-  se = std.error,
-  pvalue = p.value,
-  psignif = 0.05,
-  xlab = "1-SD increment in cardiometabolic trait\nper 1-SD increment in biomarker concentration",
-  title = "Biomarker associations to metabolic traits",
-  colour = time
-)
 
+
+library(ggpubr)
+ggforest.ass <- ggarrange(ggforest.ass_cc + coord_cartesian(xlim = c(-5,5)) + ylab(""),
+                          ggforest.ass_imp  + coord_cartesian(xlim = c(-5,5)) + ylab(""),
+                          common.legend = TRUE, legend = "bottom")
+ggforest.ass
+
+## ggsave(ggforest.ass, filename = "figures/forestPlot-OR.pdf")
+## ggsave(ggforest.ass, filename = "figures/forestPlot-OR.png")
 
 ##----------------------------------------------------------------------
 ### 1-prediction.R ends here

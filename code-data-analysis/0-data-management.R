@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov  1 2021 (13:10) 
 ## Version: 
-## Last-Updated: dec  8 2021 (17:22) 
+## Last-Updated: jan 24 2022 (13:40) 
 ##           By: Brice Ozenne
-##     Update #: 55
+##     Update #: 59
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -231,7 +231,8 @@ keep.col <- c(keep.col, "HAMD17","neuroticism", "CATS_scoretotal")
 
 
 ## ** outcome
-
+dfW.NP1$dHAMD6_w4 <- (dfW.NP1$HAMD6_total_wk4-dfW.NP1$HAMD6_total_bl)/dfW.NP1$HAMD6_total_bl
+dfW.NP1$Y_w4 <- dfW.NP1$dHAMD6_w4 <= -0.5
 
 dfW.NP1$dHAMD6_w8 <- (dfW.NP1$HAMD6_total_wk8-dfW.NP1$HAMD6_total_bl)/dfW.NP1$HAMD6_total_bl
 dfW.NP1$Y_w8 <- dfW.NP1$dHAMD6_w8 <= -0.5
@@ -239,16 +240,26 @@ dfW.NP1$Y_w8 <- dfW.NP1$dHAMD6_w8 <= -0.5
 dfW.NP1$dHAMD6_w12 <- (dfW.NP1$HAMD6_total_wk12-dfW.NP1$HAMD6_total_bl)/dfW.NP1$HAMD6_total_bl
 dfW.NP1$Y_w12 <- dfW.NP1$dHAMD6_w12 <= -0.5
 
-keep.col <- c(keep.col,"dHAMD6_w8","dHAMD6_w12","Y_w8","Y_w12")
+keep.col <- c(keep.col,
+              "HAMD6_total_bl","HAMD6_total_wk4","HAMD6_total_wk8","HAMD6_total_wk12",
+              "HAMD17_total_bl","HAMD17_total_wk4","HAMD17_total_wk8","HAMD17_total_wk12",
+              "dHAMD6_w4","dHAMD6_w8","dHAMD6_w12","Y_w4","Y_w8","Y_w12")
 
 ## * Reduced dataset
 keep.col %in% names(dfW.NP1)
-dfWR.NP1 <- dfW.NP1[!is.na(Y_w8) | !is.na(Y_w12),.SD,.SDcols = c(keep.col,"female")]
+dfWR.NP1 <- dfW.NP1[!is.na(Y_w4) | !is.na(Y_w8) | !is.na(Y_w12),.SD,.SDcols = c(keep.col,"female")]
 dfWR.NP1$cognitive_cluster2 <- as.numeric(dfWR.NP1$cognitive_cluster=="2")
 dfWR.NP1$cognitive_cluster3 <- as.numeric(dfWR.NP1$cognitive_cluster=="3")
 dfWR.NP1$low_hsCRP <- as.numeric(dfWR.NP1$hsCRP=="low")
 dfWR.NP1$Y_w8f <- as.factor(dfWR.NP1$Y_w8)
-
+names(dfWR.NP1)[names(dfWR.NP1)=="HAMD6_total_bl"] <- "HAMD6_w0"
+names(dfWR.NP1)[names(dfWR.NP1)=="HAMD6_total_wk4"] <- "HAMD6_w4"
+names(dfWR.NP1)[names(dfWR.NP1)=="HAMD6_total_wk8"] <- "HAMD6_w8"
+names(dfWR.NP1)[names(dfWR.NP1)=="HAMD6_total_wk12"] <- "HAMD6_w12"
+names(dfWR.NP1)[names(dfWR.NP1)=="HAMD17_total_bl"] <- "HAMD17_w0"
+names(dfWR.NP1)[names(dfWR.NP1)=="HAMD17_total_wk4"] <- "HAMD17_w4"
+names(dfWR.NP1)[names(dfWR.NP1)=="HAMD17_total_wk8"] <- "HAMD17_w8"
+names(dfWR.NP1)[names(dfWR.NP1)=="HAMD17_total_wk12"] <- "HAMD17_w12"
 ## table(is.na(dfW.NP1$Y_w8) + is.na(dfW.NP1$Y_w12) > 1) 
 ##----------------------------------------------------------------------
 ### 0-read-data.R ends here

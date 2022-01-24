@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  1 2021 (13:12) 
 ## Version: 
-## Last-Updated: dec 13 2021 (17:15) 
+## Last-Updated: jan 24 2022 (16:55) 
 ##           By: Brice Ozenne
-##     Update #: 56
+##     Update #: 73
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -36,11 +36,16 @@ library(ranger)
 library(splines)
 library(BuyseTest)
 library(mice)
+library(ggplot2)
+library(lcmm)
+## devtools::install_github("NightingaleHealth/ggforestplot")
+library(ggforestplot)
 
 source(file.path(path.FCT,"runAnalysis.R"))
 source(file.path(path.code,"0-data-management.R"))
 
-## * Process data
+## * Description
+## ** missing data
 name.predictor <- c("sex","age","MR_OFCthick","HAMD17","hsCRP","lvpet","cognitive_cluster","EEG_vigilance","CATS_scoretotal","CAR_AUCi","neuroticism")
 md.pattern(dfWR.NP1[,.SD,.SDcols = c(name.predictor,"Y_w8","Y_w12")]) 
 ##    sex age MR_OFCthick HAMD17 Y_w8 hsCRP lvpet cognitive_cluster EEG_vigilance Y_w12 CATS_scoretotal CAR_AUCi neuroticism   
@@ -77,11 +82,153 @@ md.pattern(dfWR.NP1[,.SD,.SDcols = c(name.predictor,"Y_w8","Y_w12")])
 ## 1    1   1           1      1    0     1     1                 1             1     1  1
 ##      0   0           0      0    1     2     2                 2             4     4 15
 
+## ** spaghetti plot
+dfWR.NP1$Y_w4812 <- "Switch"
+dfWR.NP1$Y_w4812[which(dfWR.NP1$Y_w4*dfWR.NP1$Y_w8*dfWR.NP1$Y_w12==1)] <- "Always responder"
+dfWR.NP1$Y_w4812[which((dfWR.NP1$Y_w4==0)*(dfWR.NP1$Y_w8==0)*(dfWR.NP1$Y_w12==0)==1)] <- "Always non-responder"
+dfWR.NP1$Y_w4812 <- factor(dfWR.NP1$Y_w4812, levels = c("Always responder","Switch","Always non-responder"))
+
+dfLR.NP1 <- reshape(cbind(dfWR.NP1,Y_w0=0), idvar = c("CIMBI_ID"),
+                    direction = "long",
+                    varying = list(c("HAMD6_w0","HAMD6_w4","HAMD6_w8","HAMD6_w12"),
+                                   c("HAMD17_w0","HAMD17_w4","HAMD17_w8","HAMD17_w12"),
+                                   c("Y_w0","Y_w4","Y_w8","Y_w12")),
+                    v.names = c("HAMD6","HAMD17","Y"),timevar = "visit")
+dfLR.NP1$visit <- factor(dfLR.NP1$visit, levels = 1:4, labels = c("baseline","week 4","week 8","week 12"))
+dfLR.NP1$HAMD6.jit <- dfLR.NP1$HAMD6 + runif(NROW(dfLR.NP1),-0.45,0.45)
+
+gg_desc <- ggplot(dfLR.NP1, aes(x=visit, y = HAMD6, group = CIMBI_ID, color = Y_w4812)) + geom_jitter(width = 0.1, height = 0)
+## ggplot(dfLR.NP1, aes(x=visit, y = HAMD6, group = CIMBI_ID, color = Y_w4812)) + geom_point(width = 0.1) + facet_wrap(~CIMBI_ID)
+
+gg_desc <- ggplot(dfLR.NP1, aes(x=visit, y = HAMD6, group = CIMBI_ID, color = as.factor(Y))) + geom_jitter(width = 0.1)
+## ggplot(dfLR.NP1, aes(x=visit, y = HAMD6, group = CIMBI_ID, color = as.factor(Y))) + geom_point(width = 0.1) + facet_wrap(~CIMBI_ID)
+
+gg_color_hue <- function(n) {
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100)[1:n]
+}
+gg_desc <- ggplot(dfLR.NP1, aes(x=visit, y = HAMD6.jit, group = CIMBI_ID, color = Y_w4812)) + geom_point() + geom_line()
+gg_desc <- gg_desc + facet_wrap(~Y_w4812) + guides(color = "none") + scale_color_manual(values = gg_color_hue(3)[c(2,3,1)])
+## ggplot(dfLR.NP1, aes(x=visit, y = HAMD17, group = CIMBI_ID, color = as.factor(Y))) + geom_point() + facet_wrap(~CIMBI_ID)
+
+## ** transition
+df.trans <- data.frame(week4 = c("nr2nr" = sum(dfWR.NP1$Y_w4==0, na.rm = TRUE),
+                                 "r2nr" = 0,
+                                 "nr2r" = sum(dfWR.NP1$Y_w4==1, na.rm = TRUE),
+                                 "r2r" = 0),
+                       week8 = c("nr2nr" = sum((dfWR.NP1$Y_w4==0)*(dfWR.NP1$Y_w8==0), na.rm = TRUE),
+                                 "r2nr" = sum((dfWR.NP1$Y_w4==1)*(dfWR.NP1$Y_w8==0), na.rm = TRUE),
+                                 "nr2r" = sum((dfWR.NP1$Y_w4==0)*(dfWR.NP1$Y_w8==1), na.rm = TRUE),
+                                 "r2r" = sum((dfWR.NP1$Y_w4==1)*(dfWR.NP1$Y_w8==1), na.rm = TRUE)),
+                       week12 = c("nr2nr" = sum((dfWR.NP1$Y_w8==0)*(dfWR.NP1$Y_w12==0), na.rm = TRUE),
+                                  "r2nr" = sum((dfWR.NP1$Y_w8==1)*(dfWR.NP1$Y_w12==0), na.rm = TRUE),
+                                  "nr2r" = sum((dfWR.NP1$Y_w8==0)*(dfWR.NP1$Y_w12==1), na.rm = TRUE),
+                                  "r2r" = sum((dfWR.NP1$Y_w8==1)*(dfWR.NP1$Y_w12==1), na.rm = TRUE))
+                       )
+df.trans <- rbind(df.trans, total = colSums(df.trans))
+df.trans[,1] <- paste(df.trans[,1]," (",round(100*df.trans[,1]/df.trans["total",1],2),"%)", sep = "")
+df.trans[,2] <- paste(df.trans[,2]," (",round(100*df.trans[,2]/df.trans["total",2],2),"%)", sep = "")
+df.trans[,3] <- paste(df.trans[,3]," (",round(100*df.trans[,3]/df.trans["total",3],2),"%)", sep = "")
+##             week4       week8      week12
+## nr2nr 51 (58.62%) 27 (32.53%)    16 (20%)
+## r2nr       0 (0%)  9 (10.84%)    6 (7.5%)
+## nr2r  36 (41.38%)  20 (24.1%) 17 (21.25%)
+## r2r        0 (0%) 27 (32.53%) 41 (51.25%)
+## total   87 (100%)   83 (100%)   80 (100%)
+
+## ** latent class
+dfLR.NP1_NNA <- dfLR.NP1[!is.na(dfLR.NP1$HAMD17)] 
+
+ls.hlme <- list(hlme(HAMD17 ~ visit, subject = "CIMBI_ID", data = dfLR.NP1_NNA,
+                     ng = 1, random =~ 1),
+                hlme(HAMD17 ~ visit, subject = "CIMBI_ID", data = dfLR.NP1_NNA,
+                     ng = 2, nwg = FALSE, mixture =~visit, random =~ 1),
+                hlme(HAMD17 ~ visit, subject = "CIMBI_ID", data = dfLR.NP1_NNA,
+                     ng = 3, nwg = FALSE, mixture =~visit, random =~ 1),
+                hlme(HAMD17 ~ visit, subject = "CIMBI_ID", data = dfLR.NP1_NNA,
+                     ng = 4, nwg = FALSE, mixture =~visit, random =~ 1))
+     
+ggTraj_hlme(ls.hlme[[1]], color = "prob", facet = TRUE, nrow = 1)
+ggTraj_hlme(ls.hlme[[2]], color = "prob", facet = TRUE, nrow = 1, order.class = c(2:1))
+ggTraj_hlme(ls.hlme[[3]], color = "prob", facet = TRUE, nrow = 1, order.class = c("stable" = 3,"partial recovery"=1,"recovery"=2))
+ggTraj_hlme(ls.hlme[[4]], color = "prob", facet = TRUE, nrow = 1, order.class = c(4,3,1,2))
+    
+compare.hlme <- summarytable(ls.hlme[[1]], bb = ls.hlme[[2]], ls.hlme[[3]], ls.hlme[[4]],
+                             which = c("G", "loglik", "conv", "npm", "AIC", "BIC", "SABIC", "entropy"))
+colnames(compare.hlme)[1] <- "nb. classes"
+colnames(compare.hlme)[3] <- "cv"
+colnames(compare.hlme)[4] <- "nb. parameters"
+compare.hlme
+
 ## * Analysis: complete case 
+## ** week 4
+dfWR.NP1_ccw4 <- dfWR.NP1[rowSums(is.na(dfWR.NP1[,.SD,.SDcols = c("Y_w4",nameR.predictor)]))==0,]
+dfWR.NP1_ccw4S <- cbind(dfWR.NP1_ccw4[,c("Y_w4","female","cognitive_cluster2","cognitive_cluster3")],
+                      scale(dfWR.NP1_ccw4[,c("age","MR_OFCthick", "HAMD17", "low_hsCRP", "lvpet", "EEG_vigilance")])
+                      )
+
+ff_ccw4 <- Y_w4 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance
+
+e.glm0_ccw4 <- glm(Y_w4 ~ female + age, data = dfWR.NP1_ccw4, family = binomial(link = "logit"))
+e.glm_ccw4 <- glm(ff_ccw4,
+                  data = dfWR.NP1_ccw4, family = binomial(link = "logit"))
+summary(e.glm_ccw4)
+## Coefficients:
+##                     Estimate Std. Error z value Pr(>|z|)
+## (Intercept)         2.442441   7.065516   0.346    0.730
+## female             -0.731849   0.561789  -1.303    0.193
+## age                 0.028382   0.031850   0.891    0.373
+## MR_OFCthick        -1.353086   2.593385  -0.522    0.602
+## HAMD17              0.003296   0.085150   0.039    0.969
+## low_hsCRP           0.861512   0.683635   1.260    0.208
+## lvpet               0.141351   2.071846   0.068    0.946
+## cognitive_cluster2 -0.411805   0.592115  -0.695    0.487
+## cognitive_cluster3 -0.975298   0.649760  -1.501    0.133
+## EEG_vigilance      -0.128708   0.476123  -0.270    0.787
+
+anova(e.glm_ccw4,e.glm0_ccw4, test = "Chisq")
+## Analysis of Deviance Table
+
+## Model 1: Y_w4 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + 
+##     cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance
+## Model 2: Y_w4 ~ female + age
+##   Resid. Df Resid. Dev Df Deviance Pr(>Chi)
+## 1        68      95.98                     
+## 2        75     100.77 -7  -4.7862    0.686
+
+## table(EEG = dfWR.NP1_ccw8$EEG_vigilance, recovery = dfWR.NP1_ccw8$Y_w8, cluster3 = dfWR.NP1_ccw8$cognitive_cluster3)
+
+e.ranger_ccw4 <- ranger(ff_ccw4, data = dfWR.NP1_ccw4, probability = TRUE)
+## ranger(ff_ccw4, data = dfWR.NP1_ccw4, probability = TRUE, num.trees = 5000, mtry = 1, min.node.size = 5)
+e.rangerPerm_ccw4 <- ranger(ff_ccw4, data = dfWR.NP1_ccw4, importance = "permutation")
+
+importance_pvalues(e.rangerPerm_ccw4, method = "altmann", 
+                   formula = ff_ccw4, data = dfWR.NP1_ccw4)
+##                      importance     pvalue
+## female             -0.003579548 0.74257426
+## age                 0.008075597 0.20792079
+## MR_OFCthick         0.002276118 0.35643564
+## HAMD17             -0.011140327 0.86138614
+## low_hsCRP           0.001215267 0.30693069
+## lvpet              -0.005461347 0.68316832
+## cognitive_cluster2 -0.003157582 0.75247525
+## cognitive_cluster3  0.008964127 0.04950495
+## EEG_vigilance      -0.007608652 0.91089109
+
 ## ** week 8
 dfWR.NP1_ccw8 <- dfWR.NP1[rowSums(is.na(dfWR.NP1[,.SD,.SDcols = c("Y_w8",nameR.predictor)]))==0,]
+dfWR.NP1_ccw8S <- cbind(dfWR.NP1_ccw8[,c("Y_w8","female","cognitive_cluster2","cognitive_cluster3")],
+                        scale(dfWR.NP1_ccw8[,c("age","MR_OFCthick", "HAMD17", "low_hsCRP", "lvpet", "EEG_vigilance")])
+                        )
+
 ff_ccw8 <- Y_w8 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance
 e.glm0_ccw8 <- glm(Y_w8 ~ female + age, data = dfWR.NP1_ccw8, family = binomial(link = "logit"))
+summary(e.glm0_ccw8)
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)
+## (Intercept) -0.62048    0.92671  -0.670    0.503
+## female      -0.40827    0.53158  -0.768    0.442
+## age          0.04023    0.02985   1.348    0.178
 e.glm_ccw8 <- glm(ff_ccw8,
                 data = dfWR.NP1_ccw8, family = binomial(link = "logit"))
 summary(e.glm_ccw8)
@@ -114,7 +261,6 @@ anova(e.glm_ccw8,e.glm0_ccw8, test = "Chisq")
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-
 ## table(EEG = dfWR.NP1_ccw8$EEG_vigilance, recovery = dfWR.NP1_ccw8$Y_w8, cluster3 = dfWR.NP1_ccw8$cognitive_cluster3)
 
 e.ranger_ccw8 <- ranger(ff_ccw8, data = dfWR.NP1_ccw8, probability = TRUE)
@@ -134,12 +280,15 @@ importance_pvalues(e.ranger_ccw8Perm, method = "altmann",
 ## EEG_vigilance      0.006514606 0.1980198
 
 ## ** week 12
-
 dfWR.NP1_ccw12 <- dfWR.NP1[rowSums(is.na(dfWR.NP1[,.SD,.SDcols = c("Y_w12",nameR.predictor)]))==0,]
+dfWR.NP1_ccw12S <- cbind(dfWR.NP1_ccw12[,c("Y_w12","female","cognitive_cluster2","cognitive_cluster3")],
+                      scale(dfWR.NP1_ccw12[,c("age","MR_OFCthick", "HAMD17", "low_hsCRP", "lvpet", "EEG_vigilance")])
+                      )
+
 ff_ccw12 <- Y_w12 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance
 e.glm0_ccw12 <- glm(Y_w12 ~ female + age, data = dfWR.NP1_ccw12, family = binomial(link = "logit"))
 summary(e.glm0_ccw12)
-Coefficients:
+## Coefficients:
 ##             Estimate Std. Error z value Pr(>|z|)  
 ## (Intercept)  -2.1459     1.6759  -1.280   0.2004  
 ## female       -0.2110     0.6229  -0.339   0.7347  
@@ -190,8 +339,56 @@ importance_pvalues(e.rangerPerm_ccw12, method = "altmann",
 ## cognitive_cluster  0.001450456 0.33663366
 ## EEG_vigilance      0.001412560 0.29702970
 
+
 ## * Analysis: after multiple imputation
-n.imputed <- 100 ## number of imputed datasets
+n.imputed <- 10 ## number of imputed datasets
+
+## ** week 4
+dfWR.NP1_w4 <- dfWR.NP1[!is.na(dfWR.NP1$Y_w4),]
+dfWR.NP1_2impw4 <- dfWR.NP1_w4[,.SD,.SDcols=c("Y_w4", "sex", "age", "MR_OFCthick", "HAMD17", "hsCRP", "lvpet", "cognitive_cluster",
+                                              "EEG_vigilance", "CATS_scoretotal", "CAR_AUCi", "neuroticism")]
+dfWR.NP1_2impw4$hsCRP <- as.factor(dfWR.NP1_2impw4$hsCRP)
+dfWR.NP1_2impw4$cognitive_cluster <- as.factor(dfWR.NP1_2impw4$cognitive_cluster)
+
+Mlink_w4 <- matrix(0, NCOL(dfWR.NP1_2impw4), NCOL(dfWR.NP1_2impw4), dimnames = list(names(dfWR.NP1_2impw4),names(dfWR.NP1_2impw4)))
+Mlink_w4[setdiff(names(which(colSums(is.na(dfWR.NP1_2impw4))>0)),"Y_w4"),] <- 1
+diag(Mlink_w4) <- 0
+
+dfWRimp.NP1_w4 <- mice(dfWR.NP1_2impw4,
+                m=n.imputed,
+                maxit = 50, # number of iterations to obtain the imputed dataset
+                predictorMatrix = Mlink_w4,
+                method = c("","","","","","logreg","norm.predict","polr","norm.predict","norm.predict","norm.predict","norm.predict"), 
+                seed = 500, printFlag = FALSE)
+summary(dfWRimp.NP1_w4)
+str(dfWRimp.NP1_w4$imp)
+## stripplot(dfWRimp.NP1_w4, hsCRP ~ .imp, pch=20,cex=2)
+## stripplot(dfWRimp.NP1_w4, lvpet ~ .imp, pch=20,cex=2)
+## stripplot(dfWRimp.NP1_w4, cognitive_cluster ~ .imp, pch=20,cex=2)
+## stripplot(dfWRimp.NP1_w4, EEG_vigilance ~ .imp, pch=20,cex=2)
+## stripplot(dfWRimp.NP1_w4, CATS_scoretotal ~ .imp, pch=20,cex=2)
+## stripplot(dfWRimp.NP1_w4, CAR_AUCi ~ .imp, pch=20,cex=2)
+## stripplot(dfWRimp.NP1_w4, neuroticism ~ .imp, pch=20,cex=2)
+
+e.glm_impw4 <- with(data = dfWRimp.NP1_w4,
+                    glm(Y_w4 ~ sex + age + MR_OFCthick + HAMD17 + hsCRP + lvpet + cognitive_cluster + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
+                        family = binomial(link = "logit"))
+                    )
+summary(pool(e.glm_impw4))
+##                  term      estimate   std.error   statistic       df    p.value
+## 1         (Intercept) -0.1793690478 7.624470966 -0.02352544 71.93220 0.98129628
+## 2           sexfemale -1.2321733186 0.587163801 -2.09851717 71.77338 0.03937915
+## 3                 age  0.0275380870 0.034086847  0.80788015 71.97783 0.42182153
+## 4         MR_OFCthick -1.2829971752 2.557092139 -0.50174069 71.72269 0.61738669
+## 5              HAMD17  0.0598778059 0.082151571  0.72886988 71.95672 0.46844694
+## 6            hsCRPlow  0.8959100153 0.696294994  1.28668168 67.55340 0.20259717
+## 7               lvpet -0.0738208731 2.088475266 -0.03534678 71.99344 0.97190105
+## 8  cognitive_cluster2 -0.5971527133 0.637439757 -0.93679867 67.72045 0.35219105
+## 9  cognitive_cluster3 -1.5156140043 0.699476076 -2.16678462 70.56203 0.03362950
+## 10      EEG_vigilance -0.2031562616 0.492235816 -0.41272141 71.84613 0.68103980
+## 11    CATS_scoretotal -0.0121817332 0.014509607 -0.83956327 72.03766 0.40393095
+## 12           CAR_AUCi  0.0008065641 0.000939835  0.85819757 70.69040 0.39368390
+## 13        neuroticism  0.0162929025 0.017300270  0.94177160 72.02879 0.34945755
 
 ## ** week 8
 dfWR.NP1_w8 <- dfWR.NP1[!is.na(dfWR.NP1$Y_w8),]
@@ -288,6 +485,76 @@ summary(pool(e.glm_impw12))
 ## 13        neuroticism  0.01752110  0.025418000  0.6893186 65.96149 0.49304061
 
 ## * Prediction: complete data
+## ** week 4
+## *** assess performance
+set.seed(10)
+ePerf.ccw4 <- performance(list(glm0_ccw4 = e.glm0_ccw4, glm_ccw4 = e.glm_ccw4, rf_ccw4 = e.ranger_ccw4),
+                          data = dfWR.NP1_ccw4, fold.number = 100, fold.size = 0.1)
+ePerf.ccw4
+##      method metric     model   estimate          se      lower     upper      p.value p.value_comp
+## 1  internal    auc glm0_ccw4 0.58680556 0.067302860 0.44366530 0.7049351 2.222716e-01           NA
+## 2  internal    auc  glm_ccw4 0.69305556 0.062106054 0.55324473 0.7968469 9.170059e-03 1.111473e-01
+## 3  internal    auc   rf_ccw4 0.99791667 0.002612833 0.97586903 0.9998220 3.750462e-06 6.110621e-07
+## 4  internal  brier glm0_ccw4 0.22702258 0.017602184 0.19501642 0.2642816           NA           NA
+## 5  internal  brier  glm_ccw4 0.21252407 0.019572090 0.17742629 0.2545648           NA 2.141445e-01
+## 6  internal  brier   rf_ccw4 0.09768817 0.008326253 0.08265926 0.1154496           NA 1.110223e-15
+## 7        cv    auc glm0_ccw4 0.50026389 0.065186250 0.36734343 0.6193880 9.967704e-01           NA
+## 8        cv    auc  glm_ccw4 0.46946528 0.061354848 0.34609592 0.5833977 6.146552e-01 6.162546e-01
+## 9        cv    auc   rf_ccw4 0.49236458 0.064388406 0.36155437 0.6105074 9.052989e-01 6.606699e-01
+## 10       cv  brier glm0_ccw4 0.24690719 0.017305691 0.21521530 0.2832659           NA           NA
+## 11       cv  brier  glm_ccw4 0.28051117 0.024045664 0.23712886 0.3318302           NA 3.669000e-02
+## 12       cv  brier   rf_ccw4 0.26007552 0.019299611 0.22487116 0.3007913           NA 2.277458e-01
+
+## *** DENSITY PLOT
+dt.CVpred_ccw4 <- as.data.table(ePerf.ccw4, type = "prediction-cv", format = "long")
+dt.CVpred_ccw4$model.lab <- factor(dt.CVpred_ccw4$model, levels = c("glm0_ccw4","glm_ccw4","rf_ccw4"),
+                                   labels = c("logistic model \n no biomarkers", "logistic model \n biomarkers", "random forest \n biomarkers"))
+## SANITY CHECK
+## with(dt.CVpred_ccw4[model=="glm_ccw4"], auc(outcome, prediction, fold, observation))
+
+ggHist_w4 <- ggplot(dt.CVpred_ccw4,aes(x=prediction, fill = as.factor(outcome)))
+ggHist_w4 <- ggHist_w4 + geom_histogram(alpha = 0.5) + labs(x = "Predicted probability of recovery", y = "number of CV predictions", fill = "Observed \n recovery")
+ggHist_w4 <- ggHist_w4 + facet_wrap(~model.lab)
+
+mybreaks <- seq(0,1,length.out=20)
+dt.hist_ccw4 <- dt.CVpred_ccw4[,.(ls.outcome = list(rep(.SD$outcome[1],length(hist(.SD$prediction, plot = FALSE, breaks = mybreaks)$mids))),
+                                  ls.model = list(rep(.SD$model.lab[1],length(hist(.SD$prediction, plot = FALSE, breaks = mybreaks)$mids))),
+                                  ls.pc = list(hist(.SD$prediction, plot = FALSE, breaks = mybreaks)$counts/sum(hist(.SD$prediction, plot = FALSE, breaks = mybreaks)$counts)),
+                                  ls.breaks = list(hist(.SD$prediction, plot = FALSE, breaks = mybreaks)$mids)),
+                               by = c("outcome","model.lab"), .SDcols = c("prediction","outcome","model.lab")]
+dt.hist_ccw4[,c("outcome","model.lab") := NULL]
+dt.hist_ccw4 <- as.data.table(lapply(dt.hist_ccw4,unlist))
+
+ggHist2_w4 <- ggplot(dt.hist_ccw4, aes(x=ls.breaks,y=ls.pc,fill=as.character(ls.outcome)))
+ggHist2_w4 <- ggHist2_w4 + geom_col(position = "dodge") + labs(x = "Predicted probability of recovery", y = "proportion of CV predictions", fill = "Observed \n recovery")
+ggHist2_w4 <- ggHist2_w4 + facet_wrap(~ls.model)
+ggHist2_w4
+
+ggDens_w4 <- ggplot(dt.CVpred_ccw4,aes(x=prediction, fill = as.factor(outcome)))
+ggDens_w4 <- ggDens_w4 + geom_density(alpha = 0.25, adjust = 0.75) + labs(x = "Predicted probability of recovery", y = "Density of CV predictions", fill = "Observed \n recovery")
+ggDens_w4 <- ggDens_w4 + facet_wrap(~model.lab)
+
+
+## *** CALIBRATION PLOT
+ggCali_w4 <- ggplot(dt.CVpred_ccw4,aes(x=prediction, y = outcome))
+ggCali_w4 <- ggCali_w4 + geom_smooth() + geom_rug() + geom_abline(slope = 1, intercept = 0, color = "red")
+ggCali_w4 <- ggCali_w4 + facet_wrap(~model.lab)
+
+## *** ROC CURVES
+dt.CVroc_ccw4 <- as.data.table(ePerf.ccw4, type = "roc-cv")                                                      
+dt.CVroc_ccw4$model.lab <- factor(dt.CVroc_ccw4$model, levels = c("glm0_ccw4","glm_ccw4","rf_ccw4"),
+                                   labels = c("logistic model - no biomarkers", "logistic model - biomarkers", "random forest - biomarkers"))
+## SANITY CHECK
+## ggroc(roc(outcome ~ prediction, data = dt.CVpred_ccw4[fold == 3 & model == "glm_ccw4"]))
+## ggplot(dt.CVroc_ccw4[fold==3 & model == "glm_ccw4"], aes(x=1-sp,y=se)) + geom_step() + geom_abline(slope=1,intercept=0,color = "black")
+
+ggROC_w4 <- ggplot(dt.CVroc_ccw4,aes(x=1-sp,color=model.lab))
+ggROC_w4 <- ggROC_w4 + geom_step(aes(y=se,group=interaction(fold,model.lab)),alpha=0.1, size = 1) + geom_abline(slope=1,intercept=0,color = "black")
+ggROC_w4 <- ggROC_w4 + geom_smooth(aes(y=se,group=model.lab), se = FALSE, size = 3)
+ggROC_w4 <- ggROC_w4 + labs(x="1-specificity", y="sensitivity")
+
+
+
 ## ** week 8
 ## *** assess performance
 set.seed(10)
@@ -630,5 +897,59 @@ set.seed(11)
 ePerf.w12 <- as.data.table(performance(list(glm0_w12 = e.glm0_w12, glm_w12 = e.glm_w12), ## rf_w12 = e.ranger_w12),
                                          data = dfWR.NP1_w12, fold.number = 100, fold.size = 8, individual.fit = TRUE))
 ePerf.w12
+
+## * Synthesis
+## ** Association (complete case)
+e.glm_ccw4S <- update(e.glm_ccw4, data = dfWR.NP1_ccw4S)
+e.glm_ccw8S <- update(e.glm_ccw8, data = dfWR.NP1_ccw8S)
+e.glm_ccw12S <- update(e.glm_ccw12, data = dfWR.NP1_ccw12S)
+
+
+dtS.ass_cc <- rbind(cbind(time = "week 4", method = "MI", cbind(term = rownames(summary(e.glm_ccw4S)$coef), data.table(summary(e.glm_ccw4S)$coef))),
+                    cbind(time = "week 8", method = "MI", cbind(term = rownames(summary(e.glm_ccw8S)$coef), data.table(summary(e.glm_ccw8S)$coef))),
+                    cbind(time = "week 12", method = "MI", cbind(term = rownames(summary(e.glm_ccw12S)$coef), data.table(summary(e.glm_ccw12S)$coef))))
+names(dtS.ass_cc)[names(dtS.ass_cc)=="Estimate"] <- "estimate"
+names(dtS.ass_cc)[names(dtS.ass_cc)=="Std. Error"] <- "std.error"
+names(dtS.ass_cc)[names(dtS.ass_cc)=="Pr(>|z|)"] <- "p.value"
+dtS.ass_cc$lower <- dtS.ass_cc$estimate + qnorm(0.025) * dtS.ass_cc$std.error
+dtS.ass_cc$upper <- dtS.ass_cc$estimate + qnorm(0.975) * dtS.ass_cc$std.error
+dtS.ass_cc$time <- factor(dtS.ass_cc$time, levels = as.character(unique(dtS.ass_cc$time)))
+
+
+ggForest.ass_cc <- ggforestplot::forestplot(
+                                     df = as.data.frame(dtS.ass_cc[dtS.ass_cc$term!="(Intercept)",]),
+                                     name = term,
+                                     estimate = estimate,
+                                     se = std.error,
+                                     pvalue = p.value,
+                                     psignif = 0.05,
+                                     xlab = "Adjusted log odd ratio",
+                                     logodds = FALSE,
+                                     title = "Outcome: >50% improvement in HAMD6 (complete case analysis)",
+                                     colour = time
+                                 )
+ggForest.ass_cc
+
+
+dtS.ass <- rbind(cbind(time = "week 4", method = "MI", data.table(summary(pool(e.glm_impw4)))),
+                 cbind(time = "week 8", method = "MI", data.table(summary(pool(e.glm_impw8)))),
+                 cbind(time = "week 12", method = "MI", data.table(summary(pool(e.glm_impw12)))))
+dtS.ass$lower <- dtS.ass$estimate + qt(0.025, df = dtS.ass$df) * dtS.ass$std.error
+dtS.ass$upper <- dtS.ass$estimate + qt(0.975, df = dtS.ass$df) * dtS.ass$std.error
+
+
+ggforestplot::forestplot(
+  df = as.data.frame(dtS.ass),
+  name = term,
+  estimate = estimate,
+  se = std.error,
+  pvalue = p.value,
+  psignif = 0.05,
+  xlab = "1-SD increment in cardiometabolic trait\nper 1-SD increment in biomarker concentration",
+  title = "Biomarker associations to metabolic traits",
+  colour = time
+)
+
+
 ##----------------------------------------------------------------------
 ### 1-prediction.R ends here

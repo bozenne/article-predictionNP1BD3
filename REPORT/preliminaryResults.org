@@ -123,29 +123,29 @@ summary(dfWR.NP1[,.SD,.SDcols = c(name.predictor,"Y_w8","Y_w12")])
 #+RESULTS:
 #+begin_example
      sex          age         MR_OFCthick        HAMD17         hsCRP          
- male  :25   Min.   :18.24   Min.   :2.318   Min.   :18.00   Length:85         
- female:60   1st Qu.:22.22   1st Qu.:2.510   1st Qu.:20.00   Class :character  
-             Median :23.93   Median :2.558   Median :22.00   Mode  :character  
-             Mean   :27.22   Mean   :2.573   Mean   :22.76                     
-             3rd Qu.:28.70   3rd Qu.:2.636   3rd Qu.:25.00                     
+ male  :25   Min.   :18.24   Min.   :2.318   Min.   :18.00   Length:88         
+ female:63   1st Qu.:22.19   1st Qu.:2.512   1st Qu.:20.00   Class :character  
+             Median :24.02   Median :2.566   Median :22.00   Mode  :character  
+             Mean   :27.11   Mean   :2.577   Mean   :22.78                     
+             3rd Qu.:28.56   3rd Qu.:2.640   3rd Qu.:25.00                     
              Max.   :57.31   Max.   :2.889   Max.   :31.00                     
                                                                                
      lvpet          cognitive_cluster EEG_vigilance       CATS_scoretotal
- Min.   :-0.82582   Min.   :1.00      Min.   :-1.500000   Min.   : 0.00  
- 1st Qu.:-0.49196   1st Qu.:1.00      1st Qu.: 0.000000   1st Qu.:16.25  
- Median :-0.42337   Median :2.00      Median : 0.000000   Median :23.50  
- Mean   :-0.43227   Mean   :1.88      Mean   : 0.006173   Mean   :30.42  
- 3rd Qu.:-0.34832   3rd Qu.:3.00      3rd Qu.: 0.000000   3rd Qu.:41.50  
- Max.   :-0.09773   Max.   :3.00      Max.   : 1.500000   Max.   :81.00  
+ Min.   :-0.82582   Min.   :1.000     Min.   :-1.500000   Min.   : 0.00  
+ 1st Qu.:-0.49394   1st Qu.:1.000     1st Qu.: 0.000000   1st Qu.:16.00  
+ Median :-0.42380   Median :2.000     Median : 0.000000   Median :23.00  
+ Mean   :-0.43275   Mean   :1.884     Mean   :-0.005952   Mean   :30.36  
+ 3rd Qu.:-0.35715   3rd Qu.:3.000     3rd Qu.: 0.000000   3rd Qu.:42.00  
+ Max.   :-0.09773   Max.   :3.000     Max.   : 1.500000   Max.   :81.00  
  NA's   :2          NA's   :2         NA's   :4           NA's   :11     
-    CAR_AUCi         neuroticism     Y_w8           Y_w12        
- Min.   :-1070.30   Min.   : 67   Mode :logical   Mode :logical  
- 1st Qu.:   76.69   1st Qu.:109   FALSE:37        FALSE:22       
- Median :  208.01   Median :119   TRUE :47        TRUE :59       
- Mean   :  180.26   Mean   :120   NA's :1         NA's :4        
- 3rd Qu.:  382.60   3rd Qu.:133                                  
- Max.   :  768.90   Max.   :155                                  
- NA's   :17         NA's   :24
+    CAR_AUCi        neuroticism       Y_w8           Y_w12        
+ Min.   :-1070.3   Min.   : 67.0   Mode :logical   Mode :logical  
+ 1st Qu.:   79.1   1st Qu.:109.0   FALSE:37        FALSE:22       
+ Median :  221.9   Median :119.0   TRUE :47        TRUE :59       
+ Mean   :  181.3   Mean   :120.7   NA's :4         NA's :7        
+ 3rd Qu.:  381.1   3rd Qu.:134.0                                  
+ Max.   :  768.9   Max.   :155.0                                  
+ NA's   :19        NA's   :25
 #+end_example
 
 The dataset contained many missing values. The pattern of the missing
@@ -156,30 +156,44 @@ large number of missing data (11, 17, and 24) and this is why they
 were excluded from some analyses.
 
 #+BEGIN_SRC R :exports none :results output :session *R* :cache no
-dfW.mdpattern <- md.pattern(dfWR.NP1[,.SD,.SDcols = c(name.predictor,"Y_w8","Y_w12")], plot = FALSE)[,c(name.predictor,"Y_w8","Y_w12")]
+dfW.mdpattern <- md.pattern(dfWR.NP1[,.SD,.SDcols = c(name.predictor,"Y_w4","Y_w8","Y_w12")], plot = FALSE)[,c(name.predictor,"Y_w4","Y_w8","Y_w12")]
 rownames(dfW.mdpattern)[NROW(dfW.mdpattern)] <- "total"
 dfL.mdpattern <- reshape2::melt(cbind(index = -(1:NROW(dfW.mdpattern)), n = rownames(dfW.mdpattern), as.data.frame(dfW.mdpattern)), id.vars = c("index","n"))
 dfL.mdpattern$value.char <- factor(dfL.mdpattern$value, levels = 0:1, labels = c("missing","available"))
 dfL.mdpattern$index.char <- as.factor(dfL.mdpattern$index)
+dfL.mdpattern$variable <- gsub("Y_","HAMD6_",dfL.mdpattern$variable, fixed = TRUE)
+neworder <- order(dfL.mdpattern[dfL.mdpattern$n=="total","value"],decreasing = TRUE)
 dfL.mdpattern$variable2 <- factor(dfL.mdpattern$variable,
-                                  levels = as.character(dfL.mdpattern[dfL.mdpattern$n=="total","variable"]),
-                                  labels = paste0(as.character(dfL.mdpattern[dfL.mdpattern$n=="total","variable"]),"\n (missing=",dfL.mdpattern[dfL.mdpattern$n=="total","value"],")")
+                                  levels = as.character(dfL.mdpattern[dfL.mdpattern$n=="total","variable"])[neworder],
+                                  labels = paste0(as.character(dfL.mdpattern[dfL.mdpattern$n=="total","variable"]),"\n (missing=",dfL.mdpattern[dfL.mdpattern$n=="total","value"],")")[neworder]
                                   )
 
 library(ggplot2)
-gg <- ggplot(dfL.mdpattern[dfL.mdpattern$n!="total",], aes(x=variable2,y=index.char,fill=value.char)) + geom_tile(color = "gray", size = 1.1)
-gg <- gg + labs(fill = "", x = "")
-gg <- gg + scale_y_discrete("number of patients", labels = setNames(dfL.mdpattern$n[!duplicated(dfL.mdpattern$index.char)], dfL.mdpattern$index.char[!duplicated(dfL.mdpattern$index.char)]))
-gg <- gg + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+gg0 <- ggplot(dfL.mdpattern[dfL.mdpattern$n!="total",], aes(x=variable2 ,y=index.char,fill=value.char)) + geom_tile(color = "gray", size = 1.1)
+gg0 <- gg0 + labs(fill = "", x = "")
+gg0 <- gg0 + scale_y_discrete("number of patients", labels = setNames(dfL.mdpattern$n[!duplicated(dfL.mdpattern$index.char)], dfL.mdpattern$index.char[!duplicated(dfL.mdpattern$index.char)]))
+gg0 <- gg0 + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+gg0 <- gg0 + theme(text = element_text(size=15),
+                   axis.line = element_line(size = 1.25),
+                   axis.ticks = element_line(size = 2),
+                   axis.ticks.length=unit(.25, "cm"))
+
+
+dfgg <- dfL.mdpattern[dfL.mdpattern$n!="total",]
+dfgg$index.char <- factor(dfgg$index.char, levels = dfgg$index.char[order(as.numeric(dfgg$n)[!duplicated(dfgg$index.char)], decreasing = TRUE)])
+gg <- ggplot(dfgg, aes(x=index.char, y=variable2, fill=value.char)) + geom_tile(color = "gray", size = 2)
+gg <- gg + labs(fill = "", y = "")
+gg <- gg + scale_x_discrete("number of patients", labels = setNames(dfL.mdpattern$n[!duplicated(dfL.mdpattern$index.char)], dfL.mdpattern$index.char[!duplicated(dfL.mdpattern$index.char)]))
 gg <- gg + theme(text = element_text(size=15),
                  axis.line = element_line(size = 1.25),
                  axis.ticks = element_line(size = 2),
                  axis.ticks.length=unit(.25, "cm"))
-ggsave(gg, filename = file.path("REPORT","figures","gg-missingPattern.pdf"), width = 8)
+gg
+## ggsave(gg, filename = file.path("REPORT","figures","gg-missingPattern.pdf"), width = 12)
 #+END_SRC
 
 #+RESULTS:
-: Saving 8 x 7 in image
 
 \clearpage
 

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 24 2022 (18:39) 
 ## Version: 
-## Last-Updated: jan 24 2022 (18:43) 
+## Last-Updated: mar  2 2022 (16:57) 
 ##           By: Brice Ozenne
-##     Update #: 3
+##     Update #: 14
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,24 +15,47 @@
 ## 
 ### Code:
 
-glhtPool <- function(object){
-    all.coef <- setdiff(names(coef(object$analyses[[1]])),"(Intercept)")
-    n.coef <- length(all.coef)
+## * glhtPool
+glhtPool <- function(object, C = NULL){
     
-    ## contrast
-    C <- matrix(0, nrow = n.coef, ncol = n.coef, dimnames = list(all.coef, all.coef))
-    diag(C) <- 1
+    require(lava)
+    
+    ## ** contrast
+    all.coef <- names(coef(object$analyses[[1]]))
+    n.coef <- length(all.coef)
+    if(is.null(C)){
+        C <- matrix(0, nrow = n.coef, ncol = n.coef, dimnames = list(all.coef, all.coef))
+        diag(C) <- 1
+        C <- C[-1,]
+    }
 
-    ## estimates
-    pooled <- summary(pool(object))
-    pooled <- pooled[pooled[,"term"] != "(Intercept)",]
+    ## ** extract all
+    all.estimate <- lapply(object$analyses,coef)
+    all.vcov <- lapply(object$analyses,vcov)
+    n.imputed <- length(object$analyses)
 
+    ## ** pool
+    pooled.mice <- summary(pool(object))
+
+    pooled.estimate <- colMeans(do.call(rbind,all.estimate))
+    if(any(abs(pooled.estimate-pooled.mice$estimate)>1e-6)){
+        warning("Descrepancy between mice and manual calculations for the estimates. \n")
+    }
+    
+    pooled.vcovW <- Reduce("+",all.vcov)/n.imputed
+    pooled.vcovB <- Reduce("+",lapply(all.estimate, function(iCoef){tcrossprod(iCoef-pooled.estimate)}))/(n.imputed-1)
+    pooled.vcovE <- pooled.vcovB/n.imputed
+    pooled.vcov <- pooled.vcovW + pooled.vcovB + pooled.vcovE
+    if(any(abs(sqrt(diag(pooled.vcov))-pooled.mice$std.error)>1e-6)){
+        warning("Descrepancy between mice and manual calculations for the standard error. \n")
+    }
+    
     ## glht object
     out <- list(linfct = C,
                 rhs = rep(0,NROW(C)),
-                coef = pooled[,"estimate"],
-                vcov = tcrossprod(pooled[,"std.error"]) * Reduce("+",lapply(object$analyses,function(iO){cov2cor(vcov(iO)[pooled[,"term"],pooled[,"term"]])}))/length(object$analyses),
-                df = round(median(pooled[,"df"])),
+                coef = pooled.estimate,
+                vcov = pooled.vcov,
+                df = floor(median(pooled.mice$df)),
                 alternative = "two.sided")
     class(out) <- "glht"
 

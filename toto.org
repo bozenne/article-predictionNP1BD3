@@ -1,0 +1,5 @@
+- double check results
+- run week 4
+- formalize sensitivity analysis RF
+- description of the recovery + trajectory approach (paper sent by Vincent)
+- biblio missing value machine learning

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov  1 2021 (13:10) 
 ## Version: 
-## Last-Updated: jan 24 2022 (13:40) 
+## Last-Updated: mar  2 2022 (16:15) 
 ##           By: Brice Ozenne
-##     Update #: 59
+##     Update #: 69
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,6 +15,10 @@
 ## 
 ### Code:
 
+
+cat("Data management \n")
+
+## * Path
 library(data.table)
 library(pbapply)
 library(lava)
@@ -30,21 +34,21 @@ if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
 
 ## * Original data
 ## NOTE: CPR column has been deleted
-source.NP1 <- as.data.table(read.csv("source/DS9_NP1_in.csv", sep = ";", na.strings = c("")))
+source.NP1 <- as.data.table(read.csv("source/DS9_full_out.csv", sep = ";", na.strings = c("")))
 ## source.NP1 <- read.xlsx("source/DS9_NP1_in.xlsx", sheetIndex = 1)
 ## names(dfW.NP1)
 
 ## * Data cleaning
 ## done by emily's script
-load("source/DS9_full.Rdata")
+name <- load("source/DS9_full_out.Rdata")
 ## DS$CPR <- NULL 
-## save(DS, file = "source/DS9_full.Rdata")
+## save(DS, file = "source/DS9_full_out.Rdata")
 dfW.NP1 <- as.data.table(DS)
 dfW.NP1$CIMBI_ID <- as.numeric(as.character(dfW.NP1$CIMBI_ID))
 setkeyv(dfW.NP1,"CIMBI_ID")
 
-sourceRed.NP1 <- source.NP1[source.NP1$cimbi_id %in% dfW.NP1$CIMBI_ID, .SD[1], by = "cimbi_id"]
-setkeyv(sourceRed.NP1,"cimbi_id")
+sourceRed.NP1 <- source.NP1[source.NP1$CIMBI_ID %in% dfW.NP1$CIMBI_ID, .SD[1], by = "CIMBI_ID"]
+setkeyv(sourceRed.NP1,"CIMBI_ID")
 ## data includes the following outliers:
 # CIMBI 55896 --> SRT score is 1253.38 (16.1 IQR above mean). True data so should not necessarily be excluded but check effect on estimate
 # CIMBI 55003 --> SRT score is 778.59 (8.1 IQR above mean). True data so should not necessarily be excluded but check effect on estimate
@@ -58,9 +62,9 @@ findLevels <- function(data1, data2, col1, col2){
     if(missing(col2)){col2 <- col1}
     keep.id <- as.character(data1[, CIMBI_ID[1], by = col1][[2]])
     data1.red <- data1[data1$CIMBI_ID %in% keep.id, .SD, .SDcols = c("CIMBI_ID",col1)]
-    data2.red <- data2[data2$cimbi_id %in% keep.id, .SD[1], by = "cimbi_id", .SDcols = col2]
+    data2.red <- data2[data2$CIMBI_ID %in% keep.id, .SD[1], by = "CIMBI_ID", .SDcols = col2]
     setkeyv(data1.red,"CIMBI_ID")
-    setkeyv(data2.red,"cimbi_id")
+    setkeyv(data2.red,"CIMBI_ID")
     
     out <- list(data1.red,data2.red)
     names(out) <- c(as.character(match.call()$data1), as.character(match.call()$data2))
@@ -131,9 +135,9 @@ keep.col <- c(keep.col, "MR_OFCthick")
 ## between 3-20 -> high low grade
 ## <3 -> low low grade
 dfW.NP1$hsCRP <- "" ## empty just to create column
-dfW.NP1$hsCRP[dfW.NP1$lab_hsCRP == "<=0.30"] <- "low"
-dfW.NP1$hsCRP[is.na(dfW.NP1$lab_hsCRP)] <- "excluded"
-dfW.NP1$hsCRP[which(dfW.NP1$lab_hsCRP != "<=0.30")] <- as.character(cut(as.numeric(dfW.NP1$lab_hsCRP[which(dfW.NP1$lab_hsCRP != "<=0.30")]), breaks = c(0,3,20,Inf), labels = c("low","high","excluded"), right = FALSE))
+dfW.NP1$hsCRP[dfW.NP1$labs_hsCRP == "<=0.30"] <- "low"
+dfW.NP1$hsCRP[is.na(dfW.NP1$labs_hsCRP)] <- "excluded"
+dfW.NP1$hsCRP[which(dfW.NP1$labs_hsCRP != "<=0.30")] <- as.character(cut(as.numeric(dfW.NP1$labs_hsCRP[which(dfW.NP1$labs_hsCRP != "<=0.30")]), breaks = c(0,3,20,Inf), labels = c("low","high","excluded"), right = FALSE))
 dfW.NP1$hsCRP[dfW.NP1$hsCRP=="excluded"] <- NA
 
 keep.col <- c(keep.col, "hsCRP")
@@ -245,9 +249,50 @@ keep.col <- c(keep.col,
               "HAMD17_total_bl","HAMD17_total_wk4","HAMD17_total_wk8","HAMD17_total_wk12",
               "dHAMD6_w4","dHAMD6_w8","dHAMD6_w12","Y_w4","Y_w8","Y_w12")
 
+
+## * Imputation
+## Nine patients left the study prematurely,
+## those leaving due to early remission were classified as remitters;
+## those leaving because of side effects or suicidality as non-responders.
+comment <- list(success4 = c("Exclusion at week 1, spontaneous remission (< 2 weeks between inclusion HAMD17 and baseline assessments). Can use baseline assessments were the patient flfilled diagnostic criteria for MDD."),
+                failure4 = c("Exclusion after week 1, suicidal and psychotic. Hospitalized."),
+                failure8 = c("Drop-out at week 7. Suicidal attempt, did not want more medicine.",
+                             "Excluded at week 7, adverse side-effects to SNRI."),
+                failure12 = c("Drop-out after week 8. Psychotic depression and suicidal.")
+                )
+
+## table(dfW.NP1[,NP1_comment], useNA = "always")
+
+if(FALSE){
+dfW.NP1[NP1_comment %in% comment$success4,.(CIMBI_ID,Y_w4,Y_w8,Y_w12)]
+##    CIMBI_ID Y_w4 Y_w8 Y_w12
+## 1:    56123   NA   NA    NA
+dfW.NP1[NP1_comment %in% comment$success4,c("Y_w4","Y_w8","Y_w12") := TRUE]
+
+
+dfW.NP1[NP1_comment %in% comment$failure4,.(CIMBI_ID,Y_w4,Y_w8,Y_w12)]
+##    CIMBI_ID Y_w4 Y_w8 Y_w12
+## 1:    55981   NA   NA    NA
+dfW.NP1[NP1_comment %in% comment$failure4,c("Y_w4","Y_w8","Y_w12") := FALSE]
+
+dfW.NP1[NP1_comment %in% comment$failure8,.(CIMBI_ID,Y_w4,Y_w8,Y_w12)]
+##    CIMBI_ID  Y_w4 Y_w8 Y_w12
+## 1:    55815 FALSE   NA    NA
+## 2:    55851 FALSE   NA    NA
+dfW.NP1[NP1_comment %in% comment$failure8,c("Y_w8","Y_w12") := FALSE]
+
+dfW.NP1[NP1_comment %in% comment$failure12,.(CIMBI_ID,Y_w4,Y_w8,Y_w12)]
+##    CIMBI_ID  Y_w4  Y_w8 Y_w12
+## 1:    55742 FALSE FALSE    NA
+dfW.NP1[NP1_comment %in% comment$failure12,c("Y_w12") := FALSE]
+
+
+dfW.NP1[!is.na(NP1_comment),NP1_comment]
+}
+
 ## * Reduced dataset
 keep.col %in% names(dfW.NP1)
-dfWR.NP1 <- dfW.NP1[!is.na(Y_w4) | !is.na(Y_w8) | !is.na(Y_w12),.SD,.SDcols = c(keep.col,"female")]
+dfWR.NP1 <- dfW.NP1[!is.na(Y_w4) | !is.na(Y_w8) | !is.na(Y_w12),.SD,.SDcols = c(keep.col,"female", "NP1_comment")]
 dfWR.NP1$cognitive_cluster2 <- as.numeric(dfWR.NP1$cognitive_cluster=="2")
 dfWR.NP1$cognitive_cluster3 <- as.numeric(dfWR.NP1$cognitive_cluster=="3")
 dfWR.NP1$low_hsCRP <- as.numeric(dfWR.NP1$hsCRP=="low")
@@ -261,5 +306,8 @@ names(dfWR.NP1)[names(dfWR.NP1)=="HAMD17_total_wk4"] <- "HAMD17_w4"
 names(dfWR.NP1)[names(dfWR.NP1)=="HAMD17_total_wk8"] <- "HAMD17_w8"
 names(dfWR.NP1)[names(dfWR.NP1)=="HAMD17_total_wk12"] <- "HAMD17_w12"
 ## table(is.na(dfW.NP1$Y_w8) + is.na(dfW.NP1$Y_w12) > 1) 
+
+cat("\n")
+
 ##----------------------------------------------------------------------
 ### 0-read-data.R ends here

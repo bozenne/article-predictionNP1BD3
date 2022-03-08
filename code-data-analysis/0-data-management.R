@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov  1 2021 (13:10) 
 ## Version: 
-## Last-Updated: mar  2 2022 (16:15) 
+## Last-Updated: mar  4 2022 (10:11) 
 ##           By: Brice Ozenne
-##     Update #: 69
+##     Update #: 71
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -22,10 +22,12 @@ cat("Data management \n")
 library(data.table)
 library(pbapply)
 library(lava)
-if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
+if(system("whoami",intern=TRUE)=="hpl802"){
+    ## nothing: on the server
+}else if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
     setwd("c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/")
 }else{ ## 
-    setwd("Vibeke put you path here")
+    setwd("Vibeke put your path here")
 }
 ## load("data/DS9.Rdata")
 ## names(DS)

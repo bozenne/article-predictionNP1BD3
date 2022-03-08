@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  2 2022 (12:31) 
 ## Version: 
-## Last-Updated: mar  2 2022 (15:37) 
+## Last-Updated: mar  4 2022 (10:11) 
 ##           By: Brice Ozenne
-##     Update #: 11
+##     Update #: 13
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,10 +16,12 @@
 ### Code:
 
 ## * Path
-if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
+if(system("whoami",intern=TRUE)=="hpl802"){
+    ## nothing: on the server
+}else if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
     setwd("c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/")
 }else{ ## 
-    setwd("Vibeke put you path here")
+    setwd("Vibeke put your path here")
 }
 path.code <- "./code-data-analysis"
 path.results <- "./results"

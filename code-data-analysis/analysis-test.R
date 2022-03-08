@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  2 2022 (15:37) 
 ## Version: 
-## Last-Updated: mar  2 2022 (17:37) 
+## Last-Updated: mar  4 2022 (18:23) 
 ##           By: Brice Ozenne
-##     Update #: 48
+##     Update #: 53
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,15 +15,17 @@
 ## 
 ### Code:
 
-## * Parameter
-n.imputed <- 25 ## number of imputed datasets
+## * Parameters
+n.imputed <- 100 ## number of imputed datasets
 n.perm <- 1000 ## number of permutation for testing variable importance in random forest
 
 ## * Path
-if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
+if(system("whoami",intern=TRUE)=="hpl802"){
+    ## nothing: on the server
+}else if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
     setwd("c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/")
 }else{ ## 
-    setwd("Vibeke put you path here")
+    setwd("Vibeke put your path here")
 }
 path.code <- "./code-data-analysis"
 path.results <- "./results"
@@ -457,11 +459,11 @@ Mlink_w12[setdiff(names(which(colSums(is.na(dfWR.NP1_2impw12))>0)),"Y_w12"),] <-
 diag(Mlink_w12) <- 0
 
 dfWRimp.NP1_w12 <- mice(dfWR.NP1_2impw12,
-                m=n.imputed,
-                maxit = 50, # number of iterations to obtain the imputed dataset
-                predictorMatrix = Mlink_w12,
-                method = c("","","","","","logreg","norm.predict","polr","norm.predict","norm.predict","norm.predict","norm.predict"), 
-                seed = 500, printFlag = FALSE)
+                        m=n.imputed,
+                        maxit = 50, # number of iterations to obtain the imputed dataset
+                        predictorMatrix = Mlink_w12,
+                        method = c("","","","","","logreg","norm.predict","polr","norm.predict","norm.predict","norm.predict","norm.predict"), 
+                        seed = 500, printFlag = FALSE)
 ## stripplot(dfWRimp.NP1_w12, hsCRP ~ .imp, pch=20,cex=2)
 ## stripplot(dfWRimp.NP1_w12, lvpet ~ .imp, pch=20,cex=2)
 ## stripplot(dfWRimp.NP1_w12, cognitive_cluster ~ .imp, pch=20,cex=2)

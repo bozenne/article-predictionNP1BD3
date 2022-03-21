@@ -1,0 +1,22 @@
+\begin{thebibliography}{}
+
+\bibitem[Goerigk et~al., 2021]{goerigk2021distinct}
+Goerigk, S.~A., Padberg, F., B{\"u}hner, M., Sarubin, N., Kaster, T.~S.,
+  Daskalakis, Z.~J., Blumberger, D.~M., Borrione, L., Razza, L.~B., and
+  Brunoni, A.~R. (2021).
+\newblock Distinct trajectories of response to prefrontal tdcs in major
+  depression: results from a 3-arm randomized controlled trial.
+\newblock {\em Neuropsychopharmacology}, 46(4):774--782.
+
+\bibitem[Moons et~al., 2006]{moons2006using}
+Moons, K.~G., Donders, R.~A., Stijnen, T., and Harrell~Jr, F.~E. (2006).
+\newblock Using the outcome for imputation of missing predictor values was
+  preferred.
+\newblock {\em Journal of clinical epidemiology}, 59(10):1092--1101.
+
+\bibitem[Van~Buuren and Groothuis-Oudshoorn, 2011]{van2011mice}
+Van~Buuren, S. and Groothuis-Oudshoorn, K. (2011).
+\newblock mice: Multivariate imputation by chained equations in r.
+\newblock {\em Journal of statistical software}, 45:1--67.
+
+\end{thebibliography}

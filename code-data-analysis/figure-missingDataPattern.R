@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  2 2022 (12:14) 
 ## Version: 
-## Last-Updated: mar  2 2022 (12:32) 
+## Last-Updated: mar 18 2022 (11:16) 
 ##           By: Brice Ozenne
-##     Update #: 5
+##     Update #: 6
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -41,24 +41,26 @@ dfWR.NP1.pred <- dfWR.NP1[,.SD,.SDcols = c(name.predictor,"Y_w4","Y_w8","Y_w12")
 dfW.mdpattern <- md.pattern(dfWR.NP1.pred, plot = FALSE)[,c(name.predictor,"Y_w4","Y_w8","Y_w12")]
 rownames(dfW.mdpattern)[NROW(dfW.mdpattern)] <- "total"
 md.pattern(dfWR.NP1[,.SD,.SDcols = c(name.predictor,"Y_w4","Y_w8","Y_w12")]) 
-##    sex age MR_OFCthick HAMD17 hsCRP Y_w4 lvpet cognitive_cluster Y_w8 EEG_vigilance Y_w12 CATS_scoretotal CAR_AUCi neuroticism   
-## 51   1   1           1      1     1    1     1                 1    1             1     1               1        1           1  0
-## 8    1   1           1      1     1    1     1                 1    1             1     1               1        1           0  1
-## 9    1   1           1      1     1    1     1                 1    1             1     1               1        0           1  1
-## 4    1   1           1      1     1    1     1                 1    1             1     1               1        0           0  2
-## 3    1   1           1      1     1    1     1                 1    1             1     1               0        1           0  2
-## 3    1   1           1      1     1    1     1                 1    1             1     1               0        0           0  3
-## 1    1   1           1      1     1    1     1                 1    1             1     0               1        0           0  3
-## 1    1   1           1      1     1    1     1                 1    1             1     0               0        0           0  4
-## 3    1   1           1      1     1    1     1                 1    1             0     1               1        1           1  1
-## 1    1   1           1      1     1    1     1                 1    0             1     1               0        1           0  3
-## 1    1   1           1      1     1    1     1                 1    0             1     0               1        0           0  4
-## 1    1   1           1      1     1    1     1                 0    1             1     1               0        0           0  4
-## 1    1   1           1      1     1    1     1                 0    1             0     1               0        1           0  4
-## 1    1   1           1      1     1    1     0                 1    1             1     1               1        1           1  1
-## 1    1   1           1      1     1    1     0                 1    1             1     1               0        1           0  3
-## 1    1   1           1      1     1    0     1                 1    1             1     0               0        0           0  5
-##      0   0           0      0     0    1     2                 2    2             4     4              12       21          26 74
+## >    sex age MR_OFCthick HAMD17 Y_w4 hsCRP lvpet cognitive_cluster Y_w8 EEG_vigilance Y_w12 CATS_scoretotal CAR_AUCi neuroticism   
+## 50   1   1           1      1    1     1     1                 1    1             1     1               1        1           1  0
+## 8    1   1           1      1    1     1     1                 1    1             1     1               1        1           0  1
+## 9    1   1           1      1    1     1     1                 1    1             1     1               1        0           1  1
+## 4    1   1           1      1    1     1     1                 1    1             1     1               1        0           0  2
+## 2    1   1           1      1    1     1     1                 1    1             1     1               0        1           0  2
+## 3    1   1           1      1    1     1     1                 1    1             1     1               0        0           0  3
+## 1    1   1           1      1    1     1     1                 1    1             1     0               1        0           0  3
+## 1    1   1           1      1    1     1     1                 1    1             1     0               0        0           0  4
+## 3    1   1           1      1    1     1     1                 1    1             0     1               1        1           1  1
+## 1    1   1           1      1    1     1     1                 1    0             1     1               0        1           0  3
+## 1    1   1           1      1    1     1     1                 1    0             1     0               1        0           0  4
+## 1    1   1           1      1    1     1     1                 0    1             1     1               0        0           0  4
+## 1    1   1           1      1    1     1     1                 0    1             0     1               0        1           0  4
+## 1    1   1           1      1    1     1     0                 1    1             1     1               1        1           1  1
+## 1    1   1           1      1    1     1     0                 1    1             1     1               0        1           0  3
+## 1    1   1           1      1    1     0     1                 1    1             1     1               1        1           1  1
+## 1    1   1           1      1    1     0     1                 1    1             1     1               0        1           0  3
+## 1    1   1           1      1    0     1     1                 1    1             1     0               0        0           0  5
+##      0   0           0      0    1     2     2                 2    2             4     4              12       21          26 76
 
 dfL.mdpattern <- reshape2::melt(cbind(index = -(1:NROW(dfW.mdpattern)), n = rownames(dfW.mdpattern), as.data.frame(dfW.mdpattern)), id.vars = c("index","n"))
 dfL.mdpattern$value.char <- factor(dfL.mdpattern$value, levels = 0:1, labels = c("missing","available"))

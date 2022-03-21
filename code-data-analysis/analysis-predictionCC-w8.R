@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  1 2021 (13:12) 
 ## Version: 
-## Last-Updated: mar  4 2022 (11:59) 
+## Last-Updated: mar 18 2022 (10:52) 
 ##           By: Brice Ozenne
-##     Update #: 149
+##     Update #: 152
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,7 +28,7 @@ if(system("whoami",intern=TRUE)=="hpl802"){
     setwd("Vibeke put your path here")
 }
 path.code <- "./code-data-analysis"
-path.results <- "./results/analysis-prediction"
+path.results <- "./results/"
 
 ## * Packages and function
 library(data.table)
@@ -65,7 +65,8 @@ e.ranger_ccw8 <- ranger(ff_ccw8, data = dfWR.NP1_ccw8, probability = TRUE)
 set.seed(10)
 ePerf.ccw8 <- performanceResample(list(glm0_ccw8 = e.glm0_ccw8, glm_ccw8 = e.glm_ccw8, rf_ccw8 = e.ranger_ccw8), data = dfWR.NP1_ccw8,
                                   fold.number = fold.number, fold.size = 0.1,
-                                  type.resampling = "permutation", n.resampling = n.resampling, seed = 10)
+                                  type.resampling = "permutation", n.resampling = n.resampling, seed = 10,
+                                  filename = file.path(path.results,"analysis-predictionCC","perf-imp-week8")
 ePerf.ccw8
 ##    metric     model  estimate se lower upper p.value p.value_comp
 ## 1:    auc glm0_ccw8 0.5199713 NA    NA    NA   0.161           NA

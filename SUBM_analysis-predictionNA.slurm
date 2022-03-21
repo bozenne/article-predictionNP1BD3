@@ -13,9 +13,9 @@ R CMD BATCH --vanilla code-data-analysis/analysis-predictionNA-w$SLURM_ARRAY_TAS
                       ## cd ucph/hdir/SundKonsolidering_BioStatHome/Cluster/BrainDrug-WP3/
 ## clean outputs      ## rm -r ./output/analysis-predictionNA/*
 ## clean results      ## rm -r ./results/analysis-predictionNA/*
-## submission command ## sbatch SUBM_analysis-prediction.slurm
+## submission command ## sbatch SUBM_analysis-predictionNA.slurm
 
-## submission output  ## Submitted batch job 387783 (time using C-c t: fredag 22-03-04 at 12:01) 
+## submission output  ## Submitted batch job 810684 (time using C-c t: fredag 22-03-18 at 18:17) 
 
 ## init               ## module module load gcc/11.2.0 R/4.1.2
                       ## cat .bash_profile (in the root directory on the server to visualize the current configuration)

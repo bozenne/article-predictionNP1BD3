@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  4 2022 (09:16) 
 ## Version: 
-## Last-Updated: mar  4 2022 (18:20) 
+## Last-Updated: mar 18 2022 (18:16) 
 ##           By: Brice Ozenne
-##     Update #: 21
+##     Update #: 30
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,8 +16,8 @@
 ### Code:
 
 ## * Parameters
-n.resampling <- 10
-fold.number <- 25
+n.resampling <- 2500 ## 1000
+fold.number <- 25 ## 25
 
 ## * Path
 if(system("whoami",intern=TRUE)=="hpl802"){
@@ -38,6 +38,7 @@ library(ranger)
 library(splines)
 library(BuyseTest)
 library(mice)
+library(misaem)
 ## devtools::install_github("NightingaleHealth/ggforestplot")
 
 ## * Load data
@@ -59,6 +60,8 @@ set.seed(10)
 
 ## *** fit models
 e.glm0_impw12 <- glm(Y_w12 ~ female + age, family = binomial(link = "logit"), data = dfWR.NP1_w12)
+## e.glm_impw12 <- miss.glm(Y_w12 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism, data = dfWR.NP1_w12,
+##                  control = list(print_iter = FALSE, tol_em = 1e-5, ll_obs_cal = FALSE))
 e.glm_impw12 <- glm(Y_w12 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
                    family = binomial(link = "logit"), data = dfWR.NP1_w12)
 e.ranger_impw12 <- ranger(formula = Y_w12 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
@@ -74,7 +77,8 @@ e.ranger_impw12 <- ranger(formula = Y_w12 ~ female + age + MR_OFCthick + HAMD17 
 ePerf.impw12 <- performanceResample(list(glm0_impw12 = e.glm0_impw12, glm_impw12 = e.glm_impw12, rf_impw12 = e.ranger_impw12), data = dfWR.NP1_w12,
                                    individual.fit = TRUE,
                                    fold.number = fold.number, fold.size = 0.1,
-                                   type.resampling = "permutation", n.resampling = n.resampling, seed = 10)
+                                   type.resampling = "permutation", n.resampling = n.resampling, seed = 10,
+                                   filename = file.path(path.results,"analysis-predictionNA","perf-imp-week12"))
 ePerf.impw12
 
 ##    metric      model  estimate se lower upper p.value p.value_comp

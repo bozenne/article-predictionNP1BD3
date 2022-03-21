@@ -15,7 +15,7 @@ R CMD BATCH --vanilla code-data-analysis/analysis-predictionCC-w$SLURM_ARRAY_TAS
 ## clean results      ## rm -r ./results/analysis-prediction/*
 ## submission command ## sbatch SUBM_analysis-prediction.slurm
 
-## submission output  ## Submitted batch job 387783 (time using C-c t: fredag 22-03-04 at 12:01) 
+## submission output  ## Submitted batch job 388550 (time using C-c t: onsdag 22-03-09 at 12:29) 
 
 ## init               ## module module load gcc/11.2.0 R/4.1.2
                       ## cat .bash_profile (in the root directory on the server to visualize the current configuration)

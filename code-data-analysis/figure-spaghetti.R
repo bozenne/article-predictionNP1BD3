@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  2 2022 (12:20) 
 ## Version: 
-## Last-Updated: mar  2 2022 (12:32) 
+## Last-Updated: mar 21 2022 (16:35) 
 ##           By: Brice Ozenne
-##     Update #: 8
+##     Update #: 9
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -48,20 +48,18 @@ dfLR.NP1$HAMD6.jit <- dfLR.NP1$HAMD6 + runif(NROW(dfLR.NP1),-0.45,0.45)
 
 ## * Generate figure
 gg_color_hue <- function(n) {
-  hues = seq(15, 375, length = n + 1)
-  hcl(h = hues, l = 65, c = 100)[1:n]
+    hues = seq(15, 375, length = n + 1)
+    hcl(h = hues, l = 65, c = 100)[1:n]
 }
 gg.spa <- ggplot(dfLR.NP1, aes(x=visit, y = HAMD6.jit, group = CIMBI_ID, color = Y_w4812)) + geom_point() + geom_line()
 gg.spa <- gg.spa + facet_wrap(~Y_w4812) + guides(color = "none") + scale_color_manual(values = gg_color_hue(3)[c(2,3,1)])
 gg.spa <- gg.spa + labs(x="",y = "HAMD-6")
-
+gg.spa <- gg.spa + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm"), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 ## * Export
 if(FALSE){
-    ggsave(gg.spa + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")),
-           filename = "./figures/spaghetti-HAMD6.pdf")
-    ggsave(gg.spa + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")),
-           filename = "./figures/spaghetti-HAMD6.png")
+    ggsave(gg.spa, filename = "./figures/spaghetti-HAMD6.pdf", width = 14)
+    ggsave(gg.spa, filename = "./figures/spaghetti-HAMD6.png", width = 14)
 }
 
 

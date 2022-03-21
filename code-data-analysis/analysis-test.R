@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  2 2022 (15:37) 
 ## Version: 
-## Last-Updated: mar  4 2022 (18:23) 
+## Last-Updated: mar 18 2022 (11:01) 
 ##           By: Brice Ozenne
-##     Update #: 53
+##     Update #: 75
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -14,6 +14,8 @@
 ##----------------------------------------------------------------------
 ## 
 ### Code:
+
+rm(list=ls())
 
 ## * Parameters
 n.imputed <- 100 ## number of imputed datasets
@@ -38,9 +40,7 @@ library(mgcv)
 library(mice)
 library(multcomp)
 source(file.path(path.code,"FCT_glhtPool.R"))
-library(ggplot2)
 ## devtools::install_github("NightingaleHealth/ggforestplot")
-library(ggforestplot)
 
 name.predictor <- c("sex","age","MR_OFCthick","HAMD17","hsCRP","lvpet","cognitive_cluster","EEG_vigilance","CATS_scoretotal","CAR_AUCi","neuroticism")
 nameT.predictor <- c("MR_OFCthick","HAMD17","hsCRP","lvpet","cognitive_cluster","EEG_vigilance","CATS_scoretotal","CAR_AUCi","neuroticism")
@@ -48,8 +48,10 @@ nameR.predictor <- c("female","age","MR_OFCthick","HAMD17","low_hsCRP","lvpet","
 nameRT.predictor <- c("MR_OFCthick","HAMD17","low_hsCRP","lvpet","cognitive_cluster2","cognitive_cluster3","EEG_vigilance")
 
 ## * Load data
+## setwd("h:/SundKonsolidering_BioStatHome/Cluster/BrainDrug-WP3/")
+## load(file.path(path.results,"test.Rdata"))
 source(file.path(path.code,"0-data-management.R"))
-
+print(dim(dfWR.NP1))
 
 ## * Complete case 
 cat("Hypothesis testing: complete case \n")
@@ -84,6 +86,11 @@ summary(e.glm_ccw4)
 ## cognitive_cluster3 -0.86503    0.63521  -1.362    0.173
 ## EEG_vigilance      -0.11693    0.46760  -0.250    0.803
 
+## (Dispersion parameter for binomial family taken to be 1)
+
+##     Null deviance: 106.819  on 79  degrees of freedom
+## Residual deviance:  99.939  on 70  degrees of freedom
+
 anova(e.glm_ccw4,e.glm0_ccw4, test = "Chisq")
 ## Analysis of Deviance Table
 
@@ -106,16 +113,16 @@ e.ranger_ccw4 <- ranger(ff_ccw4, data = dfWR.NP1_ccw4, probability = TRUE)
 e.rangerPerm_ccw4 <- importance_pvalues(ranger(ff_ccw4, data = dfWR.NP1_ccw4, importance = "permutation"), method = "altmann", 
                                         formula = ff_ccw4, data = dfWR.NP1_ccw4, num.permutations = n.perm)
 e.rangerPerm_ccw4
-##                      importance    pvalue
-## female             -0.003251493 0.7029703
-## age                 0.008970945 0.1980198
-## MR_OFCthick         0.002039326 0.3861386
-## HAMD17             -0.009179175 0.8316832
-## low_hsCRP          -0.004023947 0.8118812
-## lvpet              -0.002567274 0.4158416
-## cognitive_cluster2 -0.001752197 0.6534653
-## cognitive_cluster3  0.004628736 0.1386139
-## EEG_vigilance      -0.005700278 0.8019802
+##                       importance     pvalue
+## female             -0.0004630476 0.45354645
+## age                 0.0111673221 0.16983017
+## MR_OFCthick         0.0028598950 0.35864136
+## HAMD17             -0.0036899090 0.60539461
+## low_hsCRP          -0.0029902081 0.73926074
+## lvpet               0.0075185611 0.24375624
+## cognitive_cluster2 -0.0007050308 0.48451548
+## cognitive_cluster3  0.0092599240 0.06293706
+## EEG_vigilance      -0.0018836544 0.54645355
 
 cat(" \n")
 
@@ -126,6 +133,9 @@ dfWR.NP1_ccw8 <- dfWR.NP1[rowSums(is.na(dfWR.NP1[,.SD,.SDcols = c("Y_w8",nameR.p
 dfWR.NP1_ccw8S <- cbind(dfWR.NP1_ccw8[,c("Y_w8","female","low_hsCRP","cognitive_cluster2","cognitive_cluster3")],
                         scale(dfWR.NP1_ccw8[,c("age","MR_OFCthick", "HAMD17", "lvpet", "EEG_vigilance")])
                         )
+
+## dfWR.NP1[,c("Y_w8","NP1_comment")]
+## dfWR.NP1[dfWR.NP1$NP1_comment == "Drop-out at week 7. Suicidal attempt, did not want more medicine.",]
 
 ## *** Logistic
 cat(" glm")
@@ -138,35 +148,41 @@ summary(e.glm0_ccw8)
 ## (Intercept) -0.73199    0.92281  -0.793    0.428
 ## female      -0.46970    0.52768  -0.890    0.373
 ## age          0.04435    0.02977   1.490    0.136
+
+## (Dispersion parameter for binomial family taken to be 1)
+
+##     Null deviance: 109.20  on 78  degrees of freedom
+## Residual deviance: 105.84  on 76  degrees of freedom
 e.glm_ccw8 <- glm(ff_ccw8,
-                data = dfWR.NP1_ccw8, family = binomial(link = "logit"))
+                  data = dfWR.NP1_ccw8, family = binomial(link = "logit"))
 summary(e.glm_ccw8)
 ## Coefficients:
-##                    Estimate Std. Error z value Pr(>|z|)   
-## (Intercept)         9.15328    8.39873   1.090  0.27578   
-## female             -0.35933    0.64098  -0.561  0.57507   
-## age                 0.05472    0.04217   1.298  0.19443   
-## MR_OFCthick        -5.84570    3.18471  -1.836  0.06642 . 
-## HAMD17              0.16180    0.09515   1.700  0.08904 . 
-## low_hsCRP           1.46954    0.72734   2.020  0.04334 * 
-## lvpet              -2.04889    2.23331  -0.917  0.35892   
-## cognitive_cluster2 -0.81977    0.69278  -1.183  0.23669   
-## cognitive_cluster3 -1.89634    0.75932  -2.497  0.01251 * 
-## EEG_vigilance      -1.72063    0.63876  -2.694  0.00707 **
+##                    Estimate Std. Error z value Pr(>|z|)  
+## (Intercept)         7.74974    7.71591   1.004   0.3152  
+## female             -0.45764    0.59550  -0.768   0.4422  
+## age                 0.05362    0.03862   1.388   0.1650  
+## MR_OFCthick        -4.34680    2.84081  -1.530   0.1260  
+## HAMD17              0.08075    0.08310   0.972   0.3312  
+## low_hsCRP           0.82377    0.63638   1.294   0.1955  
+## lvpet              -1.20918    2.08358  -0.580   0.5617  
+## cognitive_cluster2 -0.50806    0.62220  -0.817   0.4142  
+## cognitive_cluster3 -1.39105    0.67730  -2.054   0.0400 *
+## EEG_vigilance      -1.23341    0.54858  -2.248   0.0246 *
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ## (Dispersion parameter for binomial family taken to be 1)
 
-##     Null deviance: 103.318  on 74  degrees of freedom
+##     Null deviance: 109.201  on 78  degrees of freedom
+## Residual deviance:  92.452  on 69  degrees of freedom
 
 anova(e.glm_ccw8,e.glm0_ccw8, test = "Chisq")
 ## Model 1: Y_w8 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + 
 ##     cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance
 ## Model 2: Y_w8 ~ female + age
-##   Resid. Df Resid. Dev Df Deviance Pr(>Chi)   
-## 1        65     80.818                        
-## 2        72    100.696 -7  -19.878  0.00584 **
+##   Resid. Df Resid. Dev Df Deviance Pr(>Chi)  
+## 1        69     92.452                       
+## 2        76    105.838 -7  -13.387  0.06323 .
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -181,17 +197,17 @@ e.ranger_ccw8 <- ranger(ff_ccw8, data = dfWR.NP1_ccw8, probability = TRUE)
 ## ranger(ff_ccw8, data = dfWR.NP1_ccw8, probability = TRUE, num.trees = 5000, mtry = 1, min.node.size = 5)
 e.rangerPerm_ccw8 <- importance_pvalues(ranger(ff_ccw8, data = dfWR.NP1_ccw8, importance = "permutation"), method = "altmann", 
                                         formula = ff_ccw8, data = dfWR.NP1_ccw8, num.permutations = n.perm)
-
-##                       importance     pvalue
-## female             -0.0068013913 0.95104895
-## age                 0.0073228254 0.23676324
-## MR_OFCthick         0.0084958959 0.22877123
-## HAMD17              0.0137409374 0.09790210
-## low_hsCRP          -0.0020854868 0.58441558
-## lvpet              -0.0072505951 0.67032967
-## cognitive_cluster2 -0.0009645927 0.49450549
-## cognitive_cluster3  0.0060916827 0.08991009
-## EEG_vigilance       0.0084285585 0.11788212
+e.rangerPerm_ccw8
+##                       importance    pvalue
+## female             -0.0046622586 0.8501499
+## age                 0.0038266849 0.3256743
+## MR_OFCthick         0.0084196899 0.2327672
+## HAMD17              0.0025092369 0.3646354
+## low_hsCRP          -0.0011115631 0.5254745
+## lvpet              -0.0073080258 0.6933067
+## cognitive_cluster2  0.0005137546 0.3696304
+## cognitive_cluster3  0.0058086586 0.1238761
+## EEG_vigilance       0.0034149398 0.2527473
 
 ## *** Splines
 cat(" gam")
@@ -199,18 +215,21 @@ e.gam_ccw8 <- gam(Y_w8 ~ female + age + s(lvpet), data = dfWR.NP1_ccw8, family =
 summary(e.gam_ccw8)
 ## plot(e.gam_ccw8)
 
-df.grid <- data.frame(lvpet = seq(min(dfWR.NP1_ccw8$lvpet), max(dfWR.NP1_ccw8$lvpet), length.out = 100),
-                      age = round(mean(dfWR.NP1_ccw8$age)),
-                      female = 1)
-df.grid$proba <- predict(e.gam_ccw8, newdata = df.grid, type = "response")
+## Parametric coefficients:
+##             Estimate Std. Error z value Pr(>|z|)  
+## (Intercept) -0.76237    0.95158  -0.801   0.4230  
+## female      -0.71642    0.56185  -1.275   0.2023  
+## age          0.05198    0.03070   1.693   0.0904 .
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
+## Approximate significance of smooth terms:
+##            edf Ref.df Chi.sq p-value
+## s(lvpet) 2.797  3.566   4.38   0.302
 
-ggSpline <- ggplot(df.grid, aes(x=lvpet,y=proba)) + geom_point() + geom_line() + ylab("Probability of recovery") + ggtitle(paste0(round(mean(dfWR.NP1_ccw8$age))," year-old female"))
-ggSpline <- ggSpline + geom_rug(data = cbind(dfWR.NP1_ccw8,proba=rnorm(NROW(dfWR.NP1_ccw8))), sides = "b") + coord_cartesian(ylim = c(0,1)) + xlab("Latent variable PET")
-ggSpline <- ggSpline + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm"))
+## R-sq.(adj) =  0.0594   Deviance explained = 9.01%
+## UBRE = 0.40445  Scale est. = 1         n = 79
 
-ggCali <- ggplot(dfWR.NP1_ccw8, aes(x = exp(neocortex.log), y = lvpet)) + geom_point() + labs(y="Latent variable PET",x="Neocortex PET binding")
-ggCali <- ggCali + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm"))
 
 cat("\n")
 
@@ -230,38 +249,40 @@ e.glm0_ccw12 <- glm(Y_w12 ~ female + age, data = dfWR.NP1_ccw12, family = binomi
 summary(e.glm0_ccw12)
 ## Coefficients:
 ##             Estimate Std. Error z value Pr(>|z|)  
-## (Intercept)  -2.1459     1.6759  -1.280   0.2004  
-## female       -0.2110     0.6229  -0.339   0.7347  
-## age           0.1290     0.0647   1.995   0.0461 *
+## (Intercept) -1.76678    1.45414  -1.215   0.2244  
+## female      -0.43547    0.60565  -0.719   0.4721  
+## age          0.11368    0.05473   2.077   0.0378 *
 ## ---
 e.glm_ccw12 <- glm(ff_ccw12, data = dfWR.NP1_ccw12, family = binomial(link = "logit"))
 summary(e.glm_ccw12)
 ## Coefficients:
 ##                    Estimate Std. Error z value Pr(>|z|)  
-## (Intercept)        15.13771    9.66269   1.567   0.1172  
-## female             -0.16310    0.71163  -0.229   0.8187  
-## age                 0.12395    0.07958   1.558   0.1193  
-## MR_OFCthick        -8.25027    3.58369  -2.302   0.0213 *
-## HAMD17              0.17061    0.10751   1.587   0.1125  
-## low_hsCRP           1.08090    0.83834   1.289   0.1973  
-## lvpet              -0.57038    2.60458  -0.219   0.8267  
-## cognitive_cluster2 -1.44482    0.79615  -1.815   0.0696 .
-## cognitive_cluster3 -0.80512    0.88884  -0.906   0.3650  
-## EEG_vigilance      -0.06684    0.60068  -0.111   0.9114  
+## (Intercept)        15.03965    8.62405   1.744   0.0812 .
+## female             -0.39300    0.67454  -0.583   0.5601  
+## age                 0.09821    0.06238   1.574   0.1154  
+## MR_OFCthick        -6.75349    3.09440  -2.182   0.0291 *
+## HAMD17              0.07033    0.09127   0.771   0.4409  
+## low_hsCRP           0.59041    0.73156   0.807   0.4196  
+## lvpet               1.36541    2.34886   0.581   0.5610  
+## cognitive_cluster2 -0.87933    0.69838  -1.259   0.2080  
+## cognitive_cluster3 -0.43560    0.77869  -0.559   0.5759  
+## EEG_vigilance       0.18026    0.53226   0.339   0.7349  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ## (Dispersion parameter for binomial family taken to be 1)
 
+##     Null deviance: 93.903  on 76  degrees of freedom
+## Residual deviance: 77.716  on 67  degrees of freedom
+
 ##     Null deviance: 83.100  on 71  degrees of freedom
-anova(e.glm_ccw12,e.glm0_ccw12, test = "Chisq")
+## anova(e.glm_ccw12,e.glm0_ccw12, test = "Chisq")
 ## Model 1: Y_w12 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + 
 ##     cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance
 ## Model 2: Y_w12 ~ female + age
 ##   Resid. Df Resid. Dev Df Deviance Pr(>Chi)
-## 1        62     64.376                     
-## 2        69     76.256 -7   -11.88   0.1046
-## ---
+## 1        67     77.716                     
+## 2        74     86.546 -7  -8.8302   0.2651
 
 ## with rescaled predictors
 e.glm_ccw12S <- update(e.glm_ccw12, data = dfWR.NP1_ccw12S)
@@ -273,16 +294,17 @@ e.ranger_ccw12 <- ranger(ff_ccw12, data = dfWR.NP1_ccw12, probability = TRUE)
 e.rangerPerm_ccw12 <- importance_pvalues(ranger(ff_ccw12, data = dfWR.NP1_ccw12, importance = "permutation"), method = "altmann", 
                                          formula = ff_ccw12, data = dfWR.NP1_ccw12, num.permutations = n.perm)
 
+e.rangerPerm_ccw12
 ##                       importance     pvalue
-## female             -0.0026347027 0.66833167
-## age                 0.0152237002 0.09790210
-## MR_OFCthick         0.0111890206 0.14285714
-## HAMD17              0.0119828113 0.10489510
-## low_hsCRP          -0.0001679358 0.42857143
-## lvpet               0.0330879010 0.01398601
-## cognitive_cluster2  0.0014107702 0.29070929
-## cognitive_cluster3 -0.0005832667 0.45254745
-## EEG_vigilance       0.0032876852 0.22777223
+## female             -0.0024742853 0.67132867
+## age                 0.0040111433 0.34065934
+## MR_OFCthick         0.0133738696 0.13186813
+## HAMD17              0.0004376103 0.45854146
+## low_hsCRP          -0.0029191690 0.77022977
+## lvpet               0.0243561290 0.02597403
+## cognitive_cluster2  0.0043251049 0.15184815
+## cognitive_cluster3 -0.0025604673 0.66433566
+## EEG_vigilance       0.0017273760 0.28471528
 
 e.ranger0_ccw12 <- ranger(Y_w12 ~ sex + age + lvpet, data = dfWR.NP1_ccw12, probability = TRUE)
 e.rangerPerm0_ccw12 <- importance_pvalues(ranger(Y_w12 ~ sex + age + lvpet, data = dfWR.NP1_ccw12, importance = "permutation"),
@@ -296,22 +318,22 @@ e.rangerPerm0_ccw12 <- importance_pvalues(ranger(Y_w12 ~ sex + age + lvpet, data
 cat(" gam")
 e.gam_ccw12 <- gam(Y_w12 ~ female + age + s(lvpet), data = dfWR.NP1_ccw12, family = binomial(link = "logit"))
 summary(e.gam_ccw12)
+## Parametric coefficients:
+##             Estimate Std. Error z value Pr(>|z|)  
+## (Intercept) -2.60771    1.66854  -1.563   0.1181  
+## female      -0.78605    0.71579  -1.098   0.2721  
+## age          0.15884    0.06378   2.491   0.0128 *
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+## Approximate significance of smooth terms:
+##            edf Ref.df Chi.sq p-value  
+## s(lvpet) 2.594  3.316  10.26   0.022 *
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## plot(e.gam_ccw12)
 
-df.grid <- data.frame(lvpet = seq(min(dfWR.NP1_ccw12$lvpet), max(dfWR.NP1_ccw12$lvpet), length.out = 100),
-                      age = round(mean(dfWR.NP1_ccw12$age)),
-                      female = 1)
-df.grid$proba <- predict(e.gam_ccw12, newdata = df.grid, type = "response")
 
-
-ggSpline <- ggplot(df.grid, aes(x=lvpet,y=proba)) + geom_point() + geom_line() + ylab("Probability of recovery") + ggtitle(paste0(round(mean(dfWR.NP1_ccw12$age))," year-old female"))
-ggSpline <- ggSpline + geom_rug(data = cbind(dfWR.NP1_ccw12,proba=rnorm(NROW(dfWR.NP1_ccw12))), sides = "b") + coord_cartesian(ylim = c(0,1)) + xlab("Latent variable PET")
-ggSpline <- ggSpline + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm"))
-
-ggCali <- ggplot(dfWR.NP1_ccw12, aes(x = exp(neocortex.log), y = lvpet)) + geom_point() + labs(y="Latent variable PET",x="Neocortex PET binding")
-ggCali <- ggCali + theme(text = element_text(size=20), axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm"))
-
-## ggpubr::ggarrange(ggSpline,ggCali)
 cat("\n")
 
 ## * Multiple imputation
@@ -346,21 +368,22 @@ e.glm_impw4 <- with(data = dfWRimp.NP1_w4,
                     glm(Y_w4 ~ sex + age + MR_OFCthick + HAMD17 + hsCRP + lvpet + cognitive_cluster + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
                         family = binomial(link = "logit"))
                     )
+
 summary(pool(e.glm_impw4))
 ##                  term      estimate   std.error   statistic       df    p.value
-## 1         (Intercept) -0.1793690478 7.624470966 -0.02352544 71.93220 0.98129628
-## 2           sexfemale -1.2321733186 0.587163801 -2.09851717 71.77338 0.03937915
-## 3                 age  0.0275380870 0.034086847  0.80788015 71.97783 0.42182153
-## 4         MR_OFCthick -1.2829971752 2.557092139 -0.50174069 71.72269 0.61738669
-## 5              HAMD17  0.0598778059 0.082151571  0.72886988 71.95672 0.46844694
-## 6            hsCRPlow  0.8959100153 0.696294994  1.28668168 67.55340 0.20259717
-## 7               lvpet -0.0738208731 2.088475266 -0.03534678 71.99344 0.97190105
-## 8  cognitive_cluster2 -0.5971527133 0.637439757 -0.93679867 67.72045 0.35219105
-## 9  cognitive_cluster3 -1.5156140043 0.699476076 -2.16678462 70.56203 0.03362950
-## 10      EEG_vigilance -0.2031562616 0.492235816 -0.41272141 71.84613 0.68103980
-## 11    CATS_scoretotal -0.0121817332 0.014509607 -0.83956327 72.03766 0.40393095
-## 12           CAR_AUCi  0.0008065641 0.000939835  0.85819757 70.69040 0.39368390
-## 13        neuroticism  0.0162929025 0.017300270  0.94177160 72.02879 0.34945755
+## 1         (Intercept) -0.2925515555 7.377320067 -0.03965553 74.00585 0.96847454
+## 2           sexfemale -1.1500649634 0.576377337 -1.99533342 73.92037 0.04969227
+## 3                 age  0.0306528719 0.033205358  0.92313029 74.01112 0.35893909
+## 4         MR_OFCthick -0.5579659292 2.442778524 -0.22841446 73.93571 0.81995462
+## 5              HAMD17  0.0269045584 0.077572321  0.34683194 74.02503 0.72970162
+## 6            hsCRPlow  0.6504118277 0.653513146  0.99525439 72.36320 0.32292900
+## 7               lvpet  0.6475825877 2.001208826  0.32359571 73.93189 0.74715773
+## 8  cognitive_cluster2 -0.3329634426 0.600543631 -0.55443672 72.19280 0.58099358
+## 9  cognitive_cluster3 -1.3052805776 0.672939553 -1.93966987 72.48699 0.05631125
+## 10      EEG_vigilance -0.1954585504 0.483124566 -0.40457175 73.99332 0.68695947
+## 11    CATS_scoretotal -0.0144973847 0.014429375 -1.00471328 74.01236 0.31830848
+## 12           CAR_AUCi  0.0008668785 0.000917322  0.94500999 73.36810 0.34775562
+## 13        neuroticism  0.0104506251 0.016492226  0.63366977 73.99762 0.52825021
 
 ## with rescaled predictors
 cat(" centered")
@@ -376,12 +399,12 @@ e.glm_impw4C <- with(data = dfWRimp.NP1_w4C,
                      )
 
 
-## same p-vlaues except intercept
+## same p-values except intercept
 ## summary(e.glm_impw4$analyses[[1]])$coef
 ## summary(e.glm_impw4C$analyses[[1]])$coef
 
-## summary(pool(eS.glm_impw4S$analyses))
-## summary(pool(eS.glm_impw4$analyses))
+## summary(pool(e.glm_impw4$analyses))
+## summary(pool(e.glm_impw4C$analyses))
 cat("\n")
 
 
@@ -416,22 +439,20 @@ e.glm_impw8 <- with(data = dfWRimp.NP1_w8,
                         family = binomial(link = "logit"))
                     )
 summary(pool(e.glm_impw8))
-##                  term      estimate    std.error   statistic       df    p.value
-## 1         (Intercept)  4.1945493456 13.987339952  0.29988185 69.02318 0.76516854
-## 2           sexfemale -0.5717989131  1.041637175 -0.54894250 68.81159 0.58482182
-## 3                 age  0.0755876324  0.074187435  1.01887378 68.91031 0.31182675
-## 4         MR_OFCthick -5.8979895143  4.930933463 -1.19612028 68.90659 0.23574932
-## 5              HAMD17  0.1787615813  0.148788588  1.20144686 68.89238 0.23369199
-## 6            hsCRPlow  1.6578954500  1.243986222  1.33272814 67.88079 0.18707734
-## 7               lvpet -2.5959148089  3.851130291 -0.67406569 69.00085 0.50252154
-## 8  cognitive_cluster2 -1.1655821422  1.168489680 -0.99751171 68.86783 0.32200826
-## 9  cognitive_cluster3 -2.7735156585  1.405475898 -1.97336408 68.94606 0.05246373
-## 10      EEG_vigilance -1.9900447896  1.126093200 -1.76721144 68.88929 0.08162173
-## 11    CATS_scoretotal -0.0001989070  0.024957020 -0.00796998 69.03030 0.99366393
-## 12           CAR_AUCi  0.0007743798  0.001497696  0.51704746 68.42289 0.60679043
-## 13        neuroticism  0.0350596162  0.034299385  1.02216458 69.05222 0.31027079
-
-## with rescaled predictors
+##                  term      estimate    std.error  statistic       df    p.value
+## 1         (Intercept)  6.8146907992 7.8156561124  0.8719282 72.90729 0.38610994
+## 2           sexfemale -0.5775349071 0.5927391411 -0.9743492 72.82231 0.33310871
+## 3                 age  0.0545436654 0.0392051209  1.3912383 72.84346 0.16838786
+## 4         MR_OFCthick -4.5808015926 2.7216688067 -1.6830856 72.76326 0.09664484
+## 5              HAMD17  0.0947528635 0.0798313402  1.1869131 72.95785 0.23911230
+## 6            hsCRPlow  0.8939995371 0.6495831068  1.3762666 71.21852 0.17305117
+## 7               lvpet -0.7636105932 2.0664223812 -0.3695327 72.96593 0.71280103
+## 8  cognitive_cluster2 -0.6991237222 0.6318798394 -1.1064188 72.18586 0.27221893
+## 9  cognitive_cluster3 -1.8799217939 0.7109574688 -2.6442113 72.02561 0.01004351
+## 10      EEG_vigilance -1.3386060382 0.5634733888 -2.3756331 72.80351 0.02015285
+## 11    CATS_scoretotal  0.0038587753 0.0141981465  0.2717802 72.96351 0.78655856
+## 12           CAR_AUCi  0.0008391796 0.0008832115  0.9501458 72.24470 0.34520600
+## 13        neuroticism  0.0117843042 0.0174388945  0.6757484 73.05572 0.50133395
 cat(" centered")
 dfWRimp.NP1_w8C <- dfWRimp.NP1_w8
 for(iVar in c("age","MR_OFCthick", "HAMD17", "lvpet", "EEG_vigilance","CATS_scoretotal","CAR_AUCi","neuroticism")){
@@ -477,20 +498,20 @@ e.glm_impw12 <- with(data = dfWRimp.NP1_w12,
                         family = binomial(link = "logit"))
                     )
 summary(pool(e.glm_impw12))
-##                  term    estimate    std.error  statistic       df    p.value
-## 1         (Intercept) 16.60192030 10.624574423  1.5625963 65.96826 0.12293247
-## 2           sexfemale -0.90827463  0.786385086 -1.1549998 65.84322 0.25226499
-## 3                 age  0.11489926  0.081182721  1.4153167 66.00335 0.16167681
-## 4         MR_OFCthick -9.44685341  3.753564383 -2.5167687 65.85533 0.01428689
-## 5              HAMD17  0.14377310  0.111194532  1.2929872 65.86093 0.20053278
-## 6            hsCRPlow  0.98423550  0.920667085  1.0690460 64.06755 0.28906030
-## 7               lvpet -0.64909275  2.854315308 -0.2274075 66.01747 0.82080967
-## 8  cognitive_cluster2 -1.86895994  0.953438494 -1.9602313 65.36569 0.05423371
-## 9  cognitive_cluster3 -1.72165818  1.021947040 -1.6846843 65.94132 0.09677729
-## 10      EEG_vigilance -0.37342230  0.679826386 -0.5492907 65.96224 0.58466082
-## 11    CATS_scoretotal  0.03726550  0.021748474  1.7134766 66.03807 0.09131598
-## 12           CAR_AUCi  0.00132186  0.001322469  0.9995395 65.58734 0.32120694
-## 13        neuroticism  0.01752110  0.025418000  0.6893186 65.96149 0.49304061
+##                  term     estimate  std.error   statistic       df    p.value
+## 1         (Intercept) 18.484383637 8.94990069  2.06531718 71.01850 0.04254409
+## 2           sexfemale -0.917439878 0.69174839 -1.32626239 70.94739 0.18900657
+## 3                 age  0.092336871 0.06141620  1.50346122 70.99552 0.13715573
+## 4         MR_OFCthick -8.187374622 3.11868954 -2.62526120 70.99624 0.01059592
+## 5              HAMD17  0.070001748 0.08993633  0.77834782 70.94707 0.43895218
+## 6            hsCRPlow  0.541703593 0.76362441  0.70938485 70.29063 0.48043219
+## 7               lvpet  1.197360971 2.36311674  0.50668719 70.98321 0.61394466
+## 8  cognitive_cluster2 -1.232283668 0.77569850 -1.58861165 70.36703 0.11663155
+## 9  cognitive_cluster3 -1.232117605 0.84485370 -1.45837985 70.38349 0.14918403
+## 10      EEG_vigilance -0.105048546 0.57157022 -0.18378940 71.01714 0.85470244
+## 11    CATS_scoretotal  0.035605955 0.01765689  2.01654771 71.06315 0.04752293
+## 12           CAR_AUCi  0.001389549 0.00113572  1.22349596 70.88005 0.22519432
+## 13        neuroticism -0.001218515 0.02078185 -0.05863362 70.92296 0.95340882
 cat("\n")
 
 ## with rescaled predictors
@@ -563,25 +584,25 @@ dtS.ass_cc <- rbind(dtS.ass_cc,
 
 ## max test
 min(glht_cc$week4$test$pvalues)
-## [1] 0.6185829
+## [1] 0.7240508
 min(glht_cc$week8$test$pvalues)
-## [1] 0.04664495
+## [1] 0.1543613
 min(glht_cc$week12$test$pvalues)
-## [1] 0.1341767
+## [1] 0.1798999
 
 ## multivariate Wald test
 summary(glht_cc$week4, test = Chisqtest())
 ## Global Test:
 ##   Chisq DF Pr(>Chisq)
-## 1 4.324  7     0.7418
+## 1 3.469  7     0.8385
 summary(glht_cc$week8, test = Chisqtest())
 ## Global Test:
 ##   Chisq DF Pr(>Chisq)
-## 1 13.66  7    0.05764
+## 1 10.61  7     0.1568
 summary(glht_cc$week12, test = Chisqtest())
 ## Global Test:
 ##   Chisq DF Pr(>Chisq)
-## 1 8.718  7     0.2735
+## 1 7.135  7      0.415
 
 ## likelihood ratio test
 anova(e.glm_ccw4,e.glm0_ccw4, test = "Chisq")
@@ -621,25 +642,43 @@ dtS.ass_imp$time <- factor(dtS.ass_imp$time, levels = rev(as.character(unique(dt
 
 ## max test
 min(glht_imp$week4$test$pvalues)
-## [1] 0.2965254
+## [1] 0.4105926
 min(glht_imp$week8$test$pvalues)
-## [1] 0.02180895
+## [1] 0.09046179
 min(glht_imp$week12$test$pvalues)
-## [1] 0.07408294
+## [1] 0.09403706
 
 ## multivariate Wald test
 summary(glht_imp$week4, test = Chisqtest())
 ## Global Test:
 ##   Chisq DF Pr(>Chisq)
-## 1 8.618 10     0.5687
+## 1 7.878 10     0.6408
 summary(glht_imp$week8, test = Chisqtest())
 ## Global Test:
 ##   Chisq DF Pr(>Chisq)
-## 1 16.26 10    0.09248
+## 1  13.3 10     0.2073
 summary(glht_imp$week12, test = Chisqtest())
 ## Global Test:
 ##   Chisq DF Pr(>Chisq)
-## 1 12.95 10     0.2263
+## 1 12.19 10     0.2725
+
+## * export
+save.image(file = file.path(path.results,"test.Rdata"))
+
+## save(list = c("dfW.NP1", "dfW.NP1cc", "dfWR.NP1", "dfWR.NP1_2impw12", "dfWR.NP1_2impw4", "dfWR.NP1_2impw8", "dfWR.NP1_ccw12",  "dfWR.NP1_ccw12S", "dfWR.NP1_ccw4",
+##               "dfWR.NP1_ccw4S",  "dfWR.NP1_ccw8",   "dfWR.NP1_ccw8S",  "dfWR.NP1_w12",    "dfWR.NP1_w4",     "dfWR.NP1_w8",    
+##               "dfWRimp.NP1_w12", "dfWRimp.NP1_w12C",    "dfWRimp.NP1_w4",  "dfWRimp.NP1_w4C", "dfWRimp.NP1_w8",  "dfWRimp.NP1_w8C",    
+##               "DS",              "dtS.ass_cc",      "dtS.ass_imp",     "e.gam_ccw12",     "e.gam_ccw8",     "e.glm_ccw12",        
+##               "e.glm_ccw12S",    "e.glm_ccw4",      "e.glm_ccw4S",     "e.glm_ccw8",      "e.glm_ccw8S",     "e.glm_impw12",   
+##               "e.glm_impw12C",   "e.glm_impw4",     "e.glm_impw4C",    "e.glm_impw8",     "e.glm_impw8C",    "e.glm0_ccw12",   
+##               "e.glm0_ccw4",     "e.glm0_ccw8",     "e.ranger_ccw12",  "e.ranger_ccw4",   "e.ranger_ccw8",   "e.ranger0_ccw12",    
+##               "e.rangerPerm_ccw12",  "e.rangerPerm_ccw4",   "e.rangerPerm_ccw8",   "e.rangerPerm0_ccw12", "elvm.PET",        "ff_ccw12",       
+##               "ff_ccw4",         "ff_ccw8",         "findLevels",      "glht_cc",         "glht_imp",        "glhtPool",       
+##               "iObs",            "iPred",      "iVar",      "keep.col",        "lvm.PET",         "Mlink_w12",      
+##               "Mlink_w4",        "Mlink_w8",        "n.imputed",       "n.perm",          "name",            "name.predictor", 
+##               "nameR.predictor", "nameRT.predictor",    "nameT.predictor", "path.code",       "path.results",    "source.NP1",     
+##               "sourceRed.NP1") ,
+##      file = file.path(path.results,"analysis-test","test2.Rdata"))
 
 
 ##----------------------------------------------------------------------

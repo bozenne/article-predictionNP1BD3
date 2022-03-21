@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  4 2022 (09:16) 
 ## Version: 
-## Last-Updated: mar  4 2022 (18:19) 
+## Last-Updated: mar 18 2022 (18:16) 
 ##           By: Brice Ozenne
-##     Update #: 20
+##     Update #: 32
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,12 +16,14 @@
 ### Code:
 
 ## * Parameters
-n.resampling <- 10
+n.resampling <- 2500
 fold.number <- 25
 
 ## * Path
 if(system("whoami",intern=TRUE)=="hpl802"){
     ## nothing: on the server
+    ## cd ucph/hdir/SundKonsolidering_BioStatHome/Cluster/BrainDrug-WP3/
+    ## source("code-data-analysis/analysis-predictionNA-w8.R")
 }else if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
     setwd("c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/")
 }else{ ## 
@@ -38,6 +40,7 @@ library(ranger)
 library(splines)
 library(BuyseTest)
 library(mice)
+library(misaem)
 ## devtools::install_github("NightingaleHealth/ggforestplot")
 
 ## * Load data
@@ -59,6 +62,8 @@ set.seed(10)
 
 ## *** fit models
 e.glm0_impw8 <- glm(Y_w8 ~ female + age, family = binomial(link = "logit"), data = dfWR.NP1_w8)
+## e.glm_impw8 <- miss.glm(Y_w8 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism, data = dfWR.NP1_w8,
+##                  control = list(print_iter = FALSE, tol_em = 1e-5, ll_obs_cal = FALSE))
 e.glm_impw8 <- glm(Y_w8 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
                    family = binomial(link = "logit"), data = dfWR.NP1_w8)
 e.ranger_impw8 <- ranger(formula = Y_w8 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
@@ -74,7 +79,8 @@ e.ranger_impw8 <- ranger(formula = Y_w8 ~ female + age + MR_OFCthick + HAMD17 + 
 ePerf.impw8 <- performanceResample(list(glm0_impw8 = e.glm0_impw8, glm_impw8 = e.glm_impw8, rf_impw8 = e.ranger_impw8), data = dfWR.NP1_w8,
                                    individual.fit = TRUE,
                                    fold.number = fold.number, fold.size = 0.1,
-                                   type.resampling = "permutation", n.resampling = n.resampling, seed = 10)
+                                   type.resampling = "permutation", n.resampling = n.resampling, seed = 10,
+                                   filename = file.path(path.results,"analysis-predictionNA","perf-imp-week8"))
 ePerf.impw8
 
 ##    metric      model  estimate se lower upper p.value p.value_comp
@@ -85,12 +91,74 @@ ePerf.impw8
 ## 5:  brier  glm_impw8 0.3557607 NA    NA    NA     0.9           NA
 ## 6:  brier   rf_impw8 0.2613369 NA    NA    NA     0.3           NA
 
-
-
 ## * Export
 saveRDS(ePerf.impw8, file = file.path(path.results,"perf-imp-week8.rds"))
 
 
+
+
+
+## * Bonus
+if(FALSE){
+
+    xxx <- misaem::miss.glm(Y_w8 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism, data = dfWR.NP1_w8,
+                            control = list(print_iter = FALSE, tol_em = 1e-5, ll_obs_cal = FALSE))
+
+
+    ePerf.impw8.bis <- performance(list(glm0_impw8 = e.glm0_impw8, glm_impw8 = xxx, rf_impw8 = e.ranger_impw8), data = dfWR.NP1_w8,
+                                   individual.fit = TRUE,
+                                   fold.number = 1, fold.size = 0.1, seed = 10)
+
+    ePerf.impw8.bis <- performance(list(glm0_impw8 = e.glm0_impw8, glm_impw8 = e.glm_impw8, rf_impw8 = e.ranger_impw8), data = dfWR.NP1_w8,
+                                   individual.fit = TRUE,
+                                   fold.number = 1, fold.size = 0.1, seed = 10)
+
+
+    ePerf.impw8.bis <- performance(list(glm2_impw8 = xxx, rf_impw8 = e.ranger_impw8), data = dfWR.NP1_w8,
+                                   individual.fit = TRUE,
+                                   fold.number = 1, fold.size = 0.1, seed = 10)
+
+
+    
+    for(iSplit in 1:10){ ## iSplit <- 3
+        test1 <- prediction[index[,"split"]==iSplit,"glm0_impw8"]
+        GS1 <- predict(update(e.glm0_impw8, data = dfWR.NP1_w8[index[index[,"split"]!=iSplit,"observation"],]),
+                       newdata = dfWR.NP1_w8[index[index[,"split"]==iSplit,"observation"],],
+                       type = "response")
+        print(range(test1-GS1))
+        ## test - dfWR.NP1_w8[index[index[,"split"]==iSplit,"observation"], Y_w8]
+
+    }
+
+    dataSplit <- dfWR.NP1_w8[index[index[,"split"]==iSplit,"observation"],]
+    GS2 <- NULL
+    for(iData in 1:NROW(dataSplit)){ ## iData <- 1
+        test.NA <- unlist(lapply(as.list(dataSplit[iData,.SD, .SDcols = all.vars(formula(e.glm_impw8))]), is.na))
+        rm.var <- names(which(test.NA))
+
+        fff <- formula(e.glm_impw8)
+        if(length(rm.var)>0){
+            fff <- update(fff, paste0(".~.-", paste0(rm.var, collapse = "-")))
+        }
+
+
+        
+        xxx <- miss.glm(fff, data = dfWR.NP1_w8[index[index[,"split"]!=iSplit,"observation"],],
+                        control = list(print_iter = FALSE, tol_em = 1e-5, ll_obs_cal = FALSE))
+        lava::expit(as.double(model.matrix(fff, dataSplit[iData,]) %*% coef(xxx)))
+        
+        
+        GS2 <- c(GS2,predict(update(e.glm_impw8, data = dfWR.NP1_w8[index[index[,"split"]!=iSplit,"observation"],],
+                                  formula = fff),
+                           newdata = dataSplit[iData,],
+                           type = "response"))
+    }
+    test2 <- prediction[index[,"split"]==iSplit,"glm_impw8"]
+    print(range(GS2 - test2))
+    ## test2 - dfWR.NP1_w8[index[index[,"split"]==iSplit,"observation"], Y_w8]
+    mean((test1 - dfWR.NP1_w8[index[index[,"split"]==iSplit,"observation"], Y_w8])^2)
+    mean((test2 - dfWR.NP1_w8[index[index[,"split"]==iSplit,"observation"], Y_w8])^2)
+}
 
 ##----------------------------------------------------------------------
 ### analysis-predictionNA-w8.R ends here

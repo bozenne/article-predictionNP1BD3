@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  1 2021 (13:12) 
 ## Version: 
-## Last-Updated: mar  4 2022 (11:59) 
+## Last-Updated: mar 18 2022 (10:52) 
 ##           By: Brice Ozenne
-##     Update #: 151
+##     Update #: 155
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,7 +28,7 @@ if(system("whoami",intern=TRUE)=="hpl802"){
     setwd("Vibeke put your path here")
 }
 path.code <- "./code-data-analysis"
-path.results <- "./results/analysis-prediction"
+path.results <- "./results/"
 
 ## * Packages and function
 library(data.table)
@@ -63,7 +63,8 @@ e.ranger_ccw4 <- ranger(ff_ccw4, data = dfWR.NP1_ccw4, probability = TRUE)
 ## *** assess performance
 ePerf.ccw4 <- performanceResample(list(glm0_ccw4 = e.glm0_ccw4, glm_ccw4 = e.glm_ccw4, rf_ccw4 = e.ranger_ccw4), data = dfWR.NP1_ccw4,
                                   fold.number = fold.number, fold.size = 0.1,
-                                  type.resampling = "permutation", n.resampling = n.resampling, seed = 10)
+                                  type.resampling = "permutation", n.resampling = n.resampling, seed = 10,
+                                   filename = file.path(path.results,"analysis-predictionCC","perf-imp-week4")
 ePerf.ccw4
 ##    metric     model  estimate se lower upper p.value p.value_comp
 ## 1:    auc glm0_ccw4 0.5034167 NA    NA    NA   0.195           NA
@@ -76,6 +77,13 @@ ePerf.ccw4
 
 ## * Export
 saveRDS(ePerf.ccw4, file = file.path(path.results,"perf-cc-week4.rds"))
+
+## * Results
+if(FALSE){
+    ## readRDS(file = file.path("results","analysis-prediction","perf-cc-week4.rds"))
+    ## readRDS(file = file.path("results","analysis-prediction","perf-cc-week8.rds"))
+    ## readRDS(file = file.path("results","analysis-prediction","perf-cc-week12.rds"))
+}
 
 ##----------------------------------------------------------------------
 ### analysis-predictionCC-w4.R ends here

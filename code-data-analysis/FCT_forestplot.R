@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 24 2022 (17:36) 
 ## Version: 
-## Last-Updated: jan 24 2022 (17:45) 
+## Last-Updated: mar 18 2022 (11:08) 
 ##           By: Brice Ozenne
-##     Update #: 8
+##     Update #: 13
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,7 +16,7 @@
 ### Code:
 
 
-forestplot <- function(data, size = c(1,1.5,0.75)){
+forestplot <- function(data, size = c(1,1.5,0.75), reorder = TRUE){
     require(ggforestplot)
     gg_color_hue <- function(n) {
         hues = seq(15, 375, length = n + 1)
@@ -24,6 +24,10 @@ forestplot <- function(data, size = c(1,1.5,0.75)){
     }
 
     data <- data[data$term != "(Intercept)"]
+    if(reorder){
+        data$term <- factor(data$term, levels = sort(levels(data$term), decreasing = TRUE))
+        setkeyv(data,c("method","term"))
+    }
     
     ## based on ggforestplot::forestplot
     ggForest <- ggplot(data, aes(x = estimate, y = term))

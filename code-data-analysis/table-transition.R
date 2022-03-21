@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  2 2022 (12:26) 
 ## Version: 
-## Last-Updated: mar  2 2022 (12:32) 
+## Last-Updated: mar 21 2022 (15:23) 
 ##           By: Brice Ozenne
-##     Update #: 5
+##     Update #: 11
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,6 +30,33 @@ library(officer)
 
 ## * Load data
 source(file.path(path.code,"0-data-management.R"))
+
+## * Censoring
+
+table(dfWR.NP1$Y_w4, useNA = "always")
+## FALSE  TRUE  <NA> 
+##    52    37     1 
+dfWR.NP1[is.na(dfWR.NP1$Y_w4),"NP1_comment"]
+##                                                                                    NP1_comment
+## 1: Exclusion at week 3. No contact between week 3 and 8. Not documented compliant to medicine.
+
+table(dfWR.NP1$Y_w8, useNA = "always")
+## FALSE  TRUE  <NA> 
+##    40    48     2 
+dfWR.NP1[is.na(dfWR.NP1$Y_w8),"NP1_comment"]
+## 1: Drop-out week 8. Came back for follow-up at week 12.
+## 2:                       Drop-out week 7. Lost contact.
+
+table(dfWR.NP1$Y_w12, useNA = "always")
+## FALSE  TRUE  <NA> 
+##    26    60     4 
+dfWR.NP1[is.na(dfWR.NP1$Y_w12),"NP1_comment"]
+##                                                                                    NP1_comment
+## 1:                                              Drop-out in week 8. No week 8 sample acquired.
+## 2:                                                                  Drop-out, week 12 missing.
+## 3:                                                              Drop-out week 7. Lost contact.
+## 4: Exclusion at week 3. No contact between week 3 and 8. Not documented compliant to medicine.
+
 
 ## * Transition
 df.trans <- data.frame(week4 = c("nr2nr" = sum(dfWR.NP1$Y_w4==0, na.rm = TRUE),
@@ -58,9 +85,52 @@ df.trans
 ## total   89 (100%)   87 (100%)   85 (100%)
 
 ## * Export
-table.trans <- body_add_table(x = read_docx(), 
-                              value =  df.trans)
-print(table.trans, target = "./table/transition.docx")
+if(FALSE){
+    table.trans <- body_add_table(x = read_docx(), 
+                                  value =  df.trans)
+    print(table.trans, target = "./table/transition.docx")
+}
+
+## * all comments
+table(dfWR.NP1[,"NP1_comment"])
+## Drop-out after week 8. Psychotic depression and suicidal. 
+## 1 
+## Drop-out at week 7. Suicidal attempt, did not want more medicine. 
+## 1 
+## Drop-out in week 8. No week 8 sample acquired. 
+## 1 
+## Drop-out week 7. Lost contact. 
+## 1 
+## Drop-out week 8. Came back for follow-up at week 12. 
+## 1 
+## Drop-out, week 12 missing. 
+## 1 
+## Excluded at week 7, adverse side-effects to SNRI. 
+## 1 
+## Exclusion after week 1, suicidal and psychotic. Hospitalized. 
+## 1 
+## Exclusion at week 1, spontaneous remission (< 2 weeks between inclusion HAMD17 and baseline assessments). Can use baseline assessments were the patient flfilled diagnostic criteria for MDD. 
+## 1 
+## Exclusion at week 3. No contact between week 3 and 8. Not documented compliant to medicine. 
+## 1 
+## Femicept has been prescribed by doctor, but test subject says no to taking birth control pills 
+## 1 
+## Last menstrual period 1½ years ago 
+## 1 
+## Menstrual cycle irregular 
+## 2 
+## No medicine intake for 1 week around week 7 - week 8. Can be part of response-category but not use of serum-level of medicine at week 8. 
+## 1 
+## Non compliant to medicine baes on blood measures at week 8 
+## 1 
+## Non compliant to medicine intake based on escitalopram at week 8 
+## 1 
+## Non compliant to medicine, based on serum measures at week 8 
+## 1 
+## Non compliant to medicine. Was ordinated Duloxetin at week 4, but had no serum-levels at week 8 of Duloxetin, only S-Escitalopram. Not valid for response categorization. 
+## 1 
+## Tracer production failure for PET, missing PET. 
+## 1 
 
 ##----------------------------------------------------------------------
 ### table-transition.R ends here

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  4 2022 (09:16) 
 ## Version: 
-## Last-Updated: mar  4 2022 (17:07) 
+## Last-Updated: mar 18 2022 (18:16) 
 ##           By: Brice Ozenne
-##     Update #: 13
+##     Update #: 33
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,12 +16,16 @@
 ### Code:
 
 ## * Parameters
-n.resampling <- 10
-fold.number <- 25
+n.resampling <- 2500 ## 1000
+fold.number <- 25 ## 25
 
 ## * Path
 if(system("whoami",intern=TRUE)=="hpl802"){
     ## nothing: on the server
+    ## cd ucph/hdir/SundKonsolidering_BioStatHome/Cluster/BrainDrug-WP3/
+    ## setwd("h:/SundKonsolidering_BioStatHome/Cluster/BrainDrug-WP3/")
+    ## source("code-data-analysis/analysis-predictionNA-w4.R")
+    
 }else if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
     setwd("c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/")
 }else{ ## 
@@ -38,6 +42,7 @@ library(ranger)
 library(splines)
 library(BuyseTest)
 library(mice)
+library(misaem)
 ## devtools::install_github("NightingaleHealth/ggforestplot")
 
 ## * Load data
@@ -59,6 +64,8 @@ set.seed(10)
 
 ## *** fit models
 e.glm0_impw4 <- glm(Y_w4 ~ female + age, family = binomial(link = "logit"), data = dfWR.NP1_w4)
+## e.glm_impw4 <- miss.glm(Y_w4 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism, data = dfWR.NP1_w4,
+##                  control = list(print_iter = FALSE, tol_em = 1e-5, ll_obs_cal = FALSE))
 e.glm_impw4 <- glm(Y_w4 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
                    family = binomial(link = "logit"), data = dfWR.NP1_w4)
 e.ranger_impw4 <- ranger(formula = Y_w4 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
@@ -69,9 +76,9 @@ e.ranger_impw4 <- ranger(formula = Y_w4 ~ female + age + MR_OFCthick + HAMD17 + 
 ePerf.impw4 <- performanceResample(list(glm0_impw4 = e.glm0_impw4, glm_impw4 = e.glm_impw4, rf_impw4 = e.ranger_impw4), data = dfWR.NP1_w4,
                                    individual.fit = TRUE,
                                    fold.number = fold.number, fold.size = 0.1,
-                                   type.resampling = "permutation", n.resampling = n.resampling, seed = 10)
+                                   type.resampling = "permutation", n.resampling = n.resampling, seed = 10,
+                                   filename = file.path(path.results,"analysis-predictionNA","perf-imp-week4"))
 ePerf.impw4
-
 ##    metric      model  estimate se lower upper p.value p.value_comp
 ## 1:    auc glm0_impw4 0.4911983 NA    NA    NA     0.8           NA
 ## 2:    auc  glm_impw4 0.4780392 NA    NA    NA     0.8           NA

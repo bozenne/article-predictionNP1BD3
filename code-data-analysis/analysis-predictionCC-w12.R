@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  1 2021 (13:12) 
 ## Version: 
-## Last-Updated: mar  4 2022 (11:59) 
+## Last-Updated: mar 18 2022 (10:52) 
 ##           By: Brice Ozenne
-##     Update #: 148
+##     Update #: 150
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,7 +28,7 @@ if(system("whoami",intern=TRUE)=="hpl802"){
     setwd("Vibeke put your path here")
 }
 path.code <- "./code-data-analysis"
-path.results <- "./results/analysis-prediction"
+path.results <- "./results/"
 
 ## * Packages and function
 library(data.table)
@@ -66,8 +66,9 @@ e.ranger_ccw12 <- ranger(ff_ccw12, data = dfWR.NP1_ccw12, probability = TRUE)
 ##                           data = dfWR.NP1_ccw12)
 set.seed(10)
 ePerf.ccw12 <- performanceResample(list(glm0_ccw12 = e.glm0_ccw12, glm_ccw12 = e.glm_ccw12, rf_ccw12 = e.ranger_ccw12), data = dfWR.NP1_ccw12,
-                                  fold.number = fold.number, fold.size = 0.1,
-                                  type.resampling = "permutation", n.resampling = n.resampling, seed = 10)
+                                   fold.number = fold.number, fold.size = 0.1,
+                                   type.resampling = "permutation", n.resampling = n.resampling, seed = 10,
+                                   filename = file.path(path.results,"analysis-predictionCC","perf-imp-week12"))
 ePerf.ccw12
 
 

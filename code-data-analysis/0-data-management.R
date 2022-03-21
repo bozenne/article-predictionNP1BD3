@@ -1,11 +1,12 @@
+
 ### 0-read-data.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
 ## Created: nov  1 2021 (13:10) 
 ## Version: 
-## Last-Updated: mar  4 2022 (10:11) 
+## Last-Updated: mar 18 2022 (18:20) 
 ##           By: Brice Ozenne
-##     Update #: 71
+##     Update #: 76
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -39,6 +40,8 @@ if(system("whoami",intern=TRUE)=="hpl802"){
 source.NP1 <- as.data.table(read.csv("source/DS9_full_out.csv", sep = ";", na.strings = c("")))
 ## source.NP1 <- read.xlsx("source/DS9_NP1_in.xlsx", sheetIndex = 1)
 ## names(dfW.NP1)
+## dim(source.NP1)
+## [1]  98 725
 
 ## * Data cleaning
 ## done by emily's script
@@ -264,8 +267,10 @@ comment <- list(success4 = c("Exclusion at week 1, spontaneous remission (< 2 we
                 )
 
 ## table(dfW.NP1[,NP1_comment], useNA = "always")
+## colSums(is.na(dfW.NP1[,c("Y_w4","Y_w8","Y_w12")]))
+ ## Y_w4  Y_w8 Y_w12 
+ ##   11    14    17 
 
-if(FALSE){
 dfW.NP1[NP1_comment %in% comment$success4,.(CIMBI_ID,Y_w4,Y_w8,Y_w12)]
 ##    CIMBI_ID Y_w4 Y_w8 Y_w12
 ## 1:    56123   NA   NA    NA
@@ -290,7 +295,6 @@ dfW.NP1[NP1_comment %in% comment$failure12,c("Y_w12") := FALSE]
 
 
 dfW.NP1[!is.na(NP1_comment),NP1_comment]
-}
 
 ## * Reduced dataset
 keep.col %in% names(dfW.NP1)
@@ -311,5 +315,14 @@ names(dfWR.NP1)[names(dfWR.NP1)=="HAMD17_total_wk12"] <- "HAMD17_w12"
 
 cat("\n")
 
+
+## * Remove non-compliants
+## dfWR.NP1 <- dfWR.NP1[dfWR.NP1$NP1_comment %in% rm.noncompliant == FALSE,]
+
+##     rm.noncompliant <- c("Non compliant to medicine intake based on escitalopram at week 8",
+##                          "Non compliant to medicine, based on serum measures at week 8",
+##                          "Non compliant to medicine. Was ordinated Duloxetin at week 4, but had no serum-levels at week 8 of Duloxetin, only S-Escitalopram. Not valid for response categorization.",
+##                          "Non compliant to medicine baes on blood measures at week 8",
+##                          "Exclusion at week 3. No contact between week 3 and 8. Not documented compliant to medicine.")
 ##----------------------------------------------------------------------
 ### 0-read-data.R ends here

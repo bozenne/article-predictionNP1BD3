@@ -15,7 +15,7 @@ R CMD BATCH --vanilla code-data-analysis/analysis-test.R output/analysis-test/R-
 ## clean results      ## rm -r ./results/analysis-test/*
 ## submission command ## sbatch SUBM_analysis-test.slurm
 
-## submission output  ## Submitted batch job 388549 (time using C-c t: onsdag 22-03-09 at 12:28) 
+## submission output  ## Submitted batch job 1242483 (time using C-c t: tirsdag 22-04-19 at 12:18) 
 
 ## init               ## module module load gcc/11.2.0 R/4.1.2
                       ## cat .bash_profile (in the root directory on the server to visualize the current configuration)

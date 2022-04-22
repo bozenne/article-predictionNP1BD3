@@ -1,0 +1,182 @@
+
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> ### analysis-predictionCC-traj.R --- 
+> ##----------------------------------------------------------------------
+> ## Author: Brice Ozenne
+> ## Created: dec  1 2021 (13:12) 
+> ## Version: 
+> ## Last-Updated: apr 21 2022 (16:02) 
+> ##           By: Brice Ozenne
+> ##     Update #: 183
+> ##----------------------------------------------------------------------
+> ## 
+> ### Commentary: 
+> ## 
+> ### Change Log:
+> ##----------------------------------------------------------------------
+> ## 
+> ### Code:
+> 
+> ## * Parameters
+> n.resampling <- 100 ## 10000
+> fold.size <- 0.1
+> fold.repetition <- 50
+> 
+> iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
+> n.iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_COUNT"))
+> if(is.na(iter_sim)){iter_sim <- 1}
+> if(is.na(n.iter_sim)){n.iter_sim <- 10}
+> 
+> vec.resampling <- (1+n.resampling*(iter_sim-1)):(n.resampling*iter_sim)
+> cat("iteration ",iter_sim," over ",n.iter_sim,"\n", sep = "")
+iteration 2 over 10
+> cat("vec.repetition:\n")
+vec.repetition:
+> print(vec.resampling)
+  [1] 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118
+ [19] 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136
+ [37] 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154
+ [55] 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172
+ [73] 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190
+ [91] 191 192 193 194 195 196 197 198 199 200
+> cat("\n")
+
+> 
+> ## * Path
+> if(system("whoami",intern=TRUE)=="hpl802"){
++     ## nothing: on the server
++     ## cd ucph/hdir/SundKonsolidering_BioStatHome/Cluster/BrainDrug-WP3/
++     ## setwd("h:/SundKonsolidering_BioStatHome/Cluster/BrainDrug-WP3/")
++     ## source("code-data-analysis/analysis-predictionCC-traj.R")
++ }else if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
++     setwd("c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/")
++ }else{ ## 
++     setwd("Vibeke put your path here")
++ }
+NULL
+> path.code <- "./code-data-analysis"
+> 
+> path.output <- "./output/"
+> if(dir.exists(path.output)==FALSE){
++     dir.create(path.output)
++ }
+> if(dir.exists(file.path(path.output,"analysis-predictionCC-traj"))==FALSE){
++     dir.create(file.path(path.output,"analysis-predictionCC-traj"))
++ }
+> 
+> path.results <- "./results/"
+> if(dir.exists(path.results)==FALSE){
++     dir.create(path.results)
++ }
+> if(dir.exists(file.path(path.results,"analysis-predictionCC-traj"))==FALSE){
++     dir.create(file.path(path.results,"analysis-predictionCC-traj"))
++ }
+> 
+> 
+> ## * Packages and function
+> library(data.table)
+> setDTthreads(1)
+> library(pROC)
+Type 'citation("pROC")' for a citation.
+
+Attaching package: ‘pROC’
+
+The following objects are masked from ‘package:stats’:
+
+    cov, smooth, var
+
+> library(ranger)
+> library(splines)
+> library(BuyseTest)
+Loading required package: Rcpp
+BuyseTest version 2.3.12
+
+Attaching package: ‘BuyseTest’
+
+The following object is masked from ‘package:pROC’:
+
+    auc
+
+> library(mice)
+
+Attaching package: ‘mice’
+
+The following object is masked from ‘package:stats’:
+
+    filter
+
+The following objects are masked from ‘package:base’:
+
+    cbind, rbind
+
+> ## devtools::install_github("NightingaleHealth/ggforestplot")
+> 
+> ## * Load data
+> source(file.path(path.code,"0-data-management.R"))
+Data management 
+
+> df.traj <- readRDS(file = file.path(path.results,"traj.Rdata"))
+> 
+> name.predictor <- c("sex","age","MR_OFCthick","HAMD17","hsCRP","lvpet","cognitive_cluster","EEG_vigilance","CATS_scoretotal","CAR_AUCi","neuroticism")
+> nameT.predictor <- c("MR_OFCthick","HAMD17","hsCRP","lvpet","cognitive_cluster","EEG_vigilance","CATS_scoretotal","CAR_AUCi","neuroticism")
+> nameR.predictor <- c("female","age","MR_OFCthick","HAMD17","low_hsCRP","lvpet","cognitive_cluster2","cognitive_cluster3","EEG_vigilance")
+> nameRT.predictor <- c("MR_OFCthick","HAMD17","low_hsCRP","lvpet","cognitive_cluster2","cognitive_cluster3","EEG_vigilance")
+> 
+> ## * Complete data
+> 
+> ## ** week 12
+> 
+> dfWR.NP1_cctraj <- merge(dfWR.NP1[rowSums(is.na(dfWR.NP1[,.SD,.SDcols = nameR.predictor]))==0,],
++                          df.traj, by = "CIMBI_ID")
+> dfWR.NP1_cctraj$Y_traj <- (dfWR.NP1_cctraj$class == 2)
+> 
+> ## *** fit models
+> ff_cctraj <- Y_traj ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance
+> 
+> e.glm0_cctraj <- glm(Y_traj ~ female + age, data = dfWR.NP1_cctraj, family = binomial(link = "logit"))
+> e.glm_cctraj <- glm(ff_cctraj, data = dfWR.NP1_cctraj, family = binomial(link = "logit"))
+> e.ranger_cctraj <- ranger(formula = ff_cctraj, data = dfWR.NP1_cctraj, probability = TRUE)
+> 
+> ## *** assess performance
+> if(iter_sim==1){
++     ePerf.cctraj.IF <- performance(list(glm0_cctraj = e.glm0_cctraj, glm_cctraj = e.glm_cctraj, rf_cctraj = e.ranger_cctraj), data = dfWR.NP1_cctraj,
++                                    fold.repetition = fold.repetition, fold.balance = TRUE, fold.size = fold.size, conf.level = 0.95, seed = 10)
++     saveRDS(ePerf.cctraj.IF, file = file.path(path.results,"perf-cc-traj-IF.rds"))
++     ePerf.cctraj.IF
++ }
+> ##      method metric      model estimate      se  lower  upper p.value p.value_comp
+> ## 1  internal    auc glm0_cctraj   0.6602 0.06467 0.5172 0.7699 0.02982             
+> ## 2  internal    auc  glm_cctraj   0.7552 0.05802 0.6188 0.8486 < 0.001       0.1396
+> ## 3  internal    auc   rf_cctraj   1.0000 0.00000 1.0000 1.0000 < 0.001       <0.001
+> ## 4  internal  brier glm0_cctraj   0.1939 0.02046 0.1577 0.2385                     
+> ## 5  internal  brier  glm_cctraj   0.1699 0.02271 0.1307 0.2207               0.1276
+> ## 6  internal  brier   rf_cctraj   0.0686 0.00823 0.0543 0.0868               <0.001
+> ## 7        cv    auc glm0_cctraj   0.6109 0.06671 0.4673 0.7267 0.12371             
+> ## 8        cv    auc  glm_cctraj   0.5859 0.06951 0.4378 0.7074 0.24208       0.7048
+> ## 9        cv    auc   rf_cctraj   0.7026 0.05817 0.5718 0.8002 0.00402       0.0343
+> ## 10       cv  brier glm0_cctraj   0.2040 0.02171 0.1656 0.2513                     
+> ## 11       cv  brier  glm_cctraj   0.2273 0.02907 0.1769 0.2921               0.2231
+> ## 12       cv  brier   rf_cctraj   0.1914 0.02184 0.1531 0.2394               0.0251
+> 
+> ePerf.cctraj.perm <- performanceResample(list(glm0_cctraj = e.glm0_cctraj, glm_cctraj = e.glm_cctraj, rf_cctraj = e.ranger_cctraj), data = dfWR.NP1_cctraj,
++                                          fold.repetition = fold.repetition, fold.size = fold.size, fold.balance = TRUE,
++                                          type.resampling = "permutation", n.resampling = vec.resampling, seed = 10,
++                                          filename = file.path(path.results,"analysis-predictionCC-traj",paste0("iter",iter_sim,"-tempo")))
+                                                                             

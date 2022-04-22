@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (MiKTeX 21.8) (preloaded format=pdflatex 2021.8.26)  21 MAR 2022 16:35
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (MiKTeX 21.8) (preloaded format=pdflatex 2021.8.26)  22 APR 2022 17:34
 entering extended mode
 **c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/REPORT/stat-report-
 multipred.tex
@@ -1243,26 +1243,34 @@ LaTeX Font Info:    External font `lmex10' loaded for size
  [1
 
 {C:/Users/hpl802/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <5> on input line 247.
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 2
-42.
+49.
 
 (C:\Program Files\MiKTeX 2.9\tex/latex/lm\t1lmtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-Overfull \hbox (2.65521pt too wide) in paragraph at lines 242--243
+Overfull \hbox (2.65521pt too wide) in paragraph at lines 262--263
 []\T1/lmr/m/n/12 The cor-re-spond-ing R code is in the file \T1/lmtt/m/n/12 0-d
 ata-management.R \T1/lmr/m/n/12 avail-able on [][]Github[][]. 
  []
 
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 248.
 [2]
-Overfull \hbox (23.74203pt too wide) in paragraph at lines 322--324
-[]\T1/lmr/m/n/12 The cor-re-spond-ing R code is in a di-rec-tory avail-able on 
-[][]Github[][] (files \T1/lmtt/m/n/12 analysis-XXX.R\T1/lmr/m/n/12 ). 
+Overfull \hbox (5.98895pt too wide) in paragraph at lines 275--295
+\T1/lmr/bx/n/12 Association be-tween re-cov-ery and biomark-ers[][][][][]\T1/lm
+r/m/n/12 : to as-sess whether the biomarker
  []
 
-[3] (C:\Program Files\MiKTeX 2.9\tex/latex/listings\lstlang1.sty
+
+Overfull \hbox (7.65755pt too wide) in paragraph at lines 275--295
+\T1/lmr/m/n/12 The cor-re-spond-ing R code is in a di-rec-tory avail-able on []
+[]Github[][] (file \T1/lmtt/m/n/12 analysis-test.R\T1/lmr/m/n/12 ). 
+ []
+
+[3
+
+] [4] (C:\Program Files\MiKTeX 2.9\tex/latex/listings\lstlang1.sty
 File: lstlang1.sty 2020/03/24 1.8d listings language file
 )
 (C:\Program Files\MiKTeX 2.9\tex/latex/listings\lstlang2.sty
@@ -1270,159 +1278,191 @@ File: lstlang2.sty 2020/03/24 1.8d listings language file
 )
 (C:\Program Files\MiKTeX 2.9\tex/latex/listings\lstlang3.sty
 File: lstlang3.sty 2020/03/24 1.8d listings language file
-) [4
+) [5
 
 ]
-<./figures/gg-missingPattern.pdf, id=95, 867.24pt x 460.72125pt>
-File: ./figures/gg-missingPattern.pdf Graphic file (type pdf)
-<use ./figures/gg-missingPattern.pdf>
-Package pdftex.def Info: ./figures/gg-missingPattern.pdf  used on input line 38
-9.
+<./../figures/gg-missingPattern.pdf, id=125, 867.24pt x 460.72125pt>
+File: ./../figures/gg-missingPattern.pdf Graphic file (type pdf)
+<use ./../figures/gg-missingPattern.pdf>
+Package pdftex.def Info: ./../figures/gg-missingPattern.pdf  used on input line
+ 414.
 (pdftex.def)             Requested size: 387.00153pt x 205.59326pt.
-<./figures/spaghetti-HAMD17.pdf, id=99, 867.24pt x 460.72125pt>
-File: ./figures/spaghetti-HAMD17.pdf Graphic file (type pdf)
-<use ./figures/spaghetti-HAMD17.pdf>
-Package pdftex.def Info: ./figures/spaghetti-HAMD17.pdf  used on input line 428
-.
+<./../figures/spaghetti-HAMD17.pdf, id=129, 867.24pt x 460.72125pt>
+File: ./../figures/spaghetti-HAMD17.pdf Graphic file (type pdf)
+<use ./../figures/spaghetti-HAMD17.pdf>
+Package pdftex.def Info: ./../figures/spaghetti-HAMD17.pdf  used on input line 
+453.
 (pdftex.def)             Requested size: 387.00153pt x 205.59326pt.
 
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-[5
+[6
 
- <./figures/gg-missingPattern.pdf>] [6 <./figures/spaghetti-HAMD17.pdf>]
-[7
-
-]
-<./figures/gg-forestplot-OR.pdf, id=127, 867.24pt x 480.79625pt>
-File: ./figures/gg-forestplot-OR.pdf Graphic file (type pdf)
-<use ./figures/gg-forestplot-OR.pdf>
-Package pdftex.def Info: ./figures/gg-forestplot-OR.pdf  used on input line 509
-.
-(pdftex.def)             Requested size: 430.00462pt x 238.3947pt.
-<./figures/variableImportance.pdf, id=129, 867.24pt x 480.79625pt>
-File: ./figures/variableImportance.pdf Graphic file (type pdf)
-<use ./figures/variableImportance.pdf>
-Package pdftex.def Info: ./figures/variableImportance.pdf  used on input line 5
-37.
-(pdftex.def)             Requested size: 430.00462pt x 238.3947pt.
-
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-<./figures/gg-spline-w8.pdf, id=132, 867.24pt x 505.89pt>
-File: ./figures/gg-spline-w8.pdf Graphic file (type pdf)
-<use ./figures/gg-spline-w8.pdf>
-Package pdftex.def Info: ./figures/gg-spline-w8.pdf  used on input line 551.
-(pdftex.def)             Requested size: 430.00462pt x 250.837pt.
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
+ <./../figures/gg-missingPattern.pdf>] [7 <./../figures/spaghetti-HAMD17.pdf>] 
 [8
 
- <./figures/gg-forestplot-OR.pdf>] [9 <./figures/variableImportance.pdf> <./fig
-ures/gg-spline-w8.pdf>]
-<./figures/gg-spline-w12.pdf, id=166, 867.24pt x 505.89pt>
-File: ./figures/gg-spline-w12.pdf Graphic file (type pdf)
-<use ./figures/gg-spline-w12.pdf>
-Package pdftex.def Info: ./figures/gg-spline-w12.pdf  used on input line 559.
+]
+<./../figures/gg-forestplot-OR.pdf, id=156, 867.24pt x 460.72125pt>
+File: ./../figures/gg-forestplot-OR.pdf Graphic file (type pdf)
+<use ./../figures/gg-forestplot-OR.pdf>
+Package pdftex.def Info: ./../figures/gg-forestplot-OR.pdf  used on input line 
+534.
+(pdftex.def)             Requested size: 430.00462pt x 228.44086pt.
+<./../figures/variableImportance.pdf, id=158, 867.24pt x 460.72125pt>
+File: ./../figures/variableImportance.pdf Graphic file (type pdf)
+<use ./../figures/variableImportance.pdf>
+Package pdftex.def Info: ./../figures/variableImportance.pdf  used on input lin
+e 562.
+(pdftex.def)             Requested size: 430.00462pt x 228.44086pt.
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+<./../figures/gg-spline-w8.pdf, id=161, 867.24pt x 505.89pt>
+File: ./../figures/gg-spline-w8.pdf Graphic file (type pdf)
+<use ./../figures/gg-spline-w8.pdf>
+Package pdftex.def Info: ./../figures/gg-spline-w8.pdf  used on input line 576.
+
 (pdftex.def)             Requested size: 430.00462pt x 250.837pt.
-<./figures/hist-pred-week4.pdf, id=173, 1156.32pt x 505.89pt>
-File: ./figures/hist-pred-week4.pdf Graphic file (type pdf)
-<use ./figures/hist-pred-week4.pdf>
-Package pdftex.def Info: ./figures/hist-pred-week4.pdf  used on input line 577.
 
-(pdftex.def)             Requested size: 430.00462pt x 188.12582pt.
- [10
+LaTeX Warning: `!h' float specifier changed to `!ht'.
 
- <./figures/gg-spline-w12.pdf> <./figures/hist-pred-week4.pdf>]
-<./figures/hist-pred-week8.pdf, id=197, 1084.05pt x 505.89pt>
-File: ./figures/hist-pred-week8.pdf Graphic file (type pdf)
-<use ./figures/hist-pred-week8.pdf>
-Package pdftex.def Info: ./figures/hist-pred-week8.pdf  used on input line 585.
+[9
 
-(pdftex.def)             Requested size: 430.00462pt x 200.6696pt.
-<./figures/hist-pred-week12.pdf, id=198, 1156.32pt x 505.89pt>
-File: ./figures/hist-pred-week12.pdf Graphic file (type pdf)
-<use ./figures/hist-pred-week12.pdf>
-Package pdftex.def Info: ./figures/hist-pred-week12.pdf  used on input line 591
+ <./../figures/gg-forestplot-OR.pdf>] [10 <./../figures/variableImportance.pdf>
+ <./../figures/gg-spline-w8.pdf>]
+<./../figures/gg-spline-w12.pdf, id=195, 867.24pt x 505.89pt>
+File: ./../figures/gg-spline-w12.pdf Graphic file (type pdf)
+<use ./../figures/gg-spline-w12.pdf>
+Package pdftex.def Info: ./../figures/gg-spline-w12.pdf  used on input line 584
 .
+(pdftex.def)             Requested size: 430.00462pt x 250.837pt.
+<./../figures/hist-pred-week4.pdf, id=202, 1156.32pt x 505.89pt>
+File: ./../figures/hist-pred-week4.pdf Graphic file (type pdf)
+<use ./../figures/hist-pred-week4.pdf>
+Package pdftex.def Info: ./../figures/hist-pred-week4.pdf  used on input line 6
+02.
 (pdftex.def)             Requested size: 430.00462pt x 188.12582pt.
  [11
 
- <./figures/hist-pred-week8.pdf> <./figures/hist-pred-week12.pdf>]
-Overfull \hbox (15.33342pt too wide) in paragraph at lines 646--650
-[]\T1/lmr/m/n/12 IMPORTANT NOTE: what is miss-ing here is a test com-par-ing \T
-1/lmtt/m/n/12 GLM (no biomarker)
- []
+ <./../figures/gg-spline-w12.pdf> <./../figures/hist-pred-week4.pdf>]
+<./../figures/hist-pred-week8.pdf, id=226, 1084.05pt x 505.89pt>
+File: ./../figures/hist-pred-week8.pdf Graphic file (type pdf)
+<use ./../figures/hist-pred-week8.pdf>
+Package pdftex.def Info: ./../figures/hist-pred-week8.pdf  used on input line 6
+10.
+(pdftex.def)             Requested size: 430.00462pt x 200.6696pt.
+<./../figures/hist-pred-week12.pdf, id=227, 1156.32pt x 505.89pt>
+File: ./../figures/hist-pred-week12.pdf Graphic file (type pdf)
+<use ./../figures/hist-pred-week12.pdf>
+Package pdftex.def Info: ./../figures/hist-pred-week12.pdf  used on input line 
+616.
+(pdftex.def)             Requested size: 430.00462pt x 188.12582pt.
+ [12
 
-[12
+ <./../figures/hist-pred-week8.pdf> <./../figures/hist-pred-week12.pdf>] [13
 
 ] (stat-report-multipred.bbl)pdfTeX warning (ext4): destination with the same i
 dentifier (name{page.1}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.701 \clearpage
+l.726 \clearpage
                  [1
 
 ]
-<./figures/ROC-pred-week4.pdf, id=222, 1011.78pt x 719.68875pt>
-File: ./figures/ROC-pred-week4.pdf Graphic file (type pdf)
-<use ./figures/ROC-pred-week4.pdf>
-Package pdftex.def Info: ./figures/ROC-pred-week4.pdf  used on input line 707.
-(pdftex.def)             Requested size: 387.00153pt x 275.27455pt.
-<./figures/ROC-pred-week8.pdf, id=223, 1011.78pt x 719.68875pt>
-File: ./figures/ROC-pred-week8.pdf Graphic file (type pdf)
-<use ./figures/ROC-pred-week8.pdf>
-Package pdftex.def Info: ./figures/ROC-pred-week8.pdf  used on input line 713.
-(pdftex.def)             Requested size: 387.00153pt x 275.27455pt.
+<./../figures/ROC-pred-week4.pdf, id=250, 1011.78pt x 722.7pt>
+File: ./../figures/ROC-pred-week4.pdf Graphic file (type pdf)
+<use ./../figures/ROC-pred-week4.pdf>
+Package pdftex.def Info: ./../figures/ROC-pred-week4.pdf  used on input line 73
+2.
+(pdftex.def)             Requested size: 387.00153pt x 276.42633pt.
+<./../figures/ROC-pred-week8.pdf, id=251, 1011.78pt x 722.7pt>
+File: ./../figures/ROC-pred-week8.pdf Graphic file (type pdf)
+<use ./../figures/ROC-pred-week8.pdf>
+Package pdftex.def Info: ./../figures/ROC-pred-week8.pdf  used on input line 73
+8.
+(pdftex.def)             Requested size: 387.00153pt x 276.42633pt.
 
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<./figures/ROC-pred-week12.pdf, id=224, 1011.78pt x 719.68875pt>
-File: ./figures/ROC-pred-week12.pdf Graphic file (type pdf)
-<use ./figures/ROC-pred-week12.pdf>
-Package pdftex.def Info: ./figures/ROC-pred-week12.pdf  used on input line 719.
-
-(pdftex.def)             Requested size: 387.00153pt x 275.27455pt.
+<./../figures/ROC-pred-week12.pdf, id=252, 1011.78pt x 722.7pt>
+File: ./../figures/ROC-pred-week12.pdf Graphic file (type pdf)
+<use ./../figures/ROC-pred-week12.pdf>
+Package pdftex.def Info: ./../figures/ROC-pred-week12.pdf  used on input line 7
+44.
+(pdftex.def)             Requested size: 387.00153pt x 276.42633pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
+pdfTeX warning (ext4): destination with the same identifier (name{page.2}) has 
+been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.749 \clearpage
+                 [2
+
+ <./../figures/ROC-pred-week4.pdf>]pdfTeX warning (ext4): destination with the 
+same identifier (name{page.3}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.749 \clearpage
+                 [3 <./../figures/ROC-pred-week8.pdf> <./../figures/ROC-pred-we
+ek12.pdf>]
+<./../figures/gg-forestplot-OR-traj.pdf, id=283, 867.24pt x 460.72125pt>
+File: ./../figures/gg-forestplot-OR-traj.pdf Graphic file (type pdf)
+<use ./../figures/gg-forestplot-OR-traj.pdf>
+Package pdftex.def Info: ./../figures/gg-forestplot-OR-traj.pdf  used on input 
+line 792.
+(pdftex.def)             Requested size: 430.00462pt x 228.44086pt.
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+pdfTeX warning (ext4): destination with the same identifier (name{page.4}) has 
+been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.796 \clearpage
+                 [4
+
+]pdfTeX warning (ext4): destination with the same identifier (name{page.5}) has
+ been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.796 \clearpage
+                 [5 <./../figures/gg-forestplot-OR-traj.pdf>]
 \Changes@OutFile=\write6
 \openout6 = `stat-report-multipred.soc'.
 
 \tf@loc=\write7
 \openout7 = `stat-report-multipred.loc'.
 
-pdfTeX warning (ext4): destination with the same identifier (name{page.2}) has 
+pdfTeX warning (ext4): destination with the same identifier (name{page.6}) has 
 been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.722 \end{document}
-                     [2
+l.816 \end{document}
+                     [6
 
- <./figures/ROC-pred-week4.pdf>]pdfTeX warning (ext4): destination with the sam
-e identifier (name{page.3}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.722 \end{document}
-                     [3 <./figures/ROC-pred-week8.pdf> <./figures/ROC-pred-week
-12.pdf>] (stat-report-multipred.aux)
+] (stat-report-multipred.aux)
 Package rerunfilecheck Info: File `stat-report-multipred.out' has not changed.
-(rerunfilecheck)             Checksum: 9089AEC271DCDD6EAAA89CFD99CE57E8;1425.
+(rerunfilecheck)             Checksum: AA7E83908EFBEB91A7AFD49EA8B531E5;1928.
  ) 
 Here is how much of TeX's memory you used:
- 29199 strings out of 478868
- 505375 string characters out of 2856724
- 989109 words of memory out of 3000000
- 46442 multiletter control sequences out of 15000+600000
+ 29226 strings out of 478868
+ 506316 string characters out of 2856724
+ 989251 words of memory out of 3000000
+ 46460 multiletter control sequences out of 15000+600000
  474082 words of font info for 97 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  114i,8n,117p,559b,1843s stack positions out of 5000i,500n,10000p,200000b,80000s
-pdfTeX warning (dest): name{Hfootnote.3} has been referenced but does not exi
+pdfTeX warning (dest): name{Hfootnote.4} has been referenced but does not exi
 st, replaced by a fixed one
+
+pdfTeX warning (dest): name{Hfootnote.3} has been referenced but does not exist
+, replaced by a fixed one
 
 pdfTeX warning (dest): name{Hfootnote.2} has been referenced but does not exist
 , replaced by a fixed one
@@ -1441,9 +1481,9 @@ gram Files/MiKTeX 2.9/fonts/type1/public/lm/lmr8.pfb><C:/Program Files/MiKTeX 2
 .9/fonts/type1/public/lm/lmri12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/pu
 blic/lm/lmtt10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmtt12.pf
 b>
-Output written on stat-report-multipred.pdf (15 pages, 468199 bytes).
+Output written on stat-report-multipred.pdf (19 pages, 554822 bytes).
 PDF statistics:
- 315 PDF objects out of 1000 (max. 8388607)
- 44 named destinations out of 1000 (max. 500000)
- 161 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 365 PDF objects out of 1000 (max. 8388607)
+ 52 named destinations out of 1000 (max. 500000)
+ 190 words of extra memory for PDF output out of 10000 (max. 10000000)
 

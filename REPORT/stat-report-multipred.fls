@@ -1502,11 +1502,6 @@ INPUT C:\Users\hpl802\AppData\Roaming\MiKTeX\2.9\fonts\tfm\public\prodint\prodin
 INPUT C:\Users\hpl802\AppData\Roaming\MiKTeX\2.9\fonts\tfm\public\prodint\prodint.tfm
 INPUT C:\Users\hpl802\AppData\Roaming\MiKTeX\2.9\fonts\tfm\public\prodint\prodint.tfm
 INPUT C:\Users\hpl802\AppData\Local\MiKTeX\2.9\pdftex\config\pdftex.map
-INPUT C:\Program Files\MiKTeX 2.9\tex\latex\lm\t1lmtt.fd
-INPUT C:\Program Files\MiKTeX 2.9\tex\latex\lm\t1lmtt.fd
-INPUT C:\Program Files\MiKTeX 2.9\tex\latex\lm\t1lmtt.fd
-INPUT C:\Program Files\MiKTeX 2.9\tex\latex\lm\t1lmtt.fd
-INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmtt12.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmr8.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmr10.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\rm-lmr5.tfm
@@ -1517,6 +1512,12 @@ INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\amsfonts\symbols\msbm5.tfm
 INPUT C:\Users\hpl802\AppData\Local\MiKTeX\2.9\fonts\tfm\public\stmaryrd\stmary5.tfm
 INPUT C:\Users\hpl802\AppData\Roaming\MiKTeX\2.9\fonts\tfm\public\prodint\prodint.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmr7.tfm
+INPUT C:\Program Files\MiKTeX 2.9\tex\latex\lm\t1lmtt.fd
+INPUT C:\Program Files\MiKTeX 2.9\tex\latex\lm\t1lmtt.fd
+INPUT C:\Program Files\MiKTeX 2.9\tex\latex\lm\t1lmtt.fd
+INPUT C:\Program Files\MiKTeX 2.9\tex\latex\lm\t1lmtt.fd
+INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmtt12.tfm
+INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmri12.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmbx12.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmr10.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmtt10.tfm
@@ -1532,83 +1533,88 @@ INPUT C:\Program Files\MiKTeX 2.9\tex\latex\listings\lstlang3.sty
 INPUT C:\Program Files\MiKTeX 2.9\tex\latex\listings\lstlang3.sty
 INPUT C:\Program Files\MiKTeX 2.9\tex\latex\listings\lstlang3.sty
 INPUT C:\Program Files\MiKTeX 2.9\tex\latex\listings\lstlang3.sty
-INPUT .\figures\gg-missingPattern.pdf
-INPUT .\figures\gg-missingPattern.pdf
-INPUT figures\gg-missingPattern.pdf
-INPUT .\figures\gg-missingPattern.pdf
-INPUT .\figures\gg-missingPattern.pdf
-INPUT .\figures\gg-missingPattern.pdf
-INPUT .\figures\spaghetti-HAMD17.pdf
-INPUT .\figures\spaghetti-HAMD17.pdf
-INPUT figures\spaghetti-HAMD17.pdf
-INPUT .\figures\spaghetti-HAMD17.pdf
-INPUT .\figures\spaghetti-HAMD17.pdf
-INPUT .\figures\spaghetti-HAMD17.pdf
-INPUT .\figures\gg-forestplot-OR.pdf
-INPUT .\figures\gg-forestplot-OR.pdf
-INPUT figures\gg-forestplot-OR.pdf
-INPUT .\figures\gg-forestplot-OR.pdf
-INPUT .\figures\gg-forestplot-OR.pdf
-INPUT .\figures\gg-forestplot-OR.pdf
-INPUT .\figures\variableImportance.pdf
-INPUT .\figures\variableImportance.pdf
-INPUT figures\variableImportance.pdf
-INPUT .\figures\variableImportance.pdf
-INPUT .\figures\variableImportance.pdf
-INPUT .\figures\variableImportance.pdf
-INPUT .\figures\gg-spline-w8.pdf
-INPUT .\figures\gg-spline-w8.pdf
-INPUT figures\gg-spline-w8.pdf
-INPUT .\figures\gg-spline-w8.pdf
-INPUT .\figures\gg-spline-w8.pdf
-INPUT .\figures\gg-spline-w8.pdf
-INPUT .\figures\gg-spline-w12.pdf
-INPUT .\figures\gg-spline-w12.pdf
-INPUT figures\gg-spline-w12.pdf
-INPUT .\figures\gg-spline-w12.pdf
-INPUT .\figures\gg-spline-w12.pdf
-INPUT .\figures\gg-spline-w12.pdf
-INPUT .\figures\hist-pred-week4.pdf
-INPUT .\figures\hist-pred-week4.pdf
-INPUT figures\hist-pred-week4.pdf
-INPUT .\figures\hist-pred-week4.pdf
-INPUT .\figures\hist-pred-week4.pdf
-INPUT .\figures\hist-pred-week4.pdf
-INPUT .\figures\hist-pred-week8.pdf
-INPUT .\figures\hist-pred-week8.pdf
-INPUT figures\hist-pred-week8.pdf
-INPUT .\figures\hist-pred-week8.pdf
-INPUT .\figures\hist-pred-week8.pdf
-INPUT .\figures\hist-pred-week8.pdf
-INPUT .\figures\hist-pred-week12.pdf
-INPUT .\figures\hist-pred-week12.pdf
-INPUT figures\hist-pred-week12.pdf
-INPUT .\figures\hist-pred-week12.pdf
-INPUT .\figures\hist-pred-week12.pdf
-INPUT .\figures\hist-pred-week12.pdf
+INPUT .\..\figures\gg-missingPattern.pdf
+INPUT .\..\figures\gg-missingPattern.pdf
+INPUT ..\figures\gg-missingPattern.pdf
+INPUT .\..\figures\gg-missingPattern.pdf
+INPUT .\..\figures\gg-missingPattern.pdf
+INPUT .\..\figures\gg-missingPattern.pdf
+INPUT .\..\figures\spaghetti-HAMD17.pdf
+INPUT .\..\figures\spaghetti-HAMD17.pdf
+INPUT ..\figures\spaghetti-HAMD17.pdf
+INPUT .\..\figures\spaghetti-HAMD17.pdf
+INPUT .\..\figures\spaghetti-HAMD17.pdf
+INPUT .\..\figures\spaghetti-HAMD17.pdf
+INPUT .\..\figures\gg-forestplot-OR.pdf
+INPUT .\..\figures\gg-forestplot-OR.pdf
+INPUT ..\figures\gg-forestplot-OR.pdf
+INPUT .\..\figures\gg-forestplot-OR.pdf
+INPUT .\..\figures\gg-forestplot-OR.pdf
+INPUT .\..\figures\gg-forestplot-OR.pdf
+INPUT .\..\figures\variableImportance.pdf
+INPUT .\..\figures\variableImportance.pdf
+INPUT ..\figures\variableImportance.pdf
+INPUT .\..\figures\variableImportance.pdf
+INPUT .\..\figures\variableImportance.pdf
+INPUT .\..\figures\variableImportance.pdf
+INPUT .\..\figures\gg-spline-w8.pdf
+INPUT .\..\figures\gg-spline-w8.pdf
+INPUT ..\figures\gg-spline-w8.pdf
+INPUT .\..\figures\gg-spline-w8.pdf
+INPUT .\..\figures\gg-spline-w8.pdf
+INPUT .\..\figures\gg-spline-w8.pdf
+INPUT .\..\figures\gg-spline-w12.pdf
+INPUT .\..\figures\gg-spline-w12.pdf
+INPUT ..\figures\gg-spline-w12.pdf
+INPUT .\..\figures\gg-spline-w12.pdf
+INPUT .\..\figures\gg-spline-w12.pdf
+INPUT .\..\figures\gg-spline-w12.pdf
+INPUT .\..\figures\hist-pred-week4.pdf
+INPUT .\..\figures\hist-pred-week4.pdf
+INPUT ..\figures\hist-pred-week4.pdf
+INPUT .\..\figures\hist-pred-week4.pdf
+INPUT .\..\figures\hist-pred-week4.pdf
+INPUT .\..\figures\hist-pred-week4.pdf
+INPUT .\..\figures\hist-pred-week8.pdf
+INPUT .\..\figures\hist-pred-week8.pdf
+INPUT ..\figures\hist-pred-week8.pdf
+INPUT .\..\figures\hist-pred-week8.pdf
+INPUT .\..\figures\hist-pred-week8.pdf
+INPUT .\..\figures\hist-pred-week8.pdf
+INPUT .\..\figures\hist-pred-week12.pdf
+INPUT .\..\figures\hist-pred-week12.pdf
+INPUT ..\figures\hist-pred-week12.pdf
+INPUT .\..\figures\hist-pred-week12.pdf
+INPUT .\..\figures\hist-pred-week12.pdf
+INPUT .\..\figures\hist-pred-week12.pdf
 INPUT .\stat-report-multipred.bbl
 INPUT stat-report-multipred.bbl
 INPUT .\stat-report-multipred.bbl
 INPUT stat-report-multipred.bbl
-INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmri12.tfm
-INPUT .\figures\ROC-pred-week4.pdf
-INPUT .\figures\ROC-pred-week4.pdf
-INPUT figures\ROC-pred-week4.pdf
-INPUT .\figures\ROC-pred-week4.pdf
-INPUT .\figures\ROC-pred-week4.pdf
-INPUT .\figures\ROC-pred-week4.pdf
-INPUT .\figures\ROC-pred-week8.pdf
-INPUT .\figures\ROC-pred-week8.pdf
-INPUT figures\ROC-pred-week8.pdf
-INPUT .\figures\ROC-pred-week8.pdf
-INPUT .\figures\ROC-pred-week8.pdf
-INPUT .\figures\ROC-pred-week8.pdf
-INPUT .\figures\ROC-pred-week12.pdf
-INPUT .\figures\ROC-pred-week12.pdf
-INPUT figures\ROC-pred-week12.pdf
-INPUT .\figures\ROC-pred-week12.pdf
-INPUT .\figures\ROC-pred-week12.pdf
-INPUT .\figures\ROC-pred-week12.pdf
+INPUT .\..\figures\ROC-pred-week4.pdf
+INPUT .\..\figures\ROC-pred-week4.pdf
+INPUT ..\figures\ROC-pred-week4.pdf
+INPUT .\..\figures\ROC-pred-week4.pdf
+INPUT .\..\figures\ROC-pred-week4.pdf
+INPUT .\..\figures\ROC-pred-week4.pdf
+INPUT .\..\figures\ROC-pred-week8.pdf
+INPUT .\..\figures\ROC-pred-week8.pdf
+INPUT ..\figures\ROC-pred-week8.pdf
+INPUT .\..\figures\ROC-pred-week8.pdf
+INPUT .\..\figures\ROC-pred-week8.pdf
+INPUT .\..\figures\ROC-pred-week8.pdf
+INPUT .\..\figures\ROC-pred-week12.pdf
+INPUT .\..\figures\ROC-pred-week12.pdf
+INPUT ..\figures\ROC-pred-week12.pdf
+INPUT .\..\figures\ROC-pred-week12.pdf
+INPUT .\..\figures\ROC-pred-week12.pdf
+INPUT .\..\figures\ROC-pred-week12.pdf
+INPUT .\..\figures\gg-forestplot-OR-traj.pdf
+INPUT .\..\figures\gg-forestplot-OR-traj.pdf
+INPUT ..\figures\gg-forestplot-OR-traj.pdf
+INPUT .\..\figures\gg-forestplot-OR-traj.pdf
+INPUT .\..\figures\gg-forestplot-OR-traj.pdf
+INPUT .\..\figures\gg-forestplot-OR-traj.pdf
 OUTPUT stat-report-multipred.soc
 OUTPUT stat-report-multipred.loc
 INPUT stat-report-multipred.aux

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  2 2022 (15:37) 
 ## Version: 
-## Last-Updated: mar 18 2022 (11:01) 
+## Last-Updated: apr 22 2022 (10:30) 
 ##           By: Brice Ozenne
-##     Update #: 75
+##     Update #: 92
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -19,7 +19,7 @@ rm(list=ls())
 
 ## * Parameters
 n.imputed <- 100 ## number of imputed datasets
-n.perm <- 1000 ## number of permutation for testing variable importance in random forest
+n.perm <- 10000 ## number of permutation for testing variable importance in random forest
 
 ## * Path
 if(system("whoami",intern=TRUE)=="hpl802"){
@@ -51,6 +51,7 @@ nameRT.predictor <- c("MR_OFCthick","HAMD17","low_hsCRP","lvpet","cognitive_clus
 ## setwd("h:/SundKonsolidering_BioStatHome/Cluster/BrainDrug-WP3/")
 ## load(file.path(path.results,"test.Rdata"))
 source(file.path(path.code,"0-data-management.R"))
+df.traj <- readRDS(file = file.path(path.results,"traj.Rdata"))
 print(dim(dfWR.NP1))
 
 ## * Complete case 
@@ -336,6 +337,81 @@ summary(e.gam_ccw12)
 
 cat("\n")
 
+## ** trajectory
+cat(" - trajectory :")
+
+dfWR.NP1_cctraj <- merge(dfWR.NP1[rowSums(is.na(dfWR.NP1[,.SD,.SDcols = c(nameR.predictor)]))==0,],
+                         df.traj, by = "CIMBI_ID")
+dfWR.NP1_cctraj$Y_traj <- (dfWR.NP1_cctraj$class == 2)
+    
+dfWR.NP1_cctrajS <- cbind(dfWR.NP1[,c("CIMBI_ID","Y_w12","female","low_hsCRP","cognitive_cluster2","cognitive_cluster3")],
+                      scale(dfWR.NP1[,c("age","MR_OFCthick", "HAMD17", "lvpet", "EEG_vigilance")])
+                      )
+dfWR.NP1_cctrajS <- dfWR.NP1_cctrajS[rowSums(is.na(dfWR.NP1_cctrajS[,.SD,.SDcols = c(nameR.predictor)]))==0,]
+dfWR.NP1_cctrajS <- merge(dfWR.NP1_cctrajS,
+                          df.traj, by = "CIMBI_ID")
+dfWR.NP1_cctrajS$Y_traj <- (dfWR.NP1_cctrajS$class == 2)
+
+## *** Logistic
+cat(" glm")
+
+ff_cctraj <- Y_traj ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance
+e.glm0_cctraj <- glm(Y_traj ~ female + age, data = dfWR.NP1_cctraj, family = binomial(link = "logit"))
+summary(e.glm0_cctraj)
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)   
+## (Intercept) -0.08984    0.88022  -0.102  0.91871   
+## female      -1.37750    0.52788  -2.610  0.00907 **
+## age          0.02339    0.02760   0.848  0.39662   
+## ---
+e.glm_cctraj <- glm(ff_cctraj, data = dfWR.NP1_cctraj, family = binomial(link = "logit"))
+summary(e.glm_cctraj)
+## Coefficients:
+##                    Estimate Std. Error z value Pr(>|z|)  
+## (Intercept)        13.92152    7.88782   1.765   0.0776 .
+## female             -1.31928    0.56957  -2.316   0.0205 *
+## age                 0.03410    0.03257   1.047   0.2952  
+## MR_OFCthick        -5.47143    2.96578  -1.845   0.0651 .
+## HAMD17             -0.04435    0.08146  -0.544   0.5861  
+## low_hsCRP           1.07691    0.68877   1.564   0.1179  
+## lvpet              -0.29187    2.11665  -0.138   0.8903  
+## cognitive_cluster2 -0.46571    0.61768  -0.754   0.4509  
+## cognitive_cluster3 -0.74402    0.67515  -1.102   0.2705  
+## EEG_vigilance      -1.09822    0.59381  -1.849   0.0644 .
+
+## (Dispersion parameter for binomial family taken to be 1)
+
+##     Null deviance: 83.234  on 80  degrees of freedom
+## Residual deviance: 71.611  on 71  degrees of freedom
+
+## Model 1: Y_traj ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + 
+##     cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance
+## Model 2: Y_traj ~ female + age
+##   Resid. Df Resid. Dev Df Deviance Pr(>Chi)
+## 1        71     71.611                     
+## 2        78     82.760 -7  -11.149   0.1323
+
+## with rescaled predictors
+e.glm_cctrajS <- update(e.glm_cctraj, data = dfWR.NP1_cctrajS)
+
+## *** Random Forests
+cat(" ranger")
+e.ranger_cctraj <- ranger(ff_cctraj, data = dfWR.NP1_cctraj, probability = TRUE)
+e.rangerPerm_cctraj <- importance_pvalues(ranger(ff_cctraj, data = dfWR.NP1_cctraj, importance = "permutation"), method = "altmann", 
+                                         formula = ff_cctraj, data = dfWR.NP1_cctraj, num.permutations = n.perm)
+
+e.rangerPerm_cctraj
+##                       importance     pvalue
+## female              9.870658e-03 0.04995005
+## age                -5.788001e-03 0.68831169
+## MR_OFCthick         2.433673e-02 0.04195804
+## HAMD17             -3.836832e-05 0.44455544
+## low_hsCRP           3.632479e-03 0.16983017
+## lvpet               4.115457e-03 0.32167832
+## cognitive_cluster2  9.556867e-04 0.32967033
+## cognitive_cluster3  1.279328e-03 0.27672328
+## EEG_vigilance       1.015483e-03 0.36263736
+
 ## * Multiple imputation
 cat("\nHypothesis testing: multiple imputation\n")
 ## ** week 4
@@ -530,6 +606,76 @@ e.glm_impw12C <- with(data = dfWRimp.NP1_w12C,
 
 cat(" \n")
 
+## ** trajectory
+cat(" - trajectory: original ")
+
+dfWR.NP1_imptraj <- merge(dfWR.NP1[,.SD,.SDcols=c("CIMBI_ID", "sex", "age", "MR_OFCthick", "HAMD17", "hsCRP", "lvpet", "cognitive_cluster",
+                                                 "EEG_vigilance", "CATS_scoretotal", "CAR_AUCi", "neuroticism")],
+                         df.traj, by = "CIMBI_ID")
+dfWR.NP1_imptraj$Y_traj <- (dfWR.NP1_imptraj$class == 2)
+dfWR.NP1_imptraj$class <- NULL
+dfWR.NP1_imptraj$prob1 <- NULL
+dfWR.NP1_imptraj$prob2 <- NULL
+dfWR.NP1_imptraj$prob3 <- NULL
+
+dfWR.NP1_imptraj$hsCRP <- as.factor(dfWR.NP1_imptraj$hsCRP)
+dfWR.NP1_imptraj$cognitive_cluster <- as.factor(dfWR.NP1_imptraj$cognitive_cluster)
+
+Mlink_traj <- matrix(0, NCOL(dfWR.NP1_imptraj), NCOL(dfWR.NP1_imptraj), dimnames = list(names(dfWR.NP1_imptraj),names(dfWR.NP1_imptraj)))
+Mlink_traj[setdiff(names(which(colSums(is.na(dfWR.NP1_imptraj))>0)),"Y_traj"),] <- 1
+diag(Mlink_traj) <- 0
+
+dfWRimp.NP1_traj <- mice(dfWR.NP1_imptraj,
+                         m=n.imputed,
+                         maxit = 50, # number of iterations to obtain the imputed dataset
+                         predictorMatrix = Mlink_traj,
+                         method = c("","","","norm.predict","norm.predict","logreg","norm.predict","polr","norm.predict","norm.predict","norm.predict","norm.predict",""), 
+                         seed = 500, printFlag = FALSE)
+## stripplot(dfWRimp.NP1_w12, hsCRP ~ .imp, pch=20,cex=2)
+## stripplot(dfWRimp.NP1_w12, lvpet ~ .imp, pch=20,cex=2)
+## stripplot(dfWRimp.NP1_w12, cognitive_cluster ~ .imp, pch=20,cex=2)
+## stripplot(dfWRimp.NP1_w12, EEG_vigilance ~ .imp, pch=20,cex=2)
+## stripplot(dfWRimp.NP1_w12, CATS_scoretotal ~ .imp, pch=20,cex=2)
+## stripplot(dfWRimp.NP1_w12, CAR_AUCi ~ .imp, pch=20,cex=2)
+## stripplot(dfWRimp.NP1_w12, neuroticism ~ .imp, pch=20,cex=2)
+
+e.glm_imptraj <- with(data = dfWRimp.NP1_traj,
+                      glm(Y_traj ~ sex + age + MR_OFCthick + HAMD17 + hsCRP + lvpet + cognitive_cluster + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
+                          family = binomial(link = "logit"))
+                      )
+summary(pool(e.glm_imptraj))
+##                  term      estimate    std.error  statistic       df     p.value
+## 1         (Intercept)  9.8139290015 8.4521803128  1.1611121 74.90310 0.249283302
+## 2           sexfemale -1.6525395190 0.5944662252 -2.7798712 74.99537 0.006870672
+## 3                 age  0.0435036220 0.0350011155  1.2429210 75.03565 0.217766859
+## 4         MR_OFCthick -4.7084267209 2.8691600506 -1.6410471 74.90895 0.104980110
+## 5              HAMD17 -0.0259957453 0.0788591851 -0.3296477 74.90546 0.742586279
+## 6            hsCRPlow  1.0286262653 0.6897827342  1.4912323 74.95688 0.140097136
+## 7               lvpet -0.2951078945 2.0820612568 -0.1417383 74.93521 0.887667068
+## 8  cognitive_cluster2 -0.7397624561 0.6449826660 -1.1469494 72.83825 0.255156194
+## 9  cognitive_cluster3 -1.1537758828 0.7126823901 -1.6189202 72.70672 0.109794534
+## 10      EEG_vigilance -1.2609747263 0.6167050064 -2.0446968 74.96140 0.044395999
+## 11    CATS_scoretotal -0.0136444837 0.0163306814 -0.8355122 74.96281 0.406084523
+## 12           CAR_AUCi  0.0008290031 0.0009881389  0.8389540 73.98498 0.404197660
+## 13        neuroticism  0.0188070492 0.0184602843  1.0187844 75.04814 0.311578439
+cat("\n")
+
+## with rescaled predictors
+cat(" centered")
+dfWRimp.NP1_trajC <- dfWRimp.NP1_traj
+for(iVar in c("age","MR_OFCthick", "HAMD17", "lvpet", "EEG_vigilance","CATS_scoretotal","CAR_AUCi","neuroticism")){
+    dfWRimp.NP1_traj$imp[[iVar]] <- (dfWRimp.NP1_traj$imp[[iVar]]-mean(dfWRimp.NP1_trajC$data[[iVar]], na.rm=TRUE))/sd(dfWRimp.NP1_trajC$data[[iVar]], na.rm=TRUE)
+    dfWRimp.NP1_trajC$data[[iVar]] <- (dfWRimp.NP1_traj$data[[iVar]]-mean(dfWRimp.NP1_trajC$data[[iVar]], na.rm=TRUE))/sd(dfWRimp.NP1_trajC$data[[iVar]], na.rm=TRUE)
+}
+
+e.glm_imptrajC <- with(data = dfWRimp.NP1_trajC,
+                     expr = glm(Y_traj ~ sex + age + MR_OFCthick + HAMD17 + hsCRP + lvpet + cognitive_cluster + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
+                                family = binomial(link = "logit"))
+                     )
+
+
+cat(" \n")
+
 ## * Simultaneous statistical inference
 cat("\nHypothesis testing: simulatenous inference \n")
 
@@ -540,7 +686,9 @@ cat(" - complete case")
 C_cc <- glht(e.glm_ccw4S)$linfct[nameRT.predictor,]
 glht_cc <- list(week4 = confint(summary(glht(e.glm_ccw4S,C_cc))),
                 week8 = confint(summary(glht(e.glm_ccw8S,C_cc))),
-                week12 = confint(summary(glht(e.glm_ccw12S,C_cc))))
+                week12 = confint(summary(glht(e.glm_ccw12S,C_cc))),
+                traj = confint(summary(glht(e.glm_cctrajS,C_cc)))
+                )
 
 
 
@@ -561,6 +709,12 @@ dtS.ass_cc <- rbind(cbind(time = "week 4", method = "cc", term = nameRT.predicto
                           glht_cc$week12$confint[,2:3], adj.p.value = glht_cc$week12$test$pvalues),
                     cbind(time = "week 12", method = "cc", term = c("age", "female"),
                           data.table(summary(e.glm_ccw12S)$coef[c("age","female"),-3]),
+                          lwr = NA, upr = NA, adj.p.value = NA),
+                    cbind(time = "trajectory", method = "cc", term = nameRT.predictor,
+                          data.table(summary(e.glm_cctrajS)$coef[nameRT.predictor,-3]),
+                          glht_cc$traj$confint[,2:3], adj.p.value = glht_cc$traj$test$pvalues),
+                    cbind(time = "trajectory", method = "cc", term = c("age", "female"),
+                          data.table(summary(e.glm_cctrajS)$coef[c("age","female"),-3]),
                           lwr = NA, upr = NA, adj.p.value = NA))
 
 names(dtS.ass_cc)[names(dtS.ass_cc)=="Estimate"] <- "estimate"
@@ -577,7 +731,7 @@ dtS.ass_cc$term <- factor(dtS.ass_cc$term,
                           )
 
 dtS.ass_cc <- rbind(dtS.ass_cc,
-                    data.frame(time = c("week 4","week 8", "week 12"), method = "cc", term = c("CATS","Cortisol","Neuroticism"),
+                    expand.grid(time = c("week 4","week 8", "week 12","trajectory"), method = "cc", term = c("CATS","Cortisol","Neuroticism"),
                                estimate = NA, std.error = NA, p.value = NA, lower.adj = NA, upper.adj = NA, lower = NA, upper = NA, adj.p.value = NA)
                     )
 
@@ -589,6 +743,8 @@ min(glht_cc$week8$test$pvalues)
 ## [1] 0.1543613
 min(glht_cc$week12$test$pvalues)
 ## [1] 0.1798999
+min(glht_cc$traj$test$pvalues)
+## [1] 0.3008893
 
 ## multivariate Wald test
 summary(glht_cc$week4, test = Chisqtest())
@@ -603,6 +759,10 @@ summary(glht_cc$week12, test = Chisqtest())
 ## Global Test:
 ##   Chisq DF Pr(>Chisq)
 ## 1 7.135  7      0.415
+summary(glht_cc$traj, test = Chisqtest())
+## Global Test:
+##   Chisq DF Pr(>Chisq)
+## 1  9.23  7     0.2366
 
 ## likelihood ratio test
 anova(e.glm_ccw4,e.glm0_ccw4, test = "Chisq")
@@ -617,20 +777,28 @@ anova(e.glm_ccw12,e.glm0_ccw12, test = "Chisq")
 ##   Resid. Df Resid. Dev Df Deviance Pr(>Chi)
 ## 1        62     64.376                     
 ## 2        69     76.256 -7   -11.88   0.1046
+anova(e.glm_cctraj,e.glm0_cctraj, test = "Chisq")
+##   Resid. Df Resid. Dev Df Deviance Pr(>Chi)
+## 1        71     71.611                     
+## 2        78     82.760 -7  -11.149   0.1323
 
 
 ## ** Missing data
 C_imp <- glhtPool(e.glm_impw4C)$linfct[-(1:2),]
 glht_imp <- list(week4 = confint(summary(glhtPool(e.glm_impw4C,C_imp))),
                  week8 = confint(summary(glhtPool(e.glm_impw8C,C_imp))),
-                 week12 = confint(summary(glhtPool(e.glm_impw12C,C_imp))))
+                 week12 = confint(summary(glhtPool(e.glm_impw12C,C_imp))),
+                 traj = confint(summary(glhtPool(e.glm_imptrajC,C_imp)))
+                 )
 
 dtS.ass_imp <- rbind(cbind(time = "week 4", method = "MI", data.table(summary(pool(e.glm_impw4C))[-(1:3),], glht_imp$week4$confint[,2:3], adj.p.value = glht_imp$week4$test$pvalues)),
                      cbind(time = "week 4", method = "MI", data.table(summary(pool(e.glm_impw4C))[2:3,],lwr = NA, upr = NA, adj.p.value = NA)),
                      cbind(time = "week 8", method = "MI", data.table(summary(pool(e.glm_impw8C))[-(1:3),], glht_imp$week8$confint[,2:3], adj.p.value = glht_imp$week8$test$pvalues)),
                      cbind(time = "week 8", method = "MI", data.table(summary(pool(e.glm_impw8C))[2:3,],lwr = NA, upr = NA, adj.p.value = NA)),
                      cbind(time = "week 12", method = "MI", data.table(summary(pool(e.glm_impw12C))[-(1:3),], glht_imp$week12$confint[,2:3], adj.p.value = glht_imp$week12$test$pvalues)),
-                     cbind(time = "week 12", method = "MI", data.table(summary(pool(e.glm_impw12C))[2:3,],lwr = NA, upr = NA, adj.p.value = NA)))
+                     cbind(time = "week 12", method = "MI", data.table(summary(pool(e.glm_impw12C))[2:3,],lwr = NA, upr = NA, adj.p.value = NA)),
+                     cbind(time = "trajectory", method = "MI", data.table(summary(pool(e.glm_imptrajC))[-(1:3),], glht_imp$traj$confint[,2:3], adj.p.value = glht_imp$traj$test$pvalues)),
+                     cbind(time = "trajectory", method = "MI", data.table(summary(pool(e.glm_imptrajC))[2:3,],lwr = NA, upr = NA, adj.p.value = NA)))
 dtS.ass_imp$lower <- dtS.ass_imp$estimate + qt(0.025, df = dtS.ass_imp$df) * dtS.ass_imp$std.error
 dtS.ass_imp$upper <- dtS.ass_imp$estimate + qt(0.975, df = dtS.ass_imp$df) * dtS.ass_imp$std.error
 names(dtS.ass_imp)[names(dtS.ass_imp)=="lwr"] <- "lower.adj"
@@ -647,6 +815,8 @@ min(glht_imp$week8$test$pvalues)
 ## [1] 0.09046179
 min(glht_imp$week12$test$pvalues)
 ## [1] 0.09403706
+min(glht_imp$traj$test$pvalues)
+## [1] 0.2950803
 
 ## multivariate Wald test
 summary(glht_imp$week4, test = Chisqtest())
@@ -661,24 +831,16 @@ summary(glht_imp$week12, test = Chisqtest())
 ## Global Test:
 ##   Chisq DF Pr(>Chisq)
 ## 1 12.19 10     0.2725
+summary(glht_imp$traj, test = Chisqtest())
+## Global Test:
+##   Chisq DF Pr(>Chisq)
+## 1 11.75 10     0.3022
 
 ## * export
 save.image(file = file.path(path.results,"test.Rdata"))
 
-## save(list = c("dfW.NP1", "dfW.NP1cc", "dfWR.NP1", "dfWR.NP1_2impw12", "dfWR.NP1_2impw4", "dfWR.NP1_2impw8", "dfWR.NP1_ccw12",  "dfWR.NP1_ccw12S", "dfWR.NP1_ccw4",
-##               "dfWR.NP1_ccw4S",  "dfWR.NP1_ccw8",   "dfWR.NP1_ccw8S",  "dfWR.NP1_w12",    "dfWR.NP1_w4",     "dfWR.NP1_w8",    
-##               "dfWRimp.NP1_w12", "dfWRimp.NP1_w12C",    "dfWRimp.NP1_w4",  "dfWRimp.NP1_w4C", "dfWRimp.NP1_w8",  "dfWRimp.NP1_w8C",    
-##               "DS",              "dtS.ass_cc",      "dtS.ass_imp",     "e.gam_ccw12",     "e.gam_ccw8",     "e.glm_ccw12",        
-##               "e.glm_ccw12S",    "e.glm_ccw4",      "e.glm_ccw4S",     "e.glm_ccw8",      "e.glm_ccw8S",     "e.glm_impw12",   
-##               "e.glm_impw12C",   "e.glm_impw4",     "e.glm_impw4C",    "e.glm_impw8",     "e.glm_impw8C",    "e.glm0_ccw12",   
-##               "e.glm0_ccw4",     "e.glm0_ccw8",     "e.ranger_ccw12",  "e.ranger_ccw4",   "e.ranger_ccw8",   "e.ranger0_ccw12",    
-##               "e.rangerPerm_ccw12",  "e.rangerPerm_ccw4",   "e.rangerPerm_ccw8",   "e.rangerPerm0_ccw12", "elvm.PET",        "ff_ccw12",       
-##               "ff_ccw4",         "ff_ccw8",         "findLevels",      "glht_cc",         "glht_imp",        "glhtPool",       
-##               "iObs",            "iPred",      "iVar",      "keep.col",        "lvm.PET",         "Mlink_w12",      
-##               "Mlink_w4",        "Mlink_w8",        "n.imputed",       "n.perm",          "name",            "name.predictor", 
-##               "nameR.predictor", "nameRT.predictor",    "nameT.predictor", "path.code",       "path.results",    "source.NP1",     
-##               "sourceRed.NP1") ,
-##      file = file.path(path.results,"analysis-test","test2.Rdata"))
+## * sessionInfo
+sessionInfo()
 
 
 ##----------------------------------------------------------------------

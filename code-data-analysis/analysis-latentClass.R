@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  2 2022 (12:31) 
 ## Version: 
-## Last-Updated: mar  4 2022 (10:11) 
+## Last-Updated: apr 19 2022 (11:41) 
 ##           By: Brice Ozenne
-##     Update #: 13
+##     Update #: 18
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -67,6 +67,8 @@ compare.hlme
 ## [[                4  -978.0521  1             21 1998.104 2050.600 1984.323 0.7358319
 
 
+
+
 ## ** Heterogenenous residual variance-covariance
 if(FALSE){
     ls.hlme2 <- list(hlme(HAMD17 ~ visit, subject = "CIMBI_ID", data = dfLR.NP1_NNA,
@@ -91,6 +93,12 @@ if(FALSE){
     ## [[                 4  -979.4068  1             24 2006.814 2066.809 1991.063 0.7441485
 }
 
+
+## * Export
+saveRDS(ls.hlme[[3]]$pprob, file = file.path(path.results,"traj.Rdata"))
+
+## * sessionInfo
+sessionInfo()
 
 ##----------------------------------------------------------------------
 ### analysis-latentClass.R ends here

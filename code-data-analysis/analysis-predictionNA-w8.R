@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  4 2022 (09:16) 
 ## Version: 
-## Last-Updated: mar 18 2022 (18:16) 
+## Last-Updated: apr 21 2022 (16:03) 
 ##           By: Brice Ozenne
-##     Update #: 32
+##     Update #: 57
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,8 +16,20 @@
 ### Code:
 
 ## * Parameters
-n.resampling <- 2500
-fold.number <- 25
+n.resampling <- 100 ## 10000
+fold.size <- 0.1
+fold.repetition <- 50
+
+iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
+n.iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_COUNT"))
+if(is.na(iter_sim)){iter_sim <- 1}
+if(is.na(n.iter_sim)){n.iter_sim <- 10}
+
+vec.resampling <- (1+n.resampling*(iter_sim-1)):(n.resampling*iter_sim)
+cat("iteration ",iter_sim," over ",n.iter_sim,"\n", sep = "")
+cat("vec.repetition:\n")
+print(vec.resampling)
+cat("\n")
 
 ## * Path
 if(system("whoami",intern=TRUE)=="hpl802"){
@@ -30,7 +42,21 @@ if(system("whoami",intern=TRUE)=="hpl802"){
     setwd("Vibeke put your path here")
 }
 path.code <- "./code-data-analysis"
-path.results <- "./results"
+path.output <- "./output/"
+if(dir.exists(path.output)==FALSE){
+    dir.create(path.output)
+}
+if(dir.exists(file.path(path.output,"analysis-predictionNA-w8"))==FALSE){
+    dir.create(file.path(path.output,"analysis-predictionNA-w8"))
+}
+
+path.results <- "./results/"
+if(dir.exists(path.results)==FALSE){
+    dir.create(path.results)
+}
+if(dir.exists(file.path(path.results,"analysis-predictionNA-w8"))==FALSE){
+    dir.create(file.path(path.results,"analysis-predictionNA-w8"))
+}
 
 ## * Packages and function
 library(data.table)
@@ -40,7 +66,6 @@ library(ranger)
 library(splines)
 library(BuyseTest)
 library(mice)
-library(misaem)
 ## devtools::install_github("NightingaleHealth/ggforestplot")
 
 ## * Load data
@@ -57,7 +82,7 @@ dfWR.NP1_w8 <- dfWR.NP1[rowSums(is.na(dfWR.NP1[,.SD,.SDcols = c("Y_w8")]))==0,]
 ## butils::DIM(dfWR.NP1_w8)
 ## [1] 87 36
 
-## ** week 4
+## ** week 8
 set.seed(10)
 
 ## *** fit models
@@ -76,27 +101,38 @@ e.ranger_impw8 <- ranger(formula = Y_w8 ~ female + age + MR_OFCthick + HAMD17 + 
 ##                          data = na.omit(dfWR.NP1_w8), probability = TRUE)
 
 ## *** assess performance
-ePerf.impw8 <- performanceResample(list(glm0_impw8 = e.glm0_impw8, glm_impw8 = e.glm_impw8, rf_impw8 = e.ranger_impw8), data = dfWR.NP1_w8,
-                                   individual.fit = TRUE,
-                                   fold.number = fold.number, fold.size = 0.1,
-                                   type.resampling = "permutation", n.resampling = n.resampling, seed = 10,
-                                   filename = file.path(path.results,"analysis-predictionNA","perf-imp-week8"))
-ePerf.impw8
+if(iter_sim==1){
+    ePerf.impw8.IF <- performance(list(glm0_impw8 = e.glm0_impw8, glm_impw8 = e.glm_impw8, rf_impw8 = e.ranger_impw8), data = dfWR.NP1_w8,
+                                  fold.repetition = fold.repetition, fold.balance = TRUE, fold.size = fold.size,
+                                  individual.fit = TRUE, impute = "mean",
+                                  conf.level = 0.95, seed = 10)
+    saveRDS(ePerf.impw8.IF, file = file.path(path.results,"perf-imp-week8-IF.rds"))
+    ePerf.impw8.IF
+}
+##      method metric     model estimate      se  lower upper p.value p.value_comp
+## 1  internal    auc glm0_ccw8   0.6156 0.06058 0.4858 0.722  0.0785             
+## 2  internal    auc glm_impw8   0.7786 0.05356 0.6513 0.864  <0.001      0.01970
+## 3  internal    auc  rf_impw8   1.0000 0.00000 1.0000 1.000  <0.001      < 0.001
+## 4  internal  brier glm0_ccw8   0.2408 0.00968 0.2225 0.261                     
+## 5  internal  brier glm_impw8   0.1921 0.02044 0.1559 0.237              0.00808
+## 6  internal  brier  rf_impw8   0.0915 0.00541 0.0815 0.103              < 0.001
+## 7        cv    auc glm0_ccw8   0.5497 0.06068 0.4236 0.659  0.4255             
+## 8        cv    auc glm_impw8   0.6213 0.06037 0.4916 0.727  0.0656      0.34590
+## 9        cv    auc  rf_impw8   0.4750 0.06030 0.3535 0.587  0.6751      0.00605
+## 10       cv  brier glm0_ccw8   0.2535 0.01141 0.2321 0.277                     
+## 11       cv  brier glm_impw8   0.2575 0.02522 0.2125 0.312              0.85815
+## 12       cv  brier  rf_impw8   0.2702 0.01431 0.2435 0.300              0.52571
 
-##    metric      model  estimate se lower upper p.value p.value_comp
-## 1:    auc glm0_impw8 0.4935480 NA    NA    NA     1.0           NA
-## 2:    auc  glm_impw8 0.5544182 NA    NA    NA     0.0           NA
-## 3:    auc   rf_impw8 0.5106153 NA    NA    NA     0.3           NA
-## 4:  brier glm0_impw8 0.2548968 NA    NA    NA     1.0           NA
-## 5:  brier  glm_impw8 0.3557607 NA    NA    NA     0.9           NA
-## 6:  brier   rf_impw8 0.2613369 NA    NA    NA     0.3           NA
+ePerf.impw8.perm <- performanceResample(list(glm0_impw8 = e.glm0_impw8, glm_impw8 = e.glm_impw8, rf_impw8 = e.ranger_impw8), data = dfWR.NP1_w8,
+                                        fold.repetition = fold.repetition, fold.balance = TRUE, fold.size = fold.size,
+                                        individual.fit = TRUE, impute = "mean",
+                                        type.resampling = "permutation", n.resampling = vec.resampling, seed = 10,
+                                        filename = file.path(path.results,"analysis-predictionNA-w8",paste0("iter",iter_sim,"-tempo")))
+saveRDS(ePerf.impw8.perm, file = file.path(path.results,"analysis-predictionNA-w8",paste0("iter",iter_sim,"-final.rds")))
+ePerf.impw8.perm
 
-## * Export
-saveRDS(ePerf.impw8, file = file.path(path.results,"perf-imp-week8.rds"))
-
-
-
-
+## * sessionInfo
+sessionInfo()
 
 ## * Bonus
 if(FALSE){

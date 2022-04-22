@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  2 2022 (12:26) 
 ## Version: 
-## Last-Updated: mar 21 2022 (15:23) 
+## Last-Updated: mar 23 2022 (09:27) 
 ##           By: Brice Ozenne
-##     Update #: 11
+##     Update #: 13
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -63,26 +63,37 @@ df.trans <- data.frame(week4 = c("nr2nr" = sum(dfWR.NP1$Y_w4==0, na.rm = TRUE),
                                  "r2nr" = 0,
                                  "nr2r" = sum(dfWR.NP1$Y_w4==1, na.rm = TRUE),
                                  "r2r" = 0),
-                       week8 = c("nr2nr" = sum((dfWR.NP1$Y_w4==0)*(dfWR.NP1$Y_w8==0), na.rm = TRUE),
-                                 "r2nr" = sum((dfWR.NP1$Y_w4==1)*(dfWR.NP1$Y_w8==0), na.rm = TRUE),
-                                 "nr2r" = sum((dfWR.NP1$Y_w4==0)*(dfWR.NP1$Y_w8==1), na.rm = TRUE),
-                                 "r2r" = sum((dfWR.NP1$Y_w4==1)*(dfWR.NP1$Y_w8==1), na.rm = TRUE)),
-                       week12 = c("nr2nr" = sum((dfWR.NP1$Y_w8==0)*(dfWR.NP1$Y_w12==0), na.rm = TRUE),
-                                  "r2nr" = sum((dfWR.NP1$Y_w8==1)*(dfWR.NP1$Y_w12==0), na.rm = TRUE),
-                                  "nr2r" = sum((dfWR.NP1$Y_w8==0)*(dfWR.NP1$Y_w12==1), na.rm = TRUE),
-                                  "r2r" = sum((dfWR.NP1$Y_w8==1)*(dfWR.NP1$Y_w12==1), na.rm = TRUE))
+                       "4->8" = c("nr2nr" = sum((dfWR.NP1$Y_w4==0)*(dfWR.NP1$Y_w8==0), na.rm = TRUE),
+                                  "r2nr" = sum((dfWR.NP1$Y_w4==1)*(dfWR.NP1$Y_w8==0), na.rm = TRUE),
+                                  "nr2r" = sum((dfWR.NP1$Y_w4==0)*(dfWR.NP1$Y_w8==1), na.rm = TRUE),
+                                  "r2r" = sum((dfWR.NP1$Y_w4==1)*(dfWR.NP1$Y_w8==1), na.rm = TRUE)),
+                       week8 = c("nr2nr" = sum(dfWR.NP1$Y_w8==0, na.rm = TRUE),
+                                 "r2nr" = 0,
+                                 "nr2r" = sum(dfWR.NP1$Y_w8==1, na.rm = TRUE),
+                                 "r2r" = 0),
+                       "8->12" = c("nr2nr" = sum((dfWR.NP1$Y_w8==0)*(dfWR.NP1$Y_w12==0), na.rm = TRUE),
+                                   "r2nr" = sum((dfWR.NP1$Y_w8==1)*(dfWR.NP1$Y_w12==0), na.rm = TRUE),
+                                   "nr2r" = sum((dfWR.NP1$Y_w8==0)*(dfWR.NP1$Y_w12==1), na.rm = TRUE),
+                                   "r2r" = sum((dfWR.NP1$Y_w8==1)*(dfWR.NP1$Y_w12==1), na.rm = TRUE)),
+                       week12 = c("nr2nr" = sum(dfWR.NP1$Y_w12==0, na.rm = TRUE),
+                                  "r2nr" = 0,
+                                  "nr2r" = sum(dfWR.NP1$Y_w12==1, na.rm = TRUE),
+                                  "r2r" = 0),
+                       check.names = FALSE
                        )
 df.trans <- rbind(df.trans, total = colSums(df.trans))
 df.trans[,1] <- paste(df.trans[,1]," (",round(100*df.trans[,1]/df.trans["total",1],2),"%)", sep = "")
 df.trans[,2] <- paste(df.trans[,2]," (",round(100*df.trans[,2]/df.trans["total",2],2),"%)", sep = "")
 df.trans[,3] <- paste(df.trans[,3]," (",round(100*df.trans[,3]/df.trans["total",3],2),"%)", sep = "")
+df.trans[,4] <- paste(df.trans[,4]," (",round(100*df.trans[,4]/df.trans["total",4],2),"%)", sep = "")
+df.trans[,5] <- paste(df.trans[,5]," (",round(100*df.trans[,5]/df.trans["total",5],2),"%)", sep = "")
 df.trans
-##             week4       week8      week12
-## nr2nr 52 (58.43%) 30 (34.48%) 20 (23.53%)
-## r2nr       0 (0%)  9 (10.34%)   6 (7.06%)
-## nr2r  37 (41.57%) 20 (22.99%)    17 (20%)
-## r2r        0 (0%) 28 (32.18%) 42 (49.41%)
-## total   89 (100%)   87 (100%)   85 (100%)
+##             week4        4->8       week8       8->12      week12
+## nr2nr 52 (58.43%) 30 (34.48%) 40 (45.45%) 20 (23.53%) 26 (30.23%)
+## r2nr       0 (0%)  9 (10.34%)      0 (0%)   6 (7.06%)      0 (0%)
+## nr2r  37 (41.57%) 20 (22.99%) 48 (54.55%)    17 (20%) 60 (69.77%)
+## r2r        0 (0%) 28 (32.18%)      0 (0%) 42 (49.41%)      0 (0%)
+## total   89 (100%)   87 (100%)   88 (100%)   85 (100%)   86 (100%)
 
 ## * Export
 if(FALSE){

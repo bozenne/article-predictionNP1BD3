@@ -1,0 +1,177 @@
+
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> ### analysis-predictionCC-w4.R --- 
+> ##----------------------------------------------------------------------
+> ## Author: Brice Ozenne
+> ## Created: dec  1 2021 (13:12) 
+> ## Version: 
+> ## Last-Updated: apr 21 2022 (16:03) 
+> ##           By: Brice Ozenne
+> ##     Update #: 176
+> ##----------------------------------------------------------------------
+> ## 
+> ### Commentary: 
+> ## 
+> ### Change Log:
+> ##----------------------------------------------------------------------
+> ## 
+> ### Code:
+> 
+> ## * Parameters
+> n.resampling <- 100 ## 10000
+> fold.size <- 0.1
+> fold.repetition <- 50
+> 
+> iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
+> n.iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_COUNT"))
+> if(is.na(iter_sim)){iter_sim <- 1}
+> if(is.na(n.iter_sim)){n.iter_sim <- 10}
+> 
+> vec.resampling <- (1+n.resampling*(iter_sim-1)):(n.resampling*iter_sim)
+> cat("iteration ",iter_sim," over ",n.iter_sim,"\n", sep = "")
+iteration 9 over 10
+> cat("vec.repetition:\n")
+vec.repetition:
+> print(vec.resampling)
+  [1] 801 802 803 804 805 806 807 808 809 810 811 812 813 814 815 816 817 818
+ [19] 819 820 821 822 823 824 825 826 827 828 829 830 831 832 833 834 835 836
+ [37] 837 838 839 840 841 842 843 844 845 846 847 848 849 850 851 852 853 854
+ [55] 855 856 857 858 859 860 861 862 863 864 865 866 867 868 869 870 871 872
+ [73] 873 874 875 876 877 878 879 880 881 882 883 884 885 886 887 888 889 890
+ [91] 891 892 893 894 895 896 897 898 899 900
+> cat("\n")
+
+> 
+> ## * Path
+> if(system("whoami",intern=TRUE)=="hpl802"){
++     ## nothing: on the server
++ }else if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
++     setwd("c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/")
++ }else{ ## 
++     setwd("Vibeke put your path here")
++ }
+NULL
+> path.code <- "./code-data-analysis"
+> 
+> path.output <- "./output/"
+> if(dir.exists(path.output)==FALSE){
++     dir.create(path.output)
++ }
+> if(dir.exists(file.path(path.output,"analysis-predictionCC-w4"))==FALSE){
++     dir.create(file.path(path.output,"analysis-predictionCC-w4"))
++ }
+> 
+> path.results <- "./results/"
+> if(dir.exists(path.results)==FALSE){
++     dir.create(path.results)
++ }
+> if(dir.exists(file.path(path.results,"analysis-predictionCC-w4"))==FALSE){
++     dir.create(file.path(path.results,"analysis-predictionCC-w4"))
++ }
+> 
+> ## * Packages and function
+> library(data.table)
+> setDTthreads(1)
+> library(pROC)
+Type 'citation("pROC")' for a citation.
+
+Attaching package: ‘pROC’
+
+The following objects are masked from ‘package:stats’:
+
+    cov, smooth, var
+
+> library(ranger)
+> library(splines)
+> library(BuyseTest)
+Loading required package: Rcpp
+BuyseTest version 2.3.12
+
+Attaching package: ‘BuyseTest’
+
+The following object is masked from ‘package:pROC’:
+
+    auc
+
+> library(mice)
+
+Attaching package: ‘mice’
+
+The following object is masked from ‘package:stats’:
+
+    filter
+
+The following objects are masked from ‘package:base’:
+
+    cbind, rbind
+
+> ## devtools::install_github("NightingaleHealth/ggforestplot")
+> 
+> ## * Load data
+> source(file.path(path.code,"0-data-management.R"))
+Data management 
+
+> 
+> name.predictor <- c("sex","age","MR_OFCthick","HAMD17","hsCRP","lvpet","cognitive_cluster","EEG_vigilance","CATS_scoretotal","CAR_AUCi","neuroticism")
+> nameT.predictor <- c("MR_OFCthick","HAMD17","hsCRP","lvpet","cognitive_cluster","EEG_vigilance","CATS_scoretotal","CAR_AUCi","neuroticism")
+> nameR.predictor <- c("female","age","MR_OFCthick","HAMD17","low_hsCRP","lvpet","cognitive_cluster2","cognitive_cluster3","EEG_vigilance")
+> nameRT.predictor <- c("MR_OFCthick","HAMD17","low_hsCRP","lvpet","cognitive_cluster2","cognitive_cluster3","EEG_vigilance")
+> 
+> ## * Complete data
+> 
+> ## ** week 4
+> dfWR.NP1_ccw4 <- dfWR.NP1[rowSums(is.na(dfWR.NP1[,.SD,.SDcols = c("Y_w4",nameR.predictor)]))==0,]
+> 
+> ## *** fit models
+> ff_ccw4 <- Y_w4 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance
+> 
+> e.glm0_ccw4 <- glm(Y_w4 ~ female + age, data = dfWR.NP1_ccw4, family = binomial(link = "logit"))
+> e.glm_ccw4 <- glm(ff_ccw4, data = dfWR.NP1_ccw4, family = binomial(link = "logit"))
+> e.ranger_ccw4 <- ranger(formula = ff_ccw4, data = dfWR.NP1_ccw4, probability = TRUE)
+> 
+> ## *** assess performance
+> if(iter_sim==1){
++     ePerf.ccw4.IF <- performance(list(glm0_ccw4 = e.glm0_ccw4, glm_ccw4 = e.glm_ccw4, rf_ccw4 = e.ranger_ccw4), data = dfWR.NP1_ccw4,
++                                  fold.repetition = fold.repetition, fold.balance = TRUE, fold.size = fold.size, conf.level = 0.95, seed = 10)
++     saveRDS(ePerf.ccw4.IF, file = file.path(path.results,"perf-cc-week4-IF.rds"))
++     ePerf.ccw4.IF
++ }
+> ##      method metric     model estimate      se  lower upper p.value p.value_comp
+> ## 1  internal    auc glm0_ccw4   0.5885 0.06575 0.4488 0.704  0.2032             
+> ## 2  internal    auc  glm_ccw4   0.6748 0.06211 0.5367 0.780  0.0155      0.17990
+> ## 3  internal    auc   rf_ccw4   0.9987 0.00182 0.9804 1.000  <0.001      < 0.001
+> ## 4  internal  brier glm0_ccw4   0.2282 0.01555 0.1997 0.261                     
+> ## 5  internal  brier  glm_ccw4   0.2174 0.01766 0.1854 0.255              0.30657
+> ## 6  internal  brier   rf_ccw4   0.0974 0.00799 0.0829 0.114              < 0.001
+> ## 7        cv    auc glm0_ccw4   0.5219 0.06659 0.3847 0.642  0.7447             
+> ## 8        cv    auc  glm_ccw4   0.4469 0.06235 0.3227 0.564  0.3865      0.22605
+> ## 9        cv    auc   rf_ccw4   0.5054 0.06632 0.3698 0.626  0.9354      0.25508
+> ## 10       cv  brier glm0_ccw4   0.2431 0.01643 0.2129 0.278                     
+> ## 11       cv  brier  glm_ccw4   0.2804 0.02185 0.2407 0.327              0.00606
+> ## 12       cv  brier   rf_ccw4   0.2561 0.01890 0.2217 0.296              0.11593
+> 
+> ## hist(ePerf.ccw4.IF$prediction$cv[,"glm0_ccw4",])
+> ## hist(ePerf.ccw4.IF$prediction$cv[,"glm_ccw4",])
+> 
+> ePerf.ccw4.perm <- performanceResample(list(glm0_ccw4 = e.glm0_ccw4, glm_ccw4 = e.glm_ccw4, rf_ccw4 = e.ranger_ccw4), data = dfWR.NP1_ccw4,
++                                        fold.repetition = fold.repetition, fold.size = fold.size, fold.balance = TRUE,
++                                        type.resampling = "permutation", n.resampling = vec.resampling, seed = 10,
++                                        filename = file.path(path.results,"analysis-predictionCC-w4",paste0("iter",iter_sim,"-tempo")))
+                                                                                  

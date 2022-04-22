@@ -2,7 +2,7 @@
 #+SUBTITLE: Statistical analysis report
 #+Author: Brice Ozenne
 
-* Data
+* Data processing
 
 *Data*: has been provided by Emily Beaman. She processed relevant data
 from the CIMBI database leading to n=98 patients. In addition we
@@ -12,7 +12,7 @@ computed:
   frontal cortex.
 - a "PET" biomarker by combining the log-binding potential from
   neocortex, hippocampus, caudate, and putamen via a latent variable
-  model (adjusted for age, gender, and injected mass). This was done
+  model (adjusted for age, sex, and injected mass). This was done
   in a leave-one-out fashion i.e. the biomarker for individual \(i\)
   was obtained by fitting the model on all but the i-th individual and
   estimating the latent variable for the \(i\)-th individual based on
@@ -20,12 +20,13 @@ computed:
 - a "cognition" biomarker was obtained via a k-means algorithm on
   various cognitive outcomes (no leave-one-out here). 
 
-*Outcome*: relative change in HAMD6 between week 4/8/12 and baseline
-  smaller or equal to 50% (recovery vs. no recovery).
+\noindent *Outcome*:
+- primary: relative change in HAMD6 between week 4/8/12 and baseline smaller or equal to 50% (recovery vs. no recovery).
+- secondary: trajectory group based HAMD17 at all 4 timepoints: \newline recovery vs. poor or moderate recovery \newline (results are reported in appendix [[#appendix:trajectory]])
 
 \bigskip
 
-*Missing outcome data*: among the 98 patients:
+\noindent *Missing outcome data*: among the 98 patients:
 - 11 had a missing outcome at week 4. Patient 56123 had a spontaneous
   remission and was classified as "recovery" at week 4/8/12. Patient
   55981 was hopsitalized (suicidal and psychotic) and was classified
@@ -44,9 +45,6 @@ from week-specific analyses.
 
 \bigskip
 
-The corresponding R code is in the file =0-data-management.R= available on [[https://github.com/bozenne/article-predictionNP1BD3/blob/master/code-data-analysis/0-data-management.R][Github]].
-
-* Data analysis
 
 After discussion with neuroscientists, we have identified 10 candidate
 biomarkers[fn::fMRI is missing in the list] for predicting recovery after SSRI treatment:
@@ -54,73 +52,99 @@ biomarkers[fn::fMRI is missing in the list] for predicting recovery after SSRI t
 - =HAMD17=: depression score at baseline.
 - =low_hsCRP=: high sensitivity CRP (l levels of inflammation in the body).
 - =lvpet=: summary of the brain log-PET binding.
-- =cognitive_cluster=: summary of the cognition
-- =EEG_vigilance=: EEG signal (vigilance slope B1 bl)
-- =CATS_scoretotal=: ??
+- =cognitive_cluster=: summary of the cognition.
+- =EEG_vigilance=: EEG signal (vigilance slope B1 bl).
+- =CATS_scoretotal=: Childhood trauma (self reported).
 - =CAR_AUCi=: Difference between the cortisol value and the cortisol value at wake-up cumulated over an hour. 
-- =neuroticism=: 
+- =neuroticism=: personality trait indexing tendency to experience negative emotion.
 
 \bigskip
   
-*Missing biomarker values*: two analyses were performed
-- a complete case analyses on 7 biomarkers (all but CATS, Cortisol,
-  Neuroticism).
-- an analysis handling missing data either using multiple imputation
-  (MI) in the association study or only using only the biomarkers with
-  no missing value for the specific individual when computing
-  predictions in the prediction study. \newline When using MI, the
-  original data was cloned 100 times. In each clone, missing values
-  were imputed using Fully Conditional Specification (FCS) implemented
-  by the MICE algorithm citep:van2011mice. This algorithm alternates
-  between learning the relationship between variables, using a linear
-  regression for continuous variables, logistic regression for binary
-  variables, and a a proportional odds model for categorical variables
-  with all variables (outcome, age, gender, biomarkers) as predictors
-  (as suggested in cite:moons2006using), and impute by sampling from
-  the resulting distributions (rougthly speaking, a noisy version of
-  the best prediction). Pooling of the results was performed according
-  Rubin's rule when computing the variance-covariance of the
-  coefficients.
+The corresponding R code is in the file =0-data-management.R= available on [[https://github.com/bozenne/article-predictionNP1BD3/blob/master/code-data-analysis/0-data-management.R][Github]].
 
-\bigskip
+* Data analysis
 
-*Association between recovery and biomarkers*[fn::how does the
-recovery vary in average (i.e. at a population level) as a function of
-the biomarkers]: to assess whether the biomarker were associated with
-recovery we fitted a logistic regression with gender and age vs. a
-logistic regression with gender and age plus all biomarkers (as
+\noindent *Recovery trajectory*: a latent class linear mixed model
+with homogeneous residual variance-covariance between groups were used
+to form 3 groups of patients (as in cite:goerigk2021distinct)
+according to their HAMD17 values at baseline, week 4, week 8, and
+week 12.
+
+\clearpage
+
+\noindent *Association between recovery and biomarkers*[fn::how does
+the recovery vary in average (i.e. at a population level) as a
+function of the biomarkers]: to assess whether the biomarker were
+associated with recovery we fitted a logistic regression with sex and
+age vs. a logistic regression with sex and age plus all biomarkers (as
 additive effects). Wald tests were used to test the association for
 each biomarker. P-value were adjusted for multiple comparison
-(i.e. FWER control) using a max-test adjustment. Random Forests
-(default hyperparameters: mtry = 3, 500 trees, node size 1) were also
-used to identify possible non-linear effects: a permutation test based
-on variable importance was performed. \newline This procedure was
-performed at week 4, week 8 and week 12. Post-hoc to the complete case
-results at week 12, A Generalized Additive Model (GAM) with age and
-gender as a linear effect and PET as non-linear was also performed at
-week 8 and 12. \newline For graphical display, the various logistic
-model were re-estimated after centering and scaling each variable and
-the corresponding estimates were displayed using a forest plot.
+(i.e. FWER control) using a max-test adjustment. For graphical
+display, the various logistic models were re-estimated after centering
+and scaling each variable. The corresponding estimates were displayed
+using a forest plot. \newline Random Forests (default hyperparameters:
+mtry = 3, 500 trees, node size 1) were also used to identify possible
+non-linear effects: a permutation test based on variable importance
+was performed (cite:altmann2010permutation, 10000
+permutations). \newline This procedure was performed at week 4, week 8
+and week 12. Post-hoc to the complete case results at week 12, A
+Generalized Additive Model (GAM) with age and sex as a linear effect
+and PET as non-linear was also performed at week 8 and 12. \newline
+The corresponding R code is in a directory available on [[https://github.com/bozenne/article-predictionNP1BD3/tree/master/code-data-analysis][Github]] (file
+=analysis-test.R=).
+
+
 
 \bigskip
 
-*Predictive value of the biomarkers*[fn::are the biomarkers useful to
- predict recovery for an individual]: to assess whether the biomarkers
- can be used to discriminate between patients who will recover and
- patients who won't, we tested whether the Area Under the Curve (AUC)
- of a logistic model with age, gender, and the biomarkers was greated
- than 0.5, and whether it was greater than a model with only age and
- gender. We also compared the performance with a random forest
- (default hyperparameters: mtry = 3, 500 trees, node size 1). The AUC
- was estimated via 25 fold cross-validation repeted 100 times. An AUC
- was computed over all folds of a given repetition and then averaged
- acrossed repetions. The p-value was computed via a permutation test
- (10000 repetitions complete case, 1000 repetition missing values).
+\noindent *Predictive value of the biomarkers*[fn::are the biomarkers
+ useful to predict recovery for an individual]: to assess whether the
+ biomarkers can be used to discriminate between patients who will
+ recover and patients who will not, we tested whether the Area Under
+ the Curve (AUC) of a logistic model with age, sex, and the biomarkers
+ was greated than 0.5, and whether it was greater than a model with
+ only age and sex. We also compared the performance with a random
+ forest (default hyperparameters: mtry = 3, 500 trees, node size
+ 1). The AUC was estimated via 10 fold cross-validation. This
+ operation was repeated 50 times and averaged acrossed repetions to
+ obtain the final AUC. P-values were computed using a permutation test
+ (labeled =perm=, 1000 repetitions) or via the calculation of the
+ influence function citep:ledell2015computationally[fn::the former
+ method is more classical but very time consuming (1000 repetitions
+ does not provide great accuracy about the p-value. The latter method
+ is much fast but rely on asymptotic results.]. The corresponding R
+ code is in a directory available on [[https://github.com/bozenne/article-predictionNP1BD3/tree/master/code-data-analysis][Github]] (files
+ =analysis-predictionCC-traj.R= - =analysis-predictionNA-w8.R=).
 
 \bigskip
 
-The corresponding R code is in a directory available on
-[[https://github.com/bozenne/article-predictionNP1BD3/tree/master/code-data-analysis][Github]] (files =analysis-XXX.R=). 
+\noindent *Handling missing biomarker values*: two approaches to handle
+missing values were considered
+- /no exclusion/ (primary analysis): multiple imputation (MI) was used
+  in the association study. The original data was cloned 100 times. In
+  each clone, missing values were imputed using Fully Conditional
+  Specification (FCS) implemented by the MICE algorithm
+  citep:van2011mice. This algorithm alternates between learning the
+  relationship between variables, using a linear regression for
+  continuous variables, logistic regression for binary variables, and
+  a a proportional odds model for categorical variables with all
+  variables (outcome, age, sex, biomarkers) as predictors (as
+  suggested in cite:moons2006using), and impute by sampling from the
+  resulting distributions (rougthly speaking, a noisy version of the
+  best prediction). Pooling of the results was performed according
+  Rubin's rule when computing the variance-covariance of the
+  coefficients. \newline Predictions were computed conditional on the
+  set of biomarkers without missing value for the individual whose
+  recovery is being assessed. Missing values in the training set where
+  imputed based on the mean value of the other patients in the
+  training set.
+
+- a /complete case/ analyses (sensitivity analysis): considering on 7
+  biomarkers (all but CATS, Cortisol, Neuroticism) and excluding any
+  patient with missing values among those 7 biomarkers.
+
+\bigskip
+
 # @@latex:any arbitrary LaTeX code@@
 
 \clearpage
@@ -132,12 +156,17 @@ The corresponding R code is in a directory available on
 
 #+BEGIN_SRC R :exports none :results output raw drawer :session *R* :cache no
 setwd("c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/")
-load(file.path(path.results,"test.Rdata"))
+load(file.path("results","test.Rdata"))
+base::source("c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/code-data-analysis/table-transition.R")
+library(data.table)
+library(ggplot2)
+library(BuyseTest)
 #+END_SRC
 
 #+RESULTS:
 :results:
 Der var 50 eller flere advarsler (brug warnings() for at se den første 50)
+data.table 1.14.2 using 4 threads (see ?getDTthreads).  Latest news: r-datatable.com
 :end:
 
 The dataset contained 90 patients, 89 with the outcome at week 4, 8
@@ -201,7 +230,7 @@ were excluded from some analyses.
 #+name: fig:missingPattern
 #+ATTR_LaTeX: :width 0.9\textwidth :options trim={0 0 0 0} :placement [!h]
 #+CAPTION: Missing data patterns
-[[./figures/gg-missingPattern.pdf]]
+[[./../figures/gg-missingPattern.pdf]]
 
 \bigskip
 
@@ -218,17 +247,16 @@ The following table describes:
   patients currently classified as recovered and =nr2nr+r2nr= as not
   recovered.
 #+BEGIN_SRC R :exports results :results output :session *R* :cache no
-## base::source("c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/code-data-analysis/table-transition.R")
 df.trans
 #+END_SRC
 
 #+RESULTS:
-:             week4       week8      week12
-: nr2nr 52 (58.43%) 30 (34.48%) 20 (23.53%)
-: r2nr       0 (0%)  9 (10.34%)   6 (7.06%)
-: nr2r  37 (41.57%) 20 (22.99%)    17 (20%)
-: r2r        0 (0%) 28 (32.18%) 42 (49.41%)
-: total   89 (100%)   87 (100%)   85 (100%)
+:             week4        4->8       week8       8->12      week12
+: nr2nr 52 (58.43%) 30 (34.48%) 40 (45.45%) 20 (23.53%) 26 (30.23%)
+: r2nr       0 (0%)  9 (10.34%)      0 (0%)   6 (7.06%)      0 (0%)
+: nr2r  37 (41.57%) 20 (22.99%) 48 (54.55%)    17 (20%) 60 (69.77%)
+: r2r        0 (0%) 28 (32.18%)      0 (0%) 42 (49.41%)      0 (0%)
+: total   89 (100%)   87 (100%)   88 (100%)   85 (100%)   86 (100%)
 
 To further describe the outcome trajectory of the patients over time,
 we use a latent class linear mixed model with homogeneous residual
@@ -241,15 +269,15 @@ ressemble those of cite:goerigk2021distinct.
 #+CAPTION: Recovery groups found by a latent class linear mixed model (LCMM).
 #+CAPTION: Thin lines represent individual trajectories colored as a function of the group membership probability.
 #+CAPTION: Thick lines represent group trajctories estimated by the LCMM.
-[[./figures/spaghetti-HAMD17.pdf]]
+[[./../figures/spaghetti-HAMD17.pdf]]
 
 
 
 ** Association study (linear)
 
 The following table shows the result of multiple imputation for the
-logistic model with biomarkers, based on 88 patients (some with
-missing biomarker values):
+logistic model with biomarkers at week 8, based on 88 patients (some
+with missing biomarker values):
 #+BEGIN_SRC R :exports results :results output :session *R* :cache no
 dtS.ass_imp[dtS.ass_imp$time=="week 8",.(term,estimate,p.value,adj.p.value,lower.adj,upper.adj)]
 #+END_SRC
@@ -257,23 +285,23 @@ dtS.ass_imp[dtS.ass_imp$time=="week 8",.(term,estimate,p.value,adj.p.value,lower
 #+RESULTS:
 #+begin_example
                      term    estimate    p.value adj.p.value  lower.adj upper.adj
- 1:    MR (OFC thickness) -0.48611743 0.09664484  0.59435171 -1.3153682 0.3431334
- 2:                HAMD17  0.32097935 0.23911230  0.91059402 -0.4554627 1.0974214
- 3:                 hsCRP  0.89399954 0.17305117  0.81271604 -0.9710296 2.7590287
- 4:       PET (serotonin) -0.09616763 0.71280103  0.99999133 -0.8433506 0.6510154
- 5: cognition (cluster 2) -0.69912372 0.27221893  0.93996471 -2.5133247 1.1150773
- 6: cognition (cluster 3) -1.87992179 0.01004351  0.09046179 -3.9211639 0.1613203
- 7:       EEG (vigilance) -0.69847488 0.02015285  0.17155060 -1.5426301 0.1456804
- 8:                  CATS  0.07479048 0.78655856  0.99999954 -0.7153047 0.8648857
- 9:              Cortisol  0.28152530 0.34520600  0.97701174 -0.5691779 1.1322285
-10:           Neuroticism  0.22612552 0.50133395  0.99819203 -0.7346358 1.1868868
+ 1:    MR (OFC thickness) -0.48611743 0.09664484  0.59434177 -1.3153186 0.3430838
+ 2:                HAMD17  0.32097935 0.23911230  0.91059355 -0.4554163 1.0973750
+ 3:                 hsCRP  0.89399954 0.17305117  0.81271899 -0.9709181 2.7589172
+ 4:       PET (serotonin) -0.09616763 0.71280103  0.99999133 -0.8433060 0.6509707
+ 5: cognition (cluster 2) -0.69912372 0.27221893  0.93997382 -2.5132162 1.1149688
+ 6: cognition (cluster 3) -1.87992179 0.01004351  0.09045036 -3.9210419 0.1611983
+ 7:       EEG (vigilance) -0.69847488 0.02015285  0.17149993 -1.5425797 0.1456299
+ 8:                  CATS  0.07479048 0.78655856  0.99999954 -0.7152574 0.8648384
+ 9:              Cortisol  0.28152530 0.34520600  0.97701584 -0.5691271 1.1321777
+10:           Neuroticism  0.22612552 0.50133395  0.99819131 -0.7345783 1.1868293
 11:                female -0.57753491 0.33310871          NA         NA        NA
 12:                   age  0.45193136 0.16838786          NA         NA        NA
 #+end_example
 
 The smallest adjusted p-value is 0.09 obtained for cognition cluster
 3: being is this cluser is associated with lower remission rate
-(estimate OR=0.15). The second most significant p-value is obtained for EEG.
+(estimate OR=exp(-1.8799)=0.15). The second most significant p-value is obtained for EEG.
 
 
 #+BEGIN_SRC R :exports none :results output :session *R* :cache no
@@ -293,16 +321,16 @@ dtS.ass_imp[dtS.ass_imp$time=="week 4",.(term,estimate,p.value,adj.p.value,lower
 #+RESULTS:
 #+begin_example
                      term    estimate    p.value adj.p.value  lower.adj upper.adj
- 1:    MR (OFC thickness) -0.05876414 0.81995462   0.9999999 -0.7977520 0.6802237
- 2:                HAMD17  0.08812129 0.72970162   0.9999958 -0.6416895 0.8179321
- 3:                 hsCRP  0.65041183 0.32292900   0.9707452 -1.2267548 2.5275784
- 4:       PET (serotonin)  0.08061616 0.74715773   0.9999978 -0.6349798 0.7962121
- 5: cognition (cluster 2) -0.33296344 0.58099358   0.9996948 -2.0579792 1.3920523
- 6: cognition (cluster 3) -1.30528058 0.05631125   0.4105926 -3.2382481 0.6276869
- 7:       EEG (vigilance) -0.10138066 0.68695947   0.9999823 -0.8211744 0.6184131
- 8:                  CATS -0.28135338 0.31830848   0.9688761 -1.0857282 0.5230215
- 9:              Cortisol  0.28873615 0.34775562   0.9793286 -0.5888975 1.1663698
-10:           Neuroticism  0.20053395 0.52825021   0.9990415 -0.7084860 1.1095539
+ 1:    MR (OFC thickness) -0.05876414 0.81995462   0.9999999 -0.7977842 0.6802559
+ 2:                HAMD17  0.08812129 0.72970162   0.9999958 -0.6417213 0.8179639
+ 3:                 hsCRP  0.65041183 0.32292900   0.9707400 -1.2268366 2.5276603
+ 4:       PET (serotonin)  0.08061616 0.74715773   0.9999978 -0.6350110 0.7962433
+ 5: cognition (cluster 2) -0.33296344 0.58099358   0.9996947 -2.0580544 1.3921275
+ 6: cognition (cluster 3) -1.30528058 0.05631125   0.4105747 -3.2383323 0.6277712
+ 7:       EEG (vigilance) -0.10138066 0.68695947   0.9999823 -0.8212058 0.6184444
+ 8:                  CATS -0.28135338 0.31830848   0.9688774 -1.0857633 0.5230565
+ 9:              Cortisol  0.28873615 0.34775562   0.9793304 -0.5889357 1.1664081
+10:           Neuroticism  0.20053395 0.52825021   0.9990412 -0.7085256 1.1095935
 11:                female -1.15006496 0.04969227          NA         NA        NA
 12:                   age  0.24249711 0.35893909          NA         NA        NA
 #+end_example
@@ -314,19 +342,19 @@ dtS.ass_imp[dtS.ass_imp$time=="week 12",.(term,estimate,p.value,adj.p.value,lowe
 
 #+RESULTS:
 #+begin_example
-                     term    estimate    p.value adj.p.value  lower.adj  upper.adj
- 1:    MR (OFC thickness) -0.87021372 0.01059592  0.09403706 -1.8211883 0.08076082
- 2:                HAMD17  0.22864772 0.43895218  0.99386231 -0.6141215 1.07141690
- 3:                 hsCRP  0.54170359 0.48043219  0.99698507 -1.6490589 2.73246604
- 4:       PET (serotonin)  0.14969225 0.61394466  0.99981907 -0.6978764 0.99726089
- 5: cognition (cluster 2) -1.23228367 0.11663155  0.65755046 -3.4576855 0.99311813
- 6: cognition (cluster 3) -1.23211761 0.14918403  0.75139652 -3.6559188 1.19168357
- 7:       EEG (vigilance) -0.05548535 0.85470244  0.99999999 -0.9215959 0.81062525
- 8:                  CATS  0.69398065 0.04752293  0.34992677 -0.2933312 1.68129249
- 9:              Cortisol  0.46282495 0.22519432  0.88903756 -0.6224248 1.54807472
-10:           Neuroticism -0.02338173 0.95340882  1.00000000 -1.1674326 1.12066918
-11:                female -0.91743988 0.18900657          NA         NA         NA
-12:                   age  0.73697667 0.13715573          NA         NA         NA
+                     term    estimate    p.value adj.p.value  lower.adj upper.adj
+ 1:    MR (OFC thickness) -0.87021372 0.01059592  0.09396276 -1.8210349 0.0806075
+ 2:                HAMD17  0.22864772 0.43895218  0.99386047 -0.6139856 1.0712810
+ 3:                 hsCRP  0.54170359 0.48043219  0.99698565 -1.6487057 2.7321128
+ 4:       PET (serotonin)  0.14969225 0.61394466  0.99981908 -0.6977397 0.9971242
+ 5: cognition (cluster 2) -1.23228367 0.11663155  0.65758928 -3.4573267 0.9927593
+ 6: cognition (cluster 3) -1.23211761 0.14918403  0.75138497 -3.6555280 1.1912928
+ 7:       EEG (vigilance) -0.05548535 0.85470244  0.99999999 -0.9214563 0.8104856
+ 8:                  CATS  0.69398065 0.04752293  0.34996954 -0.2931720 1.6811333
+ 9:              Cortisol  0.46282495 0.22519432  0.88903712 -0.6222499 1.5478998
+10:           Neuroticism -0.02338173 0.95340882  1.00000000 -1.1672482 1.1204847
+11:                female -0.91743988 0.18900657          NA         NA        NA
+12:                   age  0.73697667 0.13715573          NA         NA        NA
 #+end_example
 
 At week 4 we see again some evidence for cluster 3 (without adjustment
@@ -344,7 +372,7 @@ more pronounced over the weeks.
 #+CAPTION: Log-odd ratio estimates (full circles), confidence intervals (thick lines) and adjusted confidence intervals (thin lines) for each analysis at each timepoint.
 #+CAPTION: Covariates have been centered and scale to be comparable.
 #+CAPTION: Adjustment for multiplicity is performed over biomarkers but not over time.
-[[./figures/gg-forestplot-OR.pdf]]
+[[./../figures/gg-forestplot-OR.pdf]]
 
 ** Association study (non-linear)
 
@@ -366,31 +394,30 @@ reshape2::dcast(df.ipranger, param~time, value.var = c("significance"))[,c("para
 #+RESULTS:
 #+begin_example
                   param              week4              week8             week12
-1                female  -5e-04 (p=0.4535) -0.0047 (p=0.8501) -0.0025 (p=0.6713)
-2                   age  0.0112 (p=0.1698)  0.0038 (p=0.3257)   0.004 (p=0.3407)
-3    MR (OFC thickness)  0.0029 (p=0.3586)  0.0084 (p=0.2328)  0.0134 (p=0.1319)
-4                HAMD17 -0.0037 (p=0.6054)  0.0025 (p=0.3646)   4e-04 (p=0.4585)
-5                 hsCRP  -0.003 (p=0.7393) -0.0011 (p=0.5255) -0.0029 (p=0.7702)
-6       PET (serotonin)  0.0075 (p=0.2438) -0.0073 (p=0.6933)   0.0244 (p=0.026)
-7 cognition (cluster 2)  -7e-04 (p=0.4845)   5e-04 (p=0.3696)  0.0043 (p=0.1518)
-8 cognition (cluster 3)  0.0093 (p=0.0629)  0.0058 (p=0.1239) -0.0026 (p=0.6643)
-9       EEG (vigilance) -0.0019 (p=0.5465)  0.0034 (p=0.2527)  0.0017 (p=0.2847)
+1                female -0.0051 (p=0.8771) -0.0052 (p=0.8741) -0.0035 (p=0.7722)
+2                   age  0.0146 (p=0.1329)  0.0117 (p=0.1439) -0.0012 (p=0.5165)
+3    MR (OFC thickness)   0.005 (p=0.3117)  0.0077 (p=0.2597)  0.0163 (p=0.0899)
+4                HAMD17 -0.0107 (p=0.8841)  0.0055 (p=0.2567)   6e-04 (p=0.4356)
+5                 hsCRP -0.0018 (p=0.5804) -0.0043 (p=0.8392) -0.0032 (p=0.8302)
+6       PET (serotonin)  0.0043 (p=0.3207) -0.0103 (p=0.7792)    0.022 (p=0.037)
+7 cognition (cluster 2) -0.0011 (p=0.5015)  -5e-04 (p=0.4426)  0.0029 (p=0.2118)
+8 cognition (cluster 3)  0.0075 (p=0.0789)   0.0098 (p=0.039)  -8e-04 (p=0.4985)
+9       EEG (vigilance) -0.0039 (p=0.7103)  0.0055 (p=0.1888)  0.0042 (p=0.2108)
 #+end_example
 
-At week 4, cognition (cluster) 3 was borderline significant. At week
-12, there was some evidence for PET to be associated with the
-recovery.
+At week 4 and 8, cognition (cluster) 3 was borderline significant. At
+week 12, there was some evidence for PET, and to a lesser extend for
+OFC thickness, to be associated with the recovery.
 
 #+name: fig:variableImportance
 #+ATTR_LaTeX: :width \textwidth :options trim={0 0 0 0} :placement [!h]
-#+CAPTION: Log-odd ratio estimates (full circles), confidence intervals (thick lines) and adjusted confidence intervals (thin lines) for each analysis at each timepoint.
-#+CAPTION: Adjustment for multiplicity is performed over biomarkers but not over time.
-[[./figures/variableImportance.pdf]]
+#+CAPTION: Variable importance (y-axis) and associated statistical significance (size of the point) of the predictors in a random forest model (complete case analysis).
+[[./../figures/variableImportance.pdf]]
 
 \vfill
 
 Further investigation using splines reveal an inverted U-shape for the
-PET assocation (autoref:fig:splineW12, p=0.0128). A similar but non
+PET assocation (autoref:fig:splineW12, p=0.022). A similar but non
 significant association was observed for PET at week 8 (autoref:fig:splineW8,
 p=0.0904).
 #+BEGIN_SRC R :exports none :results output :session *R* :cache no
@@ -452,14 +479,14 @@ UBRE = 0.050144  Scale est. = 1         n = 77
 #+name: fig:splineW8
 #+ATTR_LaTeX: :width \textwidth :options trim={0 0 0 0} :placement [!h]
 #+CAPTION: Association between recovery at week 8 and PET in a logistic model adjusted for age and sex (complete case).
-[[./figures/gg-spline-w8.pdf]]
+[[./../figures/gg-spline-w8.pdf]]
 
 \clearpage
 
 #+name: fig:splineW12
 #+ATTR_LaTeX: :width \textwidth :options trim={0 0 0 0} :placement [!h]
 #+CAPTION: Association between recovery at week 12 and PET in a logistic model adjusted for age and sex (complete case).
-[[./figures/gg-spline-w12.pdf]]
+[[./../figures/gg-spline-w12.pdf]]
 
 
 ** Predictive value
@@ -475,86 +502,148 @@ autoref:fig:perfW12-ROC).
 #+name: fig:perfW4-dens
 #+ATTR_LaTeX: :width \textwidth :options trim={0 0 0 0} :placement [!h]
 #+CAPTION: Distribution of the predicted probability of recovery at week 4 per group according to each model.
-[[./figures/hist-pred-week4.pdf]]
+[[./../figures/hist-pred-week4.pdf]]
 
 \clearpage
 
 #+name: fig:perfW8-dens
 #+ATTR_LaTeX: :width \textwidth :options trim={0 0 0 0} :placement [!h]
 #+CAPTION: Distribution of the predicted probability of recovery at week 8 per group according to each model.
-[[./figures/hist-pred-week8.pdf]]
+[[./../figures/hist-pred-week8.pdf]]
 
 #+name: fig:perfW12-dens
 #+ATTR_LaTeX: :width \textwidth :options trim={0 0 0 0} :placement [!h]
 #+CAPTION: Distribution of the predicted probability of recovery at week 12 per group according to each model.
-[[./figures/hist-pred-week12.pdf]]
+[[./../figures/hist-pred-week12.pdf]]
 
 The table below summarizes the predictive performance. There was some
-evidence for some discriminative power of the biomarkers at week 8
-(AUC=0.643, p=0.011) and 12 (AUC=0.573, p=0.119) with the logistic
-regression. The calibration of these model was however not clearly
-better than the null model with interept only (p=0.158 and
-p=0.063).
+evidence for a discriminative power at week 8 (AUC=0.621, p=0.059) of
+the logistic regression with biomarkers. But not enough (p=0.327) to
+show superiority compared to a model without biomarkers. Similar
+results were observed in term of calibration, i.e. brier score. Random
+forest appeared to provide worse predictions at that timepoint.
 
-\vfill
+\bigskip
 
-The point estimates of the random forest were not
-superior to the logistic model (with biomarkers) in term of AUC. The
-brier score was comparable to the logistic model with no biomarker.
+None of the prediction methods performed well at week 4 while at week
+12 all of them were marginally better than chance. Random Forest had
+an AUC of 0.635 (p=0.044) which is very similar to the AUC=0.622 of
+the model with age and sex alone.
 
 \clearpage
 
 #+BEGIN_SRC R :exports results :results output :session *R* :cache no
 source("c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/code-data-analysis/table-performance.R")
-tablePerfW.imp
+tablePerfW.imp$week[tablePerfW.imp$week == "4812"] <- "trajectory"
+tablePerfW.imp$Brier <- gsub("p(IF)=NA, ","",tablePerfW.imp$Brier, fixed = TRUE)
+tablePerfW.imp[tablePerfW.imp$week != "trajectory" ]
 #+END_SRC
 
 #+RESULTS:
 #+begin_example
-                model week             AUC           Brier
-1: GLM (no biomarker)    4 0.488 (p=0.226) 0.249 (p=0.161)
-2:                       8 0.513 (p=0.162) 0.259 (p=0.352)
-3:                      12 0.608 (p=0.018) 0.207 (p=0.026)
-4:   GLM (biomarkers)    4 0.489 (p=0.498) 0.339 (p=0.788)
-5:                       8 0.643 (p=0.011) 0.311 (p=0.158)
-6:                      12 0.605 (p=0.046) 0.263 (p=0.063)
-7:    RF (biomarkers)    4 0.444 (p=0.704) 0.275 (p=0.759)
-8:                       8 0.462 (p=0.595) 0.274 (p=0.577)
-9:                      12 0.573 (p=0.119) 0.214 (p=0.086)
+                model week                                AUC                 Brier
+1: GLM (no biomarker)    4 0.514 (p(IF)=0.812, p(perm)=0.272) 0.245 (p(perm)=0.179)
+2:                       8 0.549 (p(IF)=0.420, p(perm)=0.152) 0.253 (p(perm)=0.289)
+3:                      12 0.622 (p(IF)=0.079, p(perm)=0.031) 0.204 (p(perm)=0.033)
+4:   GLM (biomarkers)    4 0.489 (p(IF)=0.847, p(perm)=0.521) 0.287 (p(perm)=0.471)
+5:                       8 0.621 (p(IF)=0.059, p(perm)=0.068) 0.258 (p(perm)=0.057)
+6:                      12 0.617 (p(IF)=0.098, p(perm)=0.072) 0.227 (p(perm)=0.061)
+7:    RF (biomarkers)    4  0.52 (p(IF)=0.739, p(perm)=0.390) 0.256 (p(perm)=0.399)
+8:                       8 0.478 (p(IF)=0.710, p(perm)=0.596) 0.269 (p(perm)=0.615)
+9:                      12 0.635 (p(IF)=0.044, p(perm)=0.044) 0.203 (p(perm)=0.050)
 #+end_example
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+as.data.table(ePerf.impw8_IF)[method == "cv"]
+#+END_SRC
+
+#+RESULTS:
+:    method metric      model  estimate         se     lower     upper    p.value p.value_comp
+: 1:     cv    auc glm0_impw8 0.5489896 0.05917495 0.4261623 0.6559858 0.42031167           NA
+: 2:     cv    auc  glm_impw8 0.6209271 0.05866115 0.4951822 0.7238935 0.05875912  0.327407628
+: 3:     cv    auc   rf_impw8 0.4784271 0.05859595 0.3602378 0.5872146 0.71039486  0.006152017
+: 4:     cv  brier glm0_impw8 0.2533066 0.01133933 0.2320290 0.2765355         NA           NA
+: 5:     cv  brier  glm_impw8 0.2584864 0.02514625 0.2136144 0.3127842         NA  0.818096690
+: 6:     cv  brier   rf_impw8 0.2692636 0.01394550 0.2432724 0.2980317         NA  0.590464181
 
 \bigskip
 
 *Sensitivity analysis*: Similar results were obtained with the
 complete case analysis (which also drop 3 biomarkers):
 #+BEGIN_SRC R :exports results :results output :session *R* :cache no
+tablePerfW.cc$week[tablePerfW.cc$week == "4812"] <- "trajectory"
+tablePerfW.cc$Brier <- gsub("p(IF)=NA, ","",tablePerfW.cc$Brier, fixed = TRUE)
 tablePerfW.cc
 #+END_SRC
 
 #+RESULTS:
 #+begin_example
-                model week             AUC           Brier
-1: GLM (no biomarker)    4 0.501 (p=0.210) 0.248 (p=0.308)
-2:                       8  0.56 (p=0.062) 0.255 (p=0.159)
-3:                      12 0.601 (p=0.032) 0.206 (p=0.038)
-4:   GLM (biomarkers)    4 0.443 (p=0.656) 0.284 (p=0.626)
-5:                       8 0.637 (p=0.025) 0.253 (p=0.022)
-6:                      12 0.585 (p=0.133)  0.23 (p=0.119)
-7:    RF (biomarkers)    4 0.491 (p=0.444) 0.261 (p=0.466)
-8:                       8 0.537 (p=0.246) 0.261 (p=0.221)
-9:                      12 0.689 (p=0.011) 0.194 (p=0.016)
+                 model       week                                 AUC                 Brier
+ 1: GLM (no biomarker)          4 0.529 (p(IF)=0.6592, p(perm)=0.215) 0.244 (p(perm)=0.328)
+ 2:                             8 0.582 (p(IF)=0.2119, p(perm)=0.073) 0.253 (p(perm)=0.206)
+ 3:                            12 0.615 (p(IF)=0.1089, p(perm)=0.033) 0.204 (p(perm)=0.037)
+ 4:                    trajectory 0.604 (p(IF)=0.1241, p(perm)=0.043)  0.23 (p(perm)=0.030)
+ 5:   GLM (biomarkers)          4 0.443 (p(IF)=0.3290, p(perm)=0.733) 0.285 (p(perm)=0.787)
+ 6:                             8 0.644 (p(IF)=0.0338, p(perm)=0.034)  0.25 (p(perm)=0.031)
+ 7:                            12 0.583 (p(IF)=0.2447, p(perm)=0.149)  0.23 (p(perm)=0.156)
+ 8:                    trajectory 0.645 (p(IF)=0.0341, p(perm)=0.026) 0.244 (p(perm)=0.035)
+ 9:    RF (biomarkers)          4  0.49 (p(IF)=0.8708, p(perm)=0.536)  0.26 (p(perm)=0.549)
+10:                             8  0.54 (p(IF)=0.5256, p(perm)=0.306)  0.26 (p(perm)=0.286)
+11:                            12 0.694 (p(IF)=0.0046, p(perm)=0.013) 0.193 (p(perm)=0.020)
+12:                    trajectory 0.597 (p(IF)=0.1321, p(perm)=0.104) 0.238 (p(perm)=0.103)
 #+end_example
 
 The main difference being at week 12 where the RF results appeared
 better (both in term of AUC and brier score) and the logistic model
 worse.
 
-\bigskip
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+xx <- summary(readRDS(file.path("results/perf-cc-week12-IF.rds")),
+              order.model = c("glm0_ccw12","rf_ccw12","glm_ccw12"),
+              print=FALSE)
+#+END_SRC
 
-IMPORTANT NOTE: what is missing here is a test comparing =GLM (no
-biomarker)= to the other 2 models. I'm not sure yet how to do that
-correctly. \newline Also some p-values are a bit weird e.g. AUC=0.501
-with p=0.210. I'll double check.
+#+RESULTS:
+#+begin_example
+     method metric      model estimate      se  lower  upper p.value p.value_comp
+1  internal    auc glm0_ccw12   0.6602 0.06467 0.5172 0.7699 0.02982             
+3  internal    auc   rf_ccw12   1.0000 0.00000 1.0000 1.0000 < 0.001       <0.001
+2  internal    auc  glm_ccw12   0.7552 0.05802 0.6188 0.8486 < 0.001       <0.001
+4  internal  brier glm0_ccw12   0.1939 0.02046 0.1577 0.2385                     
+6  internal  brier   rf_ccw12   0.0708 0.00839 0.0562 0.0894               <0.001
+5  internal  brier  glm_ccw12   0.1699 0.02271 0.1307 0.2207               <0.001
+7        cv    auc glm0_ccw12   0.6145 0.06590 0.4725 0.7289 0.10885             
+9        cv    auc   rf_ccw12   0.6938 0.05720 0.5662 0.7906 0.00455       0.2879
+8        cv    auc  glm_ccw12   0.5833 0.06794 0.4390 0.7026 0.24473       0.0375
+10       cv  brier glm0_ccw12   0.2038 0.02166 0.1654 0.2510                     
+12       cv  brier   rf_ccw12   0.1927 0.02167 0.1545 0.2402               0.4874
+11       cv  brier  glm_ccw12   0.2300 0.02911 0.1794 0.2947               0.0185
+#+end_example
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+as.data.table(ePerf.ccw8_IF)[method == "cv"]
+##as.data.table(ePerf.ccw12_IF)[method == "cv"]
+xx[xx$method == "cv",]
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+   method metric     model  estimate         se     lower     upper    p.value p.value_comp
+1:     cv    auc glm0_ccw8 0.5821750 0.06253109 0.4500771 0.6930923 0.21190412           NA
+2:     cv    auc  glm_ccw8 0.6440927 0.06069480 0.5120036 0.7489454 0.03379241   0.40417308
+3:     cv    auc   rf_ccw8 0.5399356 0.06159313 0.4123730 0.6512978 0.52555304   0.07377947
+4:     cv  brier glm0_ccw8 0.2526687 0.01364931 0.2272841 0.2808884         NA           NA
+5:     cv  brier  glm_ccw8 0.2497056 0.02579713 0.2039344 0.3057497         NA   0.89534654
+6:     cv  brier   rf_ccw8 0.2601071 0.01655849 0.2295961 0.2946727         NA   0.63582775
+   method metric      model  estimate         se     lower     upper     p.value p.value_comp
+7      cv    auc glm0_ccw12 0.6145089 0.06589957 0.4724715 0.7288913 0.108853040           NA
+9      cv    auc   rf_ccw12 0.6938164 0.05719904 0.5662384 0.7906107 0.004552505   0.28786927
+8      cv    auc  glm_ccw12 0.5832689 0.06793816 0.4389593 0.7025821 0.244729722   0.03749801
+10     cv  brier glm0_ccw12 0.2037708 0.02166406 0.1654420 0.2509794          NA           NA
+12     cv  brier   rf_ccw12 0.1926661 0.02167207 0.1545460 0.2401888          NA   0.48736077
+11     cv  brier  glm_ccw12 0.2299606 0.02911321 0.1794282 0.2947245          NA   0.01850945
+#+end_example
+
 
 \clearpage
 
@@ -567,20 +656,23 @@ we mean that the unadjusted p-value was significant (between 0.01 and
 (typically around 0.1). There was also some evidence for a predictive
 value of these biomarkers: performance superior to the null predictor
 and pointwise estimate of the in gain in AUC when adding the
-biomarkers of about +0.13. However the Brier score was quite high and
-not different from the null predictor. So while the biomarkers may
-help to discriminate between patients who will recover or not, it
-seems that we are not able to obtain reliable probabilities of
-recovery. \newline Using a flexible model such as random forest did
-not seems to help, which is to be expected with a rather limited
-sample size.
+biomarkers of about +0.11. So while the biomarkers may help to
+discriminate between patients who will recover or not, it seems that
+we are not able to obtain reliable (nor clinically relevant)
+probabilities of recovery. \newline Using a flexible model such as
+random forest did not seems to help, which is to be expected with a
+rather limited sample size.
 
 \bigskip
 
-The results were not stable over time: no biomarker appeared useful at
-week 4 while at week 12 there was some evidence for OFC thickness and
-a U-shape PET association with recovery. The added predictive value
-was only noticeable in the complete case analysis though.
+Time at which recovery was assessed also appeared to have a impact on
+ the results. For instance the value of EEG was only evident at
+ week 8. Cognition seemed to have a more stable association with
+ recovery while others like age or OFC thickness the strength of
+ assocation seemed to increase over time. Overall, there was no
+ evidence that the biomarkers were useful at week 4 while there was
+ some evidence at week 12, probably due to <due to OFC thickness and
+ PET.
 
 * References
 #+LaTeX: \begingroup
@@ -609,23 +701,111 @@ bibliographystyle:apalike
 \clearpage
 
 * ROC curves
+:PROPERTIES:
+:CUSTOM_ID: appendix:ROC
+:END:
+
 #+name: fig:perfW4-ROC
 #+CAPTION: Week 4
 #+ATTR_LaTeX: :width 0.9\textwidth :options trim={0 0 0 0} :placement [!h]
-[[./figures/ROC-pred-week4.pdf]]
+[[./../figures/ROC-pred-week4.pdf]]
 
 #+name: fig:perfW8-ROC
 #+CAPTION: Week 8
 #+ATTR_LaTeX: :width 0.9\textwidth :options trim={0 0 0 0} :placement [!h]
-[[./figures/ROC-pred-week8.pdf]]
+[[./../figures/ROC-pred-week8.pdf]]
 
 #+name: fig:perfW12-ROC
 #+CAPTION: Week 12
 #+ATTR_LaTeX: :width 0.9\textwidth :options trim={0 0 0 0} :placement [!h]
-[[./figures/ROC-pred-week12.pdf]]
+[[./../figures/ROC-pred-week12.pdf]]
+
+
+\clearpage
+
+* Result for the secondary endpoint
+:PROPERTIES:
+:CUSTOM_ID: appendix:trajectory
+:END:
 
 
 
+** Association
+Complete case analysis:
+#+BEGIN_SRC R :exports results :results output :session *R* :cache no
+dtS.ass_cc[dtS.ass_cc$time=="trajectory",.(term,estimate,p.value,adj.p.value,lower.adj,upper.adj)]
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+                     term    estimate    p.value adj.p.value  lower.adj upper.adj
+ 1:    MR (OFC thickness) -0.57903818 0.06505917   0.3643020 -1.4193293 0.2612529
+ 2:                HAMD17 -0.14949517 0.58610865   0.9975014 -0.8845609 0.5855706
+ 3:                 hsCRP  1.07690702 0.11793043   0.5687535 -0.7670841 2.9208981
+ 4:       PET (serotonin) -0.03633292 0.89032700   0.9999998 -0.7417565 0.6690907
+ 5: cognition (cluster 2) -0.46571118 0.45086576   0.9824984 -2.1193669 1.1879446
+ 6: cognition (cluster 3) -0.74402259 0.27045906   0.8791945 -2.5515550 1.0635098
+ 7:       EEG (vigilance) -0.56626760 0.06439629   0.3612880 -1.3859935 0.2534583
+ 8:                   age  0.27975595 0.29517902          NA         NA        NA
+ 9:                female -1.31928328 0.02054335          NA         NA        NA
+10:                  CATS          NA         NA          NA         NA        NA
+11:              Cortisol          NA         NA          NA         NA        NA
+12:           Neuroticism          NA         NA          NA         NA        NA
+#+end_example
+
+Missing data analysis:
+#+BEGIN_SRC R :exports results :results output :session *R* :cache no
+dtS.ass_imp[dtS.ass_imp$time=="trajectory",.(term,estimate,p.value,adj.p.value,lower.adj,upper.adj)]
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+                     term     estimate     p.value adj.p.value    lower.adj  upper.adj
+ 1:    MR (OFC thickness) -0.566732901 0.070380409   0.4817701 -1.452753857 0.31928806
+ 2:                HAMD17  0.025725243 0.929225742   1.0000000 -0.802720677 0.85417116
+ 3:                 hsCRP  1.253839863 0.079946120   0.5269300 -0.773390954 3.28107068
+ 4:       PET (serotonin)  0.048260858 0.848744807   1.0000000 -0.675460236 0.77198195
+ 5: cognition (cluster 2) -0.785645174 0.250978513   0.9230299 -2.733349473 1.16205912
+ 6: cognition (cluster 3) -1.039017852 0.130431392   0.7109416 -2.987458173 0.90942247
+ 7:       EEG (vigilance) -0.606743948 0.055133566   0.4019181 -1.500556688 0.28706879
+ 8:                  CATS -0.029002047 0.347080265   0.9778696 -0.116952688 0.05894859
+ 9:              Cortisol  0.003301743 0.293144971   0.9543628 -0.005644909 0.01224839
+10:           Neuroticism -0.003265826 0.574591571   0.9996056 -0.019890752 0.01335910
+11:                female -1.686694064 0.008284188          NA           NA         NA
+12:                   age  0.276194477 0.318494902          NA           NA         NA
+#+end_example
+
+
+#+ATTR_LaTeX: :width \textwidth :options trim={0 0 0 0} :placement [!h]
+#+CAPTION: Log-odd ratio estimates (full circles), confidence intervals (thick lines) and adjusted confidence intervals (thin lines) for each analysis at each timepoint.
+#+CAPTION: Covariates have been centered and scale to be comparable.
+#+CAPTION: Adjustment for multiplicity is performed over biomarkers but not over time.
+[[./../figures/gg-forestplot-OR-traj.pdf]]
+
+\clearpage
+
+** Prediction
+
+#+BEGIN_SRC R :exports results :results output :session *R* :cache no
+tablePerfW.imp
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+                 model       week                                AUC                 Brier
+ 1: GLM (no biomarker)          4 0.514 (p(IF)=0.812, p(perm)=0.272) 0.245 (p(perm)=0.179)
+ 2:                             8 0.549 (p(IF)=0.420, p(perm)=0.152) 0.253 (p(perm)=0.289)
+ 3:                            12 0.622 (p(IF)=0.079, p(perm)=0.031) 0.204 (p(perm)=0.033)
+ 4:                    trajectory 0.586 (p(IF)=0.166, p(perm)=0.056) 0.231 (p(perm)=0.025)
+ 5:   GLM (biomarkers)          4 0.489 (p(IF)=0.847, p(perm)=0.521) 0.287 (p(perm)=0.471)
+ 6:                             8 0.621 (p(IF)=0.059, p(perm)=0.068) 0.258 (p(perm)=0.057)
+ 7:                            12 0.617 (p(IF)=0.098, p(perm)=0.072) 0.227 (p(perm)=0.061)
+ 8:                    trajectory 0.609 (p(IF)=0.080, p(perm)=0.048)  0.26 (p(perm)=0.068)
+ 9:    RF (biomarkers)          4  0.52 (p(IF)=0.739, p(perm)=0.390) 0.256 (p(perm)=0.399)
+10:                             8 0.478 (p(IF)=0.710, p(perm)=0.596) 0.269 (p(perm)=0.615)
+11:                            12 0.635 (p(IF)=0.044, p(perm)=0.044) 0.203 (p(perm)=0.050)
+12:                    trajectory 0.546 (p(IF)=0.444, p(perm)=0.257) 0.247 (p(perm)=0.252)
+#+end_example
 
 * CONFIG :noexport:
 # #+LaTeX_HEADER:\affil{Department of Biostatistics, University of Copenhagen, Copenhagen, Denmark}

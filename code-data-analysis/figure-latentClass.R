@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  2 2022 (12:30) 
 ## Version: 
-## Last-Updated: mar 21 2022 (15:15) 
+## Last-Updated: mar 22 2022 (11:20) 
 ##           By: Brice Ozenne
-##     Update #: 7
+##     Update #: 9
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -38,8 +38,8 @@ source(file.path(path.code,"analysis-latentClass.R"))
 ## [[      4  -978.0521    1  21 1998.104 2050.600 1984.323 0.7358319
 
 ## ggTraj_hlme(ls.hlme[[1]], color = "prob", facet = TRUE, nrow = 1)
-## ggTraj_hlme(ls.hlme[[2]], color = "prob", facet = TRUE, nrow = 1, order.class = c(2:1))
-gg.traj <- ggTraj_hlme(ls.hlme[[3]], color = "prob", facet = TRUE, nrow = 1, order.class = c("stable" = 3,"partial recovery"=1,"recovery"=2))
+## xx <- ggTraj_hlme(ls.hlme[[2]], color = "prob", facet = TRUE, nrow = 1, order.class = c(2:1))
+gg.traj <- ggTraj_hlme(ls.hlme[[3]], color = "prob", facet = TRUE, nrow = 1, order.class = c("poor recovery" = 3,"moderate recovery"=1,"recovery"=2))
 ## ggTraj_hlme(ls.hlme[[4]], color = "prob", facet = TRUE, nrow = 1, order.class = c(4,3,1,2))
 
 
@@ -50,6 +50,11 @@ if(FALSE){
     ggsave(gg.traj$plot + xlab("") + theme(text = element_text(size=25), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
                                  axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")),
            filename = "./figures/spaghetti-HAMD17.png", width = 12)
+
+
+    ## ggsave(xx$plot + xlab("") + theme(text = element_text(size=25), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+    ##                                   axis.line = element_line(size = 1.25), axis.ticks = element_line(size = 2), axis.ticks.length=unit(.25, "cm")),
+    ##        filename = "./figures/spaghetti-HAMD17-bonus.pdf", width = 12)
 }
 
 

@@ -1,0 +1,57 @@
+
+
+* Commands to run analyses
+
+*Path*: cd ucph/hdir/SundKonsolidering_BioStatHome/Cluster/BrainDrug-WP3/
+
+** Clean
+rm -r ./output/analysis-predictionCC-w4/*
+rm -r ./results/analysis-predictionCC-w4/*
+
+rm -r ./output/analysis-predictionCC-w8/*
+rm -r ./rqesults/analysis-predictionCC-w8/*
+
+rm -r ./output/analysis-predictionCC-w12/*
+rm -r ./results/analysis-predictionCC-w12/*
+
+rm -r ./output/analysis-predictionCC-traj/*
+rm -r ./results/analysis-predictionCC-traj/*
+
+
+rm -r ./output/analysis-predictionNA-w4/*
+rm -r ./results/analysis-predictionNA-w4/*
+
+rm -r ./output/analysis-predictionNA-w8/*
+rm -r ./results/analysis-predictionNA-w8/*
+
+rm -r ./output/analysis-predictionNA-w12/*
+rm -r ./results/analysis-predictionNA-w12/*
+
+rm -r ./output/analysis-predictionNA-traj/*
+rm -r ./results/analysis-predictionNA-traj/*
+
+
+** Run scripts (slurm)
+sbatch SUBM_analysis-predictionCC-w4.slurm
+sbatch SUBM_analysis-predictionCC-w8.slurm
+sbatch SUBM_analysis-predictionCC-w12.slurm
+sbatch SUBM_analysis-predictionCC-traj.slurm
+
+sbatch SUBM_analysis-predictionNA-w4.slurm
+sbatch SUBM_analysis-predictionNA-w8.slurm
+sbatch SUBM_analysis-predictionNA-w12.slurm
+sbatch SUBM_analysis-predictionNA-traj.slurm
+
+
+** Run scripts (BATCH)
+R CMD BATCH --vanilla code-data-analysis/analysis-test.R output/analysis-test/R-CMD-BATCH-1.Rout &
+
+R CMD BATCH --vanilla code-data-analysis/analysis-predictionCC-w4.R output/analysis-predictionCC-w4/R-CMD-BATCH-1.Rout &
+R CMD BATCH --vanilla code-data-analysis/analysis-predictionCC-w8.R output/analysis-predictionCC-w8/R-CMD-BATCH-1.Rout &
+R CMD BATCH --vanilla code-data-analysis/analysis-predictionCC-w12.R output/analysis-predictionCC-w12/R-CMD-BATCH-1.Rout &
+R CMD BATCH --vanilla code-data-analysis/analysis-predictionCC-traj.R output/analysis-predictionCC-traj/R-CMD-BATCH-1.Rout &
+
+R CMD BATCH --vanilla code-data-analysis/analysis-predictionNA-w4.R output/analysis-predictionCC-w4/R-CMD-BATCH-1.Rout &
+R CMD BATCH --vanilla code-data-analysis/analysis-predictionNA-w8.R output/analysis-predictionCC-w8/R-CMD-BATCH-1.Rout &
+R CMD BATCH --vanilla code-data-analysis/analysis-predictionNA-w12.R output/analysis-predictionCC-w12/R-CMD-BATCH-1.Rout &
+R CMD BATCH --vanilla code-data-analysis/analysis-predictionNA-traj.R output/analysis-predictionCC-traj/R-CMD-BATCH-1.Rout &

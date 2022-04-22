@@ -1,0 +1,255 @@
+
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> ### analysis-predictionNA-w4.R --- 
+> ##----------------------------------------------------------------------
+> ## Author: Brice Ozenne
+> ## Created: mar  4 2022 (09:16) 
+> ## Version: 
+> ## Last-Updated: apr 21 2022 (16:03) 
+> ##           By: Brice Ozenne
+> ##     Update #: 60
+> ##----------------------------------------------------------------------
+> ## 
+> ### Commentary: 
+> ## 
+> ### Change Log:
+> ##----------------------------------------------------------------------
+> ## 
+> ### Code:
+> 
+> ## * Parameters
+> n.resampling <- 100 ## 10000
+> fold.size <- 0.1
+> fold.repetition <- 50
+> 
+> iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
+> n.iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_COUNT"))
+> if(is.na(iter_sim)){iter_sim <- 1}
+> if(is.na(n.iter_sim)){n.iter_sim <- 10}
+> 
+> vec.resampling <- (1+n.resampling*(iter_sim-1)):(n.resampling*iter_sim)
+> cat("iteration ",iter_sim," over ",n.iter_sim,"\n", sep = "")
+iteration 10 over 10
+> cat("vec.repetition:\n")
+vec.repetition:
+> print(vec.resampling)
+  [1]  901  902  903  904  905  906  907  908  909  910  911  912  913  914  915
+ [16]  916  917  918  919  920  921  922  923  924  925  926  927  928  929  930
+ [31]  931  932  933  934  935  936  937  938  939  940  941  942  943  944  945
+ [46]  946  947  948  949  950  951  952  953  954  955  956  957  958  959  960
+ [61]  961  962  963  964  965  966  967  968  969  970  971  972  973  974  975
+ [76]  976  977  978  979  980  981  982  983  984  985  986  987  988  989  990
+ [91]  991  992  993  994  995  996  997  998  999 1000
+> cat("\n")
+
+> 
+> ## * Path
+> if(system("whoami",intern=TRUE)=="hpl802"){
++     ## nothing: on the server
++     ## cd ucph/hdir/SundKonsolidering_BioStatHome/Cluster/BrainDrug-WP3/
++     ## setwd("h:/SundKonsolidering_BioStatHome/Cluster/BrainDrug-WP3/")
++     ## source("code-data-analysis/analysis-predictionNA-w4.R")
++ }else if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
++     setwd("c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/")
++ }else{ ## 
++     setwd("Vibeke put your path here")
++ }
+NULL
+> path.code <- "./code-data-analysis"
+> 
+> path.output <- "./output/"
+> if(dir.exists(path.output)==FALSE){
++     dir.create(path.output)
++ }
+> if(dir.exists(file.path(path.output,"analysis-predictionNA-w4"))==FALSE){
++     dir.create(file.path(path.output,"analysis-predictionNA-w4"))
++ }
+> 
+> path.results <- "./results/"
+> if(dir.exists(path.results)==FALSE){
++     dir.create(path.results)
++ }
+> if(dir.exists(file.path(path.results,"analysis-predictionNA-w4"))==FALSE){
++     dir.create(file.path(path.results,"analysis-predictionNA-w4"))
++ }
+> 
+> ## * Packages and function
+> library(data.table)
+> setDTthreads(1)
+> library(pROC)
+Type 'citation("pROC")' for a citation.
+
+Attaching package: ‘pROC’
+
+The following objects are masked from ‘package:stats’:
+
+    cov, smooth, var
+
+> library(ranger)
+> library(splines)
+> library(BuyseTest)
+Loading required package: Rcpp
+BuyseTest version 2.3.12
+
+Attaching package: ‘BuyseTest’
+
+The following object is masked from ‘package:pROC’:
+
+    auc
+
+> library(mice)
+
+Attaching package: ‘mice’
+
+The following object is masked from ‘package:stats’:
+
+    filter
+
+The following objects are masked from ‘package:base’:
+
+    cbind, rbind
+
+> ## devtools::install_github("NightingaleHealth/ggforestplot")
+> 
+> ## * Load data
+> source(file.path(path.code,"0-data-management.R"))
+Data management 
+
+> 
+> name.predictor <- c("sex","age","MR_OFCthick","HAMD17","hsCRP","lvpet","cognitive_cluster","EEG_vigilance","CATS_scoretotal","CAR_AUCi","neuroticism")
+> nameT.predictor <- c("MR_OFCthick","HAMD17","hsCRP","lvpet","cognitive_cluster","EEG_vigilance","CATS_scoretotal","CAR_AUCi","neuroticism")
+> nameR.predictor <- c("female","age","MR_OFCthick","HAMD17","low_hsCRP","lvpet","cognitive_cluster2","cognitive_cluster3","EEG_vigilance")
+> nameRT.predictor <- c("MR_OFCthick","HAMD17","low_hsCRP","lvpet","cognitive_cluster2","cognitive_cluster3","EEG_vigilance")
+> 
+> ## * Missing values
+> dfWR.NP1_w4 <- dfWR.NP1[rowSums(is.na(dfWR.NP1[,.SD,.SDcols = c("Y_w4")]))==0,]
+> ## butils::DIM(dfWR.NP1_w4)
+> ## [1] 87 36
+> 
+> ## ** week 4
+> set.seed(10)
+> 
+> ## *** fit models
+> e.glm0_impw4 <- glm(Y_w4 ~ female + age, family = binomial(link = "logit"), data = dfWR.NP1_w4)
+> ## e.glm_impw4 <- miss.glm(Y_w4 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism, data = dfWR.NP1_w4,
+> ##                  control = list(print_iter = FALSE, tol_em = 1e-5, ll_obs_cal = FALSE))
+> e.glm_impw4 <- glm(Y_w4 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
++                    family = binomial(link = "logit"), data = dfWR.NP1_w4)
+> e.ranger_impw4 <- ranger(formula = Y_w4 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + cognitive_cluster2 + cognitive_cluster3 + EEG_vigilance + CATS_scoretotal + CAR_AUCi + neuroticism,
++                          data = na.omit(dfWR.NP1_w4), probability = TRUE)
+> 
+> 
+> ## *** assess performance
+> if(iter_sim==1){
++     ePerf.impw4.IF <- performance(list(glm0_impw4 = e.glm0_impw4, glm_impw4 = e.glm_impw4, rf_impw4 = e.ranger_impw4), data = dfWR.NP1_w4,
++                                   fold.repetition = fold.repetition, fold.balance = TRUE, fold.size = fold.size,
++                                   individual.fit = TRUE, impute = "mean",
++                                   conf.level = 0.95, seed = 10)
++     saveRDS(ePerf.impw4.IF, file = file.path(path.results,"perf-imp-week4-IF.rds"))
++     ePerf.impw4.IF
++ }
+> 
+> ePerf.impw4.perm <- performanceResample(list(glm0_impw4 = e.glm0_impw4, glm_impw4 = e.glm_impw4, rf_impw4 = e.ranger_impw4), data = dfWR.NP1_w4,
++                                         fold.repetition = fold.repetition, fold.balance = TRUE, fold.size = fold.size,
++                                         individual.fit = TRUE, impute = "mean",
++                                         type.resampling = "permutation", n.resampling = vec.resampling, seed = 10,
++                                         filename = file.path(path.results,"analysis-predictionNA-w4",paste0("iter",iter_sim,"-tempo")))
+                                                                                                     > saveRDS(ePerf.impw4.perm, file = file.path(path.results,"analysis-predictionNA-w4",paste0("iter",iter_sim,"-final.rds")))
+> ePerf.impw4.perm
+     method metric      model estimate resample se.resample p.value
+1  internal    auc glm0_impw4   0.5956   0.5667    0.043698   0.257
+2  internal    auc  glm_impw4   0.6959   0.7018    0.040356   0.515
+3  internal    auc   rf_impw4   1.0000   0.9999    0.000374   0.851
+4        cv    auc glm0_impw4   0.5139   0.4550    0.086689   0.277
+5        cv    auc  glm_impw4   0.4889   0.4768    0.077434   0.455
+6        cv    auc   rf_impw4   0.5197   0.4758    0.075350   0.317
+7  internal  brier glm0_impw4   0.2317   0.2376    0.005205   0.149
+8  internal  brier  glm_impw4   0.2132   0.2116    0.011314   0.505
+9  internal  brier   rf_impw4   0.0861   0.0897    0.004754   0.257
+10       cv  brier glm0_impw4   0.2446   0.2499    0.005950   0.188
+11       cv  brier  glm_impw4   0.2868   0.2893    0.014845   0.446
+12       cv  brier   rf_impw4   0.2559   0.2633    0.013558   0.297
+   p.value_comp
+1              
+2         0.743
+3         0.495
+4              
+5         0.812
+6         0.604
+7              
+8         0.772
+9         0.277
+10             
+11        0.455
+12        0.277
+> ##    metric      model  estimate se lower upper p.value p.value_comp
+> ## 1:    auc glm0_impw4 0.4911983 NA    NA    NA     0.8           NA
+> ## 2:    auc  glm_impw4 0.4780392 NA    NA    NA     0.8           NA
+> ## 3:    auc   rf_impw4 0.4910240 NA    NA    NA     0.6           NA
+> ## 4:  brier glm0_impw4 0.2550562 NA    NA    NA     0.9           NA
+> ## 5:  brier  glm_impw4 0.3448574 NA    NA    NA     0.9           NA
+> ## 6:  brier   rf_impw4 0.2632697 NA    NA    NA     0.6           NA
+> 
+> ## * sessionInfo
+> sessionInfo()
+R version 4.1.2 (2021-11-01)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Red Hat Enterprise Linux 8.5 (Ootpa)
+
+Matrix products: default
+BLAS:   /opt/software/R/4.1.2/lib64/R/lib/libRblas.so
+LAPACK: /opt/software/R/4.1.2/lib64/R/lib/libRlapack.so
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] splines   stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+[1] lava_1.6.10       pbapply_1.5-0     mice_3.14.0       BuyseTest_2.3.12 
+[5] Rcpp_1.0.8.3      ranger_0.13.1     pROC_1.18.0       data.table_1.14.2
+
+loaded via a namespace (and not attached):
+ [1] pillar_1.7.0       compiler_4.1.2     plyr_1.8.6         tools_4.1.2       
+ [5] digest_0.6.29      lifecycle_1.0.1    tibble_3.1.6       gtable_0.3.0      
+ [9] lattice_0.20-45    pkgconfig_2.0.3    rlang_1.0.2        Matrix_1.3-4      
+[13] cli_3.2.0          parallel_4.1.2     SparseM_1.81       prodlim_2019.11.13
+[17] withr_2.5.0        dplyr_1.0.8        MatrixModels_0.5-0 generics_0.1.2    
+[21] vctrs_0.4.1        globals_0.14.0     stats4_4.1.2       grid_4.1.2        
+[25] tidyselect_1.1.2   glue_1.6.2         listenv_0.8.0      R6_2.5.1          
+[29] future.apply_1.8.1 fansi_1.0.3        parallelly_1.31.0  survival_3.2-13   
+[33] tidyr_1.2.0        ggplot2_3.3.5      purrr_0.3.4        magrittr_2.0.3    
+[37] backports_1.4.1    scales_1.2.0       codetools_0.2-18   ellipsis_0.3.2    
+[41] future_1.24.0      colorspace_2.0-3   utf8_1.2.2         munsell_0.5.0     
+[45] broom_0.7.12       crayon_1.5.1      
+> 
+> ##----------------------------------------------------------------------
+> ### analysis-predictionNA-w4.R ends here
+> 
+> proc.time()
+    user   system  elapsed 
+27488.93 34523.78 59611.38 

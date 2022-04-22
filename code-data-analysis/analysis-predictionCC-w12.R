@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  1 2021 (13:12) 
 ## Version: 
-## Last-Updated: mar 18 2022 (10:52) 
+## Last-Updated: apr 21 2022 (16:03) 
 ##           By: Brice Ozenne
-##     Update #: 150
+##     Update #: 175
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,19 +16,50 @@
 ### Code:
 
 ## * Parameters
-n.resampling <- 10000
-fold.number <- 25
+n.resampling <- 100 ## 10000
+fold.size <- 0.1
+fold.repetition <- 50
+
+
+iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
+n.iter_sim <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_COUNT"))
+if(is.na(iter_sim)){iter_sim <- 1}
+if(is.na(n.iter_sim)){n.iter_sim <- 10}
+
+vec.resampling <- (1+n.resampling*(iter_sim-1)):(n.resampling*iter_sim)
+cat("iteration ",iter_sim," over ",n.iter_sim,"\n", sep = "")
+cat("vec.repetition:\n")
+print(vec.resampling)
+cat("\n")
 
 ## * Path
 if(system("whoami",intern=TRUE)=="hpl802"){
     ## nothing: on the server
+    ## cd ucph/hdir/SundKonsolidering_BioStatHome/Cluster/BrainDrug-WP3/
+    ## setwd("h:/SundKonsolidering_BioStatHome/Cluster/BrainDrug-WP3/")
+    ## source("code-data-analysis/analysis-predictionCC-w12.R")
 }else if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
     setwd("c:/Users/hpl802/Documents/Github/article-predictionNP1BD3/")
 }else{ ## 
     setwd("Vibeke put your path here")
 }
 path.code <- "./code-data-analysis"
+
+path.output <- "./output/"
+if(dir.exists(path.output)==FALSE){
+    dir.create(path.output)
+}
+if(dir.exists(file.path(path.output,"analysis-predictionCC-w12"))==FALSE){
+    dir.create(file.path(path.output,"analysis-predictionCC-w12"))
+}
+
 path.results <- "./results/"
+if(dir.exists(path.results)==FALSE){
+    dir.create(path.results)
+}
+if(dir.exists(file.path(path.results,"analysis-predictionCC-w12"))==FALSE){
+    dir.create(file.path(path.results,"analysis-predictionCC-w12"))
+}
 
 ## * Packages and function
 library(data.table)
@@ -59,29 +90,60 @@ ff_ccw12 <- Y_w12 ~ female + age + MR_OFCthick + HAMD17 + low_hsCRP + lvpet + co
 
 e.glm0_ccw12 <- glm(Y_w12 ~ female + age, data = dfWR.NP1_ccw12, family = binomial(link = "logit"))
 e.glm_ccw12 <- glm(ff_ccw12, data = dfWR.NP1_ccw12, family = binomial(link = "logit"))
-e.ranger_ccw12 <- ranger(ff_ccw12, data = dfWR.NP1_ccw12, probability = TRUE)
+e.ranger_ccw12 <- ranger(formula = ff_ccw12, data = dfWR.NP1_ccw12, probability = TRUE)
 
 ## *** assess performance
-## performance(list(glm0_ccw12 = e.glm0_ccw12, glm_ccw12 = e.glm_ccw12, rf_ccw12 = ranger(ff_ccw12, data = dfWR.NP1_ccw12, probability = FALSE)),
-##                           data = dfWR.NP1_ccw12)
-set.seed(10)
-ePerf.ccw12 <- performanceResample(list(glm0_ccw12 = e.glm0_ccw12, glm_ccw12 = e.glm_ccw12, rf_ccw12 = e.ranger_ccw12), data = dfWR.NP1_ccw12,
-                                   fold.number = fold.number, fold.size = 0.1,
-                                   type.resampling = "permutation", n.resampling = n.resampling, seed = 10,
-                                   filename = file.path(path.results,"analysis-predictionCC","perf-imp-week12"))
-ePerf.ccw12
+if(iter_sim==1){
+    ePerf.ccw12.IF <- performance(list(glm0_ccw12 = e.glm0_ccw12, glm_ccw12 = e.glm_ccw12, rf_ccw12 = e.ranger_ccw12), data = dfWR.NP1_ccw12,
+                                  fold.repetition = fold.repetition, fold.balance = TRUE, fold.size = fold.size, conf.level = 0.95, seed = 10)
+    saveRDS(ePerf.ccw12.IF, file = file.path(path.results,"perf-cc-week12-IF.rds"))
+    ePerf.ccw12.IF
+}
+##      method metric      model estimate      se  lower  upper p.value p.value_comp
+## 1  internal    auc glm0_ccw12   0.6602 0.06467 0.5172 0.7699 0.02982             
+## 2  internal    auc  glm_ccw12   0.7552 0.05802 0.6188 0.8486 < 0.001       0.1396
+## 3  internal    auc   rf_ccw12   1.0000 0.00000 1.0000 1.0000 < 0.001       <0.001
+## 4  internal  brier glm0_ccw12   0.1939 0.02046 0.1577 0.2385                     
+## 5  internal  brier  glm_ccw12   0.1699 0.02271 0.1307 0.2207               0.1276
+## 6  internal  brier   rf_ccw12   0.0686 0.00823 0.0543 0.0868               <0.001
+## 7        cv    auc glm0_ccw12   0.6109 0.06671 0.4673 0.7267 0.12371             
+## 8        cv    auc  glm_ccw12   0.5859 0.06951 0.4378 0.7074 0.24208       0.7048
+## 9        cv    auc   rf_ccw12   0.7026 0.05817 0.5718 0.8002 0.00402       0.0343
+## 10       cv  brier glm0_ccw12   0.2040 0.02171 0.1656 0.2513                     
+## 11       cv  brier  glm_ccw12   0.2273 0.02907 0.1769 0.2921               0.2231
+## 12       cv  brier   rf_ccw12   0.1914 0.02184 0.1531 0.2394               0.0251
+
+## beta <- c(ePerf.ccw12.IF$auc$cv$glm0_ccw12[ePerf.ccw12.IF$auc$cv$glm0_ccw12$fold=="global","estimate"],
+##           ePerf.ccw12.IF$auc$cv$glm_ccw12[ePerf.ccw12.IF$auc$cv$glm_ccw12$fold=="global","estimate"],
+##           ePerf.ccw12.IF$auc$cv$rf_ccw12[ePerf.ccw12.IF$auc$cv$rf_ccw12$fold=="global","estimate"])
+## Sigma <- crossprod(ePerf.ccw12.IF$iid.auc$cv)
+## C1 <- rbind(c(-1,1,0)); t1 <- abs((C1 %*% beta) / sqrt(C1 %*% Sigma %*% t(C1))); 2*(1-pnorm(abs(t1)))
+## C2 <- rbind(c(-1,0,1)); t2 <- abs((C2 %*% beta) / sqrt(C2 %*% Sigma %*% t(C2))); 2*(1-pnorm(abs(t2)))
+## C3 <- rbind(c(0,-1,1)); t3 <- abs((C3 %*% beta) / sqrt(C3 %*% Sigma %*% t(C3))); 2*(1-pnorm(abs(t3)))
 
 
-##    metric      model  estimate se lower upper p.value p.value_comp
-## 1:    auc glm0_ccw12 0.5813704 NA    NA    NA   0.070           NA
-## 2:    auc  glm_ccw12 0.6136246 NA    NA    NA   0.094           NA
-## 3:    auc   rf_ccw12 0.7704071 NA    NA    NA   0.002           NA
-## 4:  brier glm0_ccw12 0.1945718 NA    NA    NA   0.087           NA
-## 5:  brier  glm_ccw12 0.2115583 NA    NA    NA   0.080           NA
-## 6:  brier   rf_ccw12 0.1634158 NA    NA    NA   0.004           NA
+ePerf.ccw12.perm <- performanceResample(list(glm0_ccw12 = e.glm0_ccw12, glm_ccw12 = e.glm_ccw12, rf_ccw12 = e.ranger_ccw12), data = dfWR.NP1_ccw12,
+                                       fold.repetition = fold.repetition, fold.size = fold.size, fold.balance = TRUE,
+                                       type.resampling = "permutation", n.resampling = vec.resampling, seed = 10,
+                                       filename = file.path(path.results,"analysis-predictionCC-w12",paste0("iter",iter_sim,"-tempo")))
+saveRDS(ePerf.ccw12.perm, file = file.path(path.results,"analysis-predictionCC-w12",paste0("iter",iter_sim,"-final.rds")))
+ePerf.ccw12.perm                                       
+##    metric      model   estimate   resample se.resample p.value p.value_comp
+## 1:    auc glm0_ccw12 0.66022544 0.58200000 0.048943997   0.063           NA
+## 2:    auc  glm_ccw12 0.75523349 0.70931643 0.050168478   0.181        0.701
+## 3:    auc   rf_ccw12 1.00000000 0.99840821 0.002343665   0.475        0.811
+## 4:  brier glm0_ccw12 0.19393107 0.20406055 0.005079584   0.949           NA
+## 5:  brier  glm_ccw12 0.16985449 0.18354682 0.012414791   0.863        0.321
+## 6:  brier   rf_ccw12 0.07130295 0.08731617 0.006412779   0.985        0.457
 
-## * Export
-saveRDS(ePerf.ccw12, file = file.path(path.results,"perf-cc-week12.rds"))
+## * sessionInfo
+sessionInfo()
+
+## * Results
+if(FALSE){
+    ## ePerf.ccw12.IF <- readRDS(file = file.path(path.results,"perf-cc-week12-IF.rds"))
+    ## ePerf.ccw12.perm <- readRDS(file = file.path(path.results,"perf-cc-week12-perm.rds"))
+}
 
 ##----------------------------------------------------------------------
 ### analysis-predictionCC-w12.R ends here

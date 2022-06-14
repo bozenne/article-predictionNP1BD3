@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  3 2022 (18:37) 
 ## Version: 
-## Last-Updated: apr 22 2022 (16:03) 
+## Last-Updated: maj 31 2022 (15:24) 
 ##           By: Brice Ozenne
-##     Update #: 23
+##     Update #: 24
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -115,7 +115,7 @@ tablePerf.cc <- rbind(cbind(week = 4,  ePerf.ccw4[method=="cv",.(metric,model,es
                       cbind(week = 8,  ePerf.ccw8[method=="cv",.(metric,model,estimate,p.value,p.value2)]),
                       cbind(week = 12,  ePerf.ccw12[method=="cv",.(metric,model,estimate,p.value,p.value2)]),
                       cbind(week = 4812,  ePerf.cctraj[method=="cv",.(metric,model,estimate,p.value,p.value2)]))
-tablePerfW.cc <- dcast(tablePerf.cc, model+week~metric, value.var = c("estimate","p.value","p.value2"))
+tablePerfW.cc <- data.table::dcast(tablePerf.cc, model+week~metric, value.var = c("estimate","p.value","p.value2"))
 tablePerfW.cc$model <- factor(sapply(strsplit(tablePerfW.cc$model, split = "_", fixed = TRUE),"[[",1),
                               levels = c("glm0","glm","rf",""),
                               labels = c("GLM (no biomarker)", "GLM (biomarkers)","RF (biomarkers)",""))
@@ -149,17 +149,17 @@ tablePerf.imp <- rbind(cbind(week = 4,  ePerf.impw4[method=="cv",.(metric,model,
                        cbind(week = 12,  ePerf.impw12[method=="cv",.(metric,model,estimate,p.value,p.value2)]),
                        cbind(week = 4812,  ePerf.imptraj[method=="cv",.(metric,model,estimate,p.value,p.value2)])
                        )
-tablePerfW.imp <- dcast(tablePerf.imp, model+week~metric, value.var = c("estimate","p.value","p.value2"))
+tablePerfW.imp <- data.table::dcast(tablePerf.imp, model+week~metric, value.var = c("estimate","p.value","p.value2"))
 tablePerfW.imp$model <- factor(sapply(strsplit(tablePerfW.imp$model, split = "_", fixed = TRUE),"[[",1),
                                levels = c("glm0","glm","rf",""),
                                labels = c("GLM (no biomarker)", "GLM (biomarkers)","RF (biomarkers)",""))
 tablePerfW.imp <- tablePerfW.imp[order(tablePerfW.imp$model,tablePerfW.imp$week),]
 tablePerfW.imp[,AUC := paste0(round(estimate_auc, digits.auc),
-                             " (p(IF)=",format.pval(p.value_auc,digits = 2, esp = 0.001),
-                             ", p(perm)=",format.pval(p.value2_auc,digits = 2, esp = 0.001),")",sep="")]
+                              " (p(IF)=",format.pval(p.value_auc,digits = 2, esp = 0.001),
+                              ", p(perm)=",format.pval(p.value2_auc,digits = 2, esp = 0.001),")",sep="")]
 tablePerfW.imp[,Brier := paste0(round(estimate_brier, digits.brier),
-                             " (p(IF)=",format.pval(p.value_brier,digits = 2, esp = 0.001),
-                             ", p(perm)=",format.pval(p.value2_brier,digits = 2, esp = 0.001),")",sep="")]
+                                " (p(IF)=",format.pval(p.value_brier,digits = 2, esp = 0.001),
+                                ", p(perm)=",format.pval(p.value2_brier,digits = 2, esp = 0.001),")",sep="")]
 tablePerfW.imp[,c("estimate_auc","estimate_brier","p.value_auc","p.value_brier","p.value2_auc","p.value2_brier") := NULL]
 tablePerfW.imp$model[duplicated(tablePerfW.imp$model)] <- ""
 tablePerfW.imp

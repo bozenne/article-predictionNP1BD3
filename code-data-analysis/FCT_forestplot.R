@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 24 2022 (17:36) 
 ## Version: 
-## Last-Updated: mar 18 2022 (11:08) 
+## Last-Updated: sep 16 2022 (09:20) 
 ##           By: Brice Ozenne
-##     Update #: 13
+##     Update #: 22
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,23 +16,24 @@
 ### Code:
 
 
-forestplot <- function(data, size = c(1,1.5,0.75), reorder = TRUE){
+forestplot <- function(data, size = c(1,1.5,0.75), term = "term", reorder = TRUE){
     require(ggforestplot)
     gg_color_hue <- function(n) {
         hues = seq(15, 375, length = n + 1)
         hcl(h = hues, l = 65, c = 100)[1:n]
     }
-
-    data <- data[data$term != "(Intercept)"]
+    index.keep <- data[[term]] != "(Intercept)"
+    data <- data[index.keep]
     if(reorder){
-        data$term <- factor(data$term, levels = sort(levels(data$term), decreasing = TRUE))
-        setkeyv(data,c("method","term"))
+        data[[term]] <- factor(data[[term]], levels = sort(levels(data[[term]]), decreasing = TRUE))
+        setkeyv(data,c("method",term))
     }
-    
+
     ## based on ggforestplot::forestplot
-    ggForest <- ggplot(data, aes(x = estimate, y = term))
+    ggForest <- ggplot(data, aes_string(x = "estimate", y = term))
     ggForest <- ggForest + ggforestplot::theme_forest() + ggforestplot::scale_colour_ng_d() + ggforestplot::scale_fill_ng_d()
-    ggForest <- ggForest + ggforestplot::geom_stripes() + geom_vline(xintercept = 0, linetype = "solid", size = size[3], colour = "black")
+    ggForest <- ggForest + ggforestplot::geom_stripes()
+    ggForest <- ggForest + geom_vline(xintercept = 0, linetype = "solid", size = size[3], colour = "black")
     ggForest <- ggForest + ggforestplot::geom_effect(ggplot2::aes(xmin = lower, xmax = upper, 
                                                                   colour = time, filled = TRUE), size = size[2], 
                                                      position = ggstance::position_dodgev(height = 0.5))

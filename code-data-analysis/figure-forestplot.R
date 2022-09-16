@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  2 2022 (15:46) 
 ## Version: 
-## Last-Updated: apr 22 2022 (15:43) 
+## Last-Updated: sep 16 2022 (09:24) 
 ##           By: Brice Ozenne
-##     Update #: 24
+##     Update #: 26
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -160,6 +160,24 @@ dtS.ass_imp[,.(time,term,estimate,lower,upper,p.value,lower.adj,upper.adj,adj.p.
 ## 47:     week 4              Cortisol  0.288736155 -0.320148090  0.897620400 0.347755621 -0.588917055 1.16638936  0.97932911
 ## 48:     week 4           Neuroticism  0.200533947 -0.430035548  0.831103443 0.528250206 -0.708506252 1.10957415  0.99904127
 ##           time                  term     estimate        lower        upper     p.value    lower.adj  upper.adj adj.p.value
+
+## POSTER
+new.levels <- c("PET (serotonin)", "MR (OFC thickness)", "EEG (vigilance)", "cognition (cluster 2)", "cognition (cluster 3)", "Cortisol", "hsCRP",
+                                      "HAMD17", "CATS", "Neuroticism", "age", "female")
+dtS.ass_imp$term2 <- factor(dtS.ass_imp$term, levels = new.levels)
+                                       
+gg.forest_imp2 <- forestplot(dtS.ass_imp[time!="trajectory"], reorder = FALSE, term = "term2") + labs(color = "Analysis at:", x = "log odd ratio for recovery", y = "")
+gg.forest_imp2 <- gg.forest_imp2 + ggtitle(paste0("Multiple imputation (n=",NROW(dfWRimp.NP1_w4C$data),"/",NROW(dfWRimp.NP1_w8C$data),"/",NROW(dfWRimp.NP1_w12C$data),")"))
+gg.forest_imp2 <- gg.forest_imp2 + coord_flip() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + scale_x_continuous(breaks=seq(-4,3,1))
+gg.forest_imp2 <- gg.forest_imp2 + ggplot2::theme(panel.grid.major.y = element_line(colour = "gray50", size = 0.25, linetype = 2),
+                                                panel.grid.minor.y = element_blank(), 
+                                                panel.grid.major.x = element_blank(),
+                                                panel.grid.minor.x = element_blank())
+gg.forest_imp2
+
+## ggsave(gg.forest_imp2, filename = "./figures/gg-forestplot-OR2.pdf", width = 12)
+## ggsave(gg.forest_imp2, filename = "./figures/gg-forestplot-OR2.png", width = 12)
+
 
 ## *** together
 ggforest.ass <- ggarrange(gg.forest_cc + coord_cartesian(xlim = c(-5,5)) + ylab(""),

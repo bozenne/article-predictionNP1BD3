@@ -4,9 +4,9 @@
 ## Author: Brice Ozenne
 ## Created: nov  1 2021 (13:10) 
 ## Version: 
-## Last-Updated: mar 22 2022 (20:37) 
+## Last-Updated: jul 28 2022 (18:56) 
 ##           By: Brice Ozenne
-##     Update #: 77
+##     Update #: 78
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -324,5 +324,9 @@ cat("\n")
 ##                          "Non compliant to medicine. Was ordinated Duloxetin at week 4, but had no serum-levels at week 8 of Duloxetin, only S-Escitalopram. Not valid for response categorization.",
 ##                          "Non compliant to medicine baes on blood measures at week 8",
 ##                          "Exclusion at week 3. No contact between week 3 and 8. Not documented compliant to medicine.")
+
+## source.NP1$GAD10_score <- as.numeric(gsub(",",".",source.NP1$GAD10_score,fixed=TRUE))
+## source.NP1[,c("CIMBI_ID","GAD10_score")]
+
 ##----------------------------------------------------------------------
 ### 0-read-data.R ends here

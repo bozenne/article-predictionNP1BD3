@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  4 2022 (09:16) 
 ## Version: 
-## Last-Updated: apr 21 2022 (16:03) 
+## Last-Updated: okt 27 2025 (18:16) 
 ##           By: Brice Ozenne
-##     Update #: 57
+##     Update #: 58
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -80,7 +80,7 @@ nameRT.predictor <- c("MR_OFCthick","HAMD17","low_hsCRP","lvpet","cognitive_clus
 
 dfWR.NP1_w8 <- dfWR.NP1[rowSums(is.na(dfWR.NP1[,.SD,.SDcols = c("Y_w8")]))==0,]
 ## butils::DIM(dfWR.NP1_w8)
-## [1] 87 36
+## [1] 88 37
 
 ## ** week 8
 set.seed(10)

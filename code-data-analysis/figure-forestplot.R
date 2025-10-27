@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  2 2022 (15:46) 
 ## Version: 
-## Last-Updated: okt 27 2025 (18:02) 
+## Last-Updated: okt 27 2025 (18:59) 
 ##           By: Brice Ozenne
-##     Update #: 32
+##     Update #: 33
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -50,10 +50,10 @@ old2new.names <- c("age" = "Age",
 
 dtS.ass_cc$term2 <- factor(dtS.ass_cc$term, levels = levels(dtS.ass_cc$term),
                            labels = old2new.names[levels(dtS.ass_cc$term)])
-dtS.ass_cc$term2 <- factor(dtS.ass_cc$term2, labels = old2new.names)
+dtS.ass_cc$term2 <- factor(dtS.ass_cc$term2, levels = old2new.names)
 dtS.ass_imp$term2 <- factor(dtS.ass_imp$term, levels = levels(dtS.ass_imp$term),
                           labels = old2new.names[levels(dtS.ass_cc$term)])
-dtS.ass_imp$term2 <- factor(dtS.ass_imp$term2, labels = old2new.names)
+dtS.ass_imp$term2 <- factor(dtS.ass_imp$term2, levels = old2new.names)
 
 ## * Generate plot
 

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  3 2022 (18:37) 
 ## Version: 
-## Last-Updated: maj 31 2022 (15:24) 
+## Last-Updated: okt 27 2025 (18:59) 
 ##           By: Brice Ozenne
-##     Update #: 24
+##     Update #: 26
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -79,6 +79,11 @@ setkeyv(ePerf.impw4_perm, c("method","metric","model"))
 ePerf.impw4 <- cbind(ePerf.impw4_IF,
                      p.value2 = ePerf.impw4_perm$p.value,
                      p.value_comp2 = ePerf.impw4_perm$p.value_comp)
+ ##      method metric      model   estimate          se      lower      upper     p.value p.value_comp  p.value2 p.value_comp2
+ ##      <char> <char>     <char>      <num>       <num>      <num>      <num>       <num>        <num>     <num>         <num>
+ ## 1:       cv    auc glm0_impw4 0.51386694 0.057863646 0.39555270 0.62005811 0.811816619           NA 0.2717283            NA
+ ## 2:       cv    auc  glm_impw4 0.48887734 0.057746347 0.37195242 0.59580151 0.846558252 6.592968e-01 0.5214785     0.7982018
+ ## 3:       cv    auc   rf_impw4 0.51974012 0.058768782 0.39924024 0.62723643 0.739366962 5.405897e-01 0.3896104     0.6343656
 
 ePerf.impw8_IF <- as.data.table(readRDS(file.path(path.results,"perf-imp-week8-IF.rds")))
 ePerf.impw8_perm <- as.data.table(readRDS(file.path(path.results,"perf-imp-week8-perm.rds")))
@@ -88,6 +93,11 @@ setkeyv(ePerf.impw8_perm, c("method","metric","model"))
 ePerf.impw8 <- cbind(ePerf.impw8_IF,
                      p.value2 = ePerf.impw8_perm$p.value,
                      p.value_comp2 = ePerf.impw8_perm$p.value_comp)
+ ##      method metric      model  estimate          se      lower     upper     p.value p.value_comp   p.value2 p.value_comp2
+ ##      <char> <char>     <char>     <num>       <num>      <num>     <num>       <num>        <num>      <num>         <num>
+ ## 1:       cv    auc glm0_impw8 0.5489896 0.059174949 0.42616233 0.6559858 0.420311669           NA 0.15184815            NA
+ ## 2:       cv    auc  glm_impw8 0.6209271 0.058661152 0.49518221 0.7238935 0.058759117 3.274076e-01 0.06793207    0.46853147
+ ## 3:       cv    auc   rf_impw8 0.4784271 0.058595952 0.36023778 0.5872146 0.710394858 6.152017e-03 0.59640360    0.04695305
 
 ePerf.impw12_IF <- as.data.table(readRDS(file.path(path.results,"perf-imp-week12-IF.rds")))
 ePerf.impw12_perm <- as.data.table(readRDS(file.path(path.results,"perf-imp-week12-perm.rds")))
@@ -97,6 +107,11 @@ setkeyv(ePerf.impw12_perm, c("method","metric","model"))
 ePerf.impw12 <- cbind(ePerf.impw12_IF,
                      p.value2 = ePerf.impw12_perm$p.value,
                      p.value_comp2 = ePerf.impw12_perm$p.value_comp)
+ ##      method metric       model   estimate          se      lower      upper      p.value p.value_comp   p.value2 p.value_comp2
+ ##      <char> <char>      <char>      <num>       <num>      <num>      <num>        <num>        <num>      <num>         <num>
+ ## 1:       cv    auc glm0_impw12 0.62189744 0.063588346 0.48466775 0.73235850 0.0791237269           NA 0.03096903            NA
+ ## 2:       cv    auc  glm_impw12 0.61738462 0.065311419 0.47648912 0.73071001 0.0981850176 9.468282e-01 0.07192807     0.9660340
+ ## 3:       cv    auc   rf_impw12 0.63469231 0.060380798 0.50402828 0.73958885 0.0438410263 6.944909e-01 0.04395604     0.8241758
 
 ePerf.imptraj_IF <- as.data.table(readRDS(file.path(path.results,"perf-imp-traj-IF.rds")))
 ePerf.imptraj_perm <- as.data.table(readRDS(file.path(path.results,"perf-imp-traj-perm.rds")))
@@ -104,8 +119,8 @@ setkeyv(ePerf.imptraj_IF, c("method","metric","model"))
 setkeyv(ePerf.imptraj_perm, c("method","metric","model"))
 ## range(ePerf.cctraj_IF$estimate - ePerf.cctraj_perm$estimate)
 ePerf.imptraj <- cbind(ePerf.imptraj_IF,
-                      p.value2 = ePerf.imptraj_perm$p.value,
-                      p.value_comp2 = ePerf.imptraj_perm$p.value_comp)
+                       p.value2 = ePerf.imptraj_perm$p.value,
+                       p.value_comp2 = ePerf.imptraj_perm$p.value_comp)
 
 ## * Create table
 digits.auc <- 3
@@ -163,7 +178,6 @@ tablePerfW.imp[,Brier := paste0(round(estimate_brier, digits.brier),
 tablePerfW.imp[,c("estimate_auc","estimate_brier","p.value_auc","p.value_brier","p.value2_auc","p.value2_brier") := NULL]
 tablePerfW.imp$model[duplicated(tablePerfW.imp$model)] <- ""
 tablePerfW.imp
-
 ##                  model week                                AUC                           Brier
 ##  1: GLM (no biomarker)    4 0.514 (p(IF)=0.812, p(perm)=0.272) 0.245 (p(IF)=NA, p(perm)=0.179)
 ##  2:                       8 0.549 (p(IF)=0.420, p(perm)=0.152) 0.253 (p(IF)=NA, p(perm)=0.289)

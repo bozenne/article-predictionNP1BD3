@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  3 2022 (18:37) 
 ## Version: 
-## Last-Updated: maj 10 2022 (16:56) 
+## Last-Updated: okt 27 2025 (18:59) 
 ##           By: Brice Ozenne
-##     Update #: 32
+##     Update #: 33
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -442,6 +442,14 @@ if(FALSE){
 
     ggsave(ggCali_w12, filename = "./figures/cali-pred-week12.pdf", width = 14)
     ggsave(ggCali_w12, filename = "./figures/cali-pred-week12.png", width = 14)
+
+    ggROC_imp <- ggarrange(ggROC_impw4 + ggtitle("Week 4") + theme(text = element_text(size=15)),
+                           ggROC_impw8 + ggtitle("Week 8") + theme(text = element_text(size=15)),
+                           ggROC_impw12 + ggtitle("Week 12") + theme(text = element_text(size=15)),
+                           nrow = 3,
+                          legend = "bottom", common.legend = TRUE)
+    ggsave(ggROC_imp, filename = "./figures/ROC-pred-imp.pdf", width = 14, height = 10)
+    ggsave(ggROC_imp, filename = "./figures/ROC-pred-imp.png", width = 14, height = 10)
 }
 
 ##----------------------------------------------------------------------

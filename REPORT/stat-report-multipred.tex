@@ -1,4 +1,4 @@
-% Created 2022-04-22 fr 17:34
+% Created 2025-10-27 ma 18:52
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -185,15 +185,14 @@ linkcolor=[rgb]{0,0,0.5},
  pdftitle={Leveraging multimodal data to predict outcomes of antidepressant treatment},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 27.2 (Org mode 9.5.2)},
+ pdfcreator={Emacs 30.1 (Org mode 9.7.11)},
  pdflang={English}
  }
 \begin{document}
 
 \maketitle
-
 \section{Data processing}
-\label{sec:orgc714337}
+\label{sec:org8f7579d}
 
 \textbf{Data}: has been provided by Emily Beaman. She processed relevant data
 from the CIMBI database leading to n=98 patients. In addition we
@@ -260,9 +259,8 @@ biomarkers\footnote{fMRI is missing in the list} for predicting recovery after S
 \bigskip
 
 The corresponding R code is in the file \texttt{0-data-management.R} available on \href{https://github.com/bozenne/article-predictionNP1BD3/blob/master/code-data-analysis/0-data-management.R}{Github}.
-
 \section{Data analysis}
-\label{sec:org75fab33}
+\label{sec:org3e51687}
 
 \noindent \textbf{Recovery trajectory}: a latent class linear mixed model
 with homogeneous residual variance-covariance between groups were used
@@ -348,47 +346,49 @@ patient with missing values among those 7 biomarkers.
 \bigskip
 
 \clearpage
-
 \section{Results}
-\label{sec:orgbe6cecc}
+\label{sec:orgb29969a}
 
 
 \subsection{Descriptive statistics}
-\label{sec:org1d58ed9}
+\label{sec:orgb06b678}
 
-The dataset contained 90 patients, 89 with the outcome at week 4, 8
+The dataset contained 90 patients, 89 with the outcome at week 4, 88
 with outcome at week 8, and 86 with the outcome at week 12. Some
 summary statistics are displayed below:
+\phantomsection
+\label{}
 \begin{verbatim}
-    sex          age         MR_OFCthick        HAMD17       hsCRP        lvpet         
-male  :25   Min.   :18.24   Min.   :2.318   Min.   :18.00   high:19   Min.   :-0.82582  
-female:65   1st Qu.:22.11   1st Qu.:2.510   1st Qu.:20.00   low :69   1st Qu.:-0.48794  
-            Median :23.99   Median :2.566   Median :22.00   NA's: 2   Median :-0.42200  
-            Mean   :26.98   Mean   :2.576   Mean   :22.86             Mean   :-0.43020  
-            3rd Qu.:28.43   3rd Qu.:2.639   3rd Qu.:25.00             3rd Qu.:-0.35131  
-            Max.   :57.31   Max.   :2.889   Max.   :31.00             Max.   :-0.09773  
-                                                                      NA's   :2         
-cognitive_cluster EEG_vigilance      CATS_scoretotal    CAR_AUCi        neuroticism   
-Min.   :1.000     Min.   :-1.50000   Min.   : 0.0    Min.   :-1070.3   Min.   : 67.0  
-1st Qu.:1.000     1st Qu.: 0.00000   1st Qu.:16.0    1st Qu.:   79.1   1st Qu.:108.8  
-Median :2.000     Median : 0.00000   Median :23.0    Median :  221.9   Median :119.0  
-Mean   :1.875     Mean   :-0.01744   Mean   :30.1    Mean   :  181.3   Mean   :120.4  
-3rd Qu.:3.000     3rd Qu.: 0.00000   3rd Qu.:41.5    3rd Qu.:  381.1   3rd Qu.:134.0  
-Max.   :3.000     Max.   : 1.50000   Max.   :81.0    Max.   :  768.9   Max.   :155.0  
-NA's   :2         NA's   :4          NA's   :12      NA's   :21        NA's   :26     
-   Y_w4            Y_w8           Y_w12        
-Mode :logical   Mode :logical   Mode :logical  
-FALSE:52        FALSE:40        FALSE:26       
-TRUE :37        TRUE :48        TRUE :60       
-NA's :1         NA's :2         NA's :4
+     sex          age         MR_OFCthick        HAMD17       hsCRP        lvpet         
+ male  :25   Min.   :18.24   Min.   :2.318   Min.   :18.00   high:19   Min.   :-0.82582  
+ female:65   1st Qu.:22.11   1st Qu.:2.510   1st Qu.:20.00   low :69   1st Qu.:-0.48794  
+             Median :23.99   Median :2.566   Median :22.00   NA's: 2   Median :-0.42200  
+             Mean   :26.98   Mean   :2.576   Mean   :22.86             Mean   :-0.43020  
+             3rd Qu.:28.43   3rd Qu.:2.639   3rd Qu.:25.00             3rd Qu.:-0.35131  
+             Max.   :57.31   Max.   :2.889   Max.   :31.00             Max.   :-0.09773  
+                                                                       NA's   :2         
+ cognitive_cluster EEG_vigilance      CATS_scoretotal    CAR_AUCi        neuroticism   
+ Min.   :1.000     Min.   :-1.50000   Min.   : 0.0    Min.   :-1070.3   Min.   : 67.0  
+ 1st Qu.:1.000     1st Qu.: 0.00000   1st Qu.:16.0    1st Qu.:   79.1   1st Qu.:108.8  
+ Median :2.000     Median : 0.00000   Median :23.0    Median :  221.9   Median :119.0  
+ Mean   :1.875     Mean   :-0.01744   Mean   :30.1    Mean   :  181.3   Mean   :120.4  
+ 3rd Qu.:3.000     3rd Qu.: 0.00000   3rd Qu.:41.5    3rd Qu.:  381.1   3rd Qu.:134.0  
+ Max.   :3.000     Max.   : 1.50000   Max.   :81.0    Max.   :  768.9   Max.   :155.0  
+ NA's   :2         NA's   :4          NA's   :12      NA's   :21        NA's   :26     
+    Y_w4            Y_w8           Y_w12        
+ Mode :logical   Mode :logical   Mode :logical  
+ FALSE:52        FALSE:40        FALSE:26       
+ TRUE :37        TRUE :48        TRUE :60       
+ NA's :1         NA's :2         NA's :4
 \end{verbatim}
 
 One biomarker looks a bit weird: \texttt{EEG\_vigilance} with many 0 values:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 table(dfWR.NP1$EEG_vigilance)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
 
 -1.5    -1 -0.75  -0.5 -0.25     0  0.25   0.5     1   1.5 
@@ -416,9 +416,8 @@ were excluded from some analyses.
 \end{figure}
 
 \bigskip
-
 \subsection{Outcome trajectories}
-\label{sec:org8822473}
+\label{sec:org6231d09}
 
 The following table describes:
 \begin{itemize}
@@ -432,6 +431,8 @@ previously and stay recovered (\texttt{r2r}). \texttt{nr2r+r2r} is then number o
 patients currently classified as recovered and \texttt{nr2nr+r2nr} as not
 recovered.
 \end{itemize}
+\phantomsection
+\label{}
 \begin{verbatim}
             week4        4->8       week8       8->12      week12
 nr2nr 52 (58.43%) 30 (34.48%) 40 (45.45%) 20 (23.53%) 26 (30.23%)
@@ -453,93 +454,119 @@ ressemble those of \cite{goerigk2021distinct}.
 \includegraphics[trim={0 0 0 0},width=0.9\textwidth]{./../figures/spaghetti-HAMD17.pdf}
 \caption{\label{fig:hlme}Recovery groups found by a latent class linear mixed model (LCMM). Thin lines represent individual trajectories colored as a function of the group membership probability. Thick lines represent group trajctories estimated by the LCMM.}
 \end{figure}
-
-
-
 \subsection{Association study (linear)}
-\label{sec:org8f36ead}
+\label{sec:orgaf55d8c}
 
 The following table shows the result of multiple imputation for the
 logistic model with biomarkers at week 8, based on 88 patients (some
 with missing biomarker values):
+\phantomsection
+\label{}
 \begin{verbatim}
-                     term    estimate    p.value adj.p.value  lower.adj upper.adj
- 1:    MR (OFC thickness) -0.48611743 0.09664484  0.59434177 -1.3153186 0.3430838
- 2:                HAMD17  0.32097935 0.23911230  0.91059355 -0.4554163 1.0973750
- 3:                 hsCRP  0.89399954 0.17305117  0.81271899 -0.9709181 2.7589172
- 4:       PET (serotonin) -0.09616763 0.71280103  0.99999133 -0.8433060 0.6509707
- 5: cognition (cluster 2) -0.69912372 0.27221893  0.93997382 -2.5132162 1.1149688
- 6: cognition (cluster 3) -1.87992179 0.01004351  0.09045036 -3.9210419 0.1611983
- 7:       EEG (vigilance) -0.69847488 0.02015285  0.17149993 -1.5425797 0.1456299
- 8:                  CATS  0.07479048 0.78655856  0.99999954 -0.7152574 0.8648384
- 9:              Cortisol  0.28152530 0.34520600  0.97701584 -0.5691271 1.1321777
-10:           Neuroticism  0.22612552 0.50133395  0.99819131 -0.7345783 1.1868293
-11:                female -0.57753491 0.33310871          NA         NA        NA
-12:                   age  0.45193136 0.16838786          NA         NA        NA
+                     term estimate std.error p.value adj.p.value lower.adj upper.adj
+ 1:                female -0.57753    0.5927 0.33311          NA        NA        NA
+ 2:                   age  0.45193    0.3248 0.16839          NA        NA        NA
+ 3:       PET (serotonin) -0.09617    0.2602 0.71280     0.99999   -0.8433    0.6510
+ 4:    MR (OFC thickness) -0.48612    0.2888 0.09664     0.59434   -1.3153    0.3431
+ 5:       EEG (vigilance) -0.69847    0.2940 0.02015     0.17150   -1.5426    0.1456
+ 6:                 hsCRP  0.89400    0.6496 0.17305     0.81272   -0.9709    2.7589
+ 7:              Cortisol  0.28153    0.2963 0.34521     0.97702   -0.5691    1.1322
+ 8: cognition (cluster 2) -0.69912    0.6319 0.27222     0.93997   -2.5132    1.1150
+ 9: cognition (cluster 3) -1.87992    0.7110 0.01004     0.09045   -3.9210    0.1612
+10:                HAMD17  0.32098    0.2704 0.23911     0.91059   -0.4554    1.0974
+11:           Neuroticism  0.22613    0.3346 0.50133     0.99819   -0.7346    1.1868
+12:                  CATS  0.07479    0.2752 0.78656     1.00000   -0.7153    0.8648
 \end{verbatim}
 
 The smallest adjusted p-value is 0.09 obtained for cognition cluster
 3: being is this cluser is associated with lower remission rate
-(estimate OR=exp(-1.8799)=0.15). The second most significant p-value is obtained for EEG.
-
+(estimate OR=exp(-1.8799)=0.153). The second most significant p-value
+is obtained for EEG (estimate OR=exp(-0.698)=0.497).
 
 \clearpage
 
 \textbf{Sensitivity analysis}: we replicated this analysis at week 4:
+\phantomsection
+\label{}
 \begin{verbatim}
-                     term    estimate    p.value adj.p.value  lower.adj upper.adj
- 1:    MR (OFC thickness) -0.05876414 0.81995462   0.9999999 -0.7977842 0.6802559
- 2:                HAMD17  0.08812129 0.72970162   0.9999958 -0.6417213 0.8179639
- 3:                 hsCRP  0.65041183 0.32292900   0.9707400 -1.2268366 2.5276603
- 4:       PET (serotonin)  0.08061616 0.74715773   0.9999978 -0.6350110 0.7962433
- 5: cognition (cluster 2) -0.33296344 0.58099358   0.9996947 -2.0580544 1.3921275
- 6: cognition (cluster 3) -1.30528058 0.05631125   0.4105747 -3.2383323 0.6277712
- 7:       EEG (vigilance) -0.10138066 0.68695947   0.9999823 -0.8212058 0.6184444
- 8:                  CATS -0.28135338 0.31830848   0.9688774 -1.0857633 0.5230565
- 9:              Cortisol  0.28873615 0.34775562   0.9793304 -0.5889357 1.1664081
-10:           Neuroticism  0.20053395 0.52825021   0.9990412 -0.7085256 1.1095935
-11:                female -1.15006496 0.04969227          NA         NA        NA
-12:                   age  0.24249711 0.35893909          NA         NA        NA
+                     term estimate std.error p.value adj.p.value lower.adj upper.adj
+ 1:                female -1.15006    0.5764 0.04969          NA        NA        NA
+ 2:                   age  0.24250    0.2627 0.35894          NA        NA        NA
+ 3:       PET (serotonin)  0.08062    0.2491 0.74716      1.0000   -0.6350    0.7962
+ 4:    MR (OFC thickness) -0.05876    0.2573 0.81995      1.0000   -0.7978    0.6803
+ 5:       EEG (vigilance) -0.10138    0.2506 0.68696      1.0000   -0.8212    0.6184
+ 6:                 hsCRP  0.65041    0.6535 0.32293      0.9707   -1.2268    2.5277
+ 7:              Cortisol  0.28874    0.3055 0.34776      0.9793   -0.5889    1.1664
+ 8: cognition (cluster 2) -0.33296    0.6005 0.58099      0.9997   -2.0581    1.3921
+ 9: cognition (cluster 3) -1.30528    0.6729 0.05631      0.4106   -3.2383    0.6278
+10:                HAMD17  0.08812    0.2541 0.72970      1.0000   -0.6417    0.8180
+11:           Neuroticism  0.20053    0.3165 0.52825      0.9990   -0.7085    1.1096
+12:                  CATS -0.28135    0.2800 0.31831      0.9689   -1.0858    0.5231
 \end{verbatim}
 
 and week 12:
+\phantomsection
+\label{}
 \begin{verbatim}
-                     term    estimate    p.value adj.p.value  lower.adj upper.adj
- 1:    MR (OFC thickness) -0.87021372 0.01059592  0.09396276 -1.8210349 0.0806075
- 2:                HAMD17  0.22864772 0.43895218  0.99386047 -0.6139856 1.0712810
- 3:                 hsCRP  0.54170359 0.48043219  0.99698565 -1.6487057 2.7321128
- 4:       PET (serotonin)  0.14969225 0.61394466  0.99981908 -0.6977397 0.9971242
- 5: cognition (cluster 2) -1.23228367 0.11663155  0.65758928 -3.4573267 0.9927593
- 6: cognition (cluster 3) -1.23211761 0.14918403  0.75138497 -3.6555280 1.1912928
- 7:       EEG (vigilance) -0.05548535 0.85470244  0.99999999 -0.9214563 0.8104856
- 8:                  CATS  0.69398065 0.04752293  0.34996954 -0.2931720 1.6811333
- 9:              Cortisol  0.46282495 0.22519432  0.88903712 -0.6222499 1.5478998
-10:           Neuroticism -0.02338173 0.95340882  1.00000000 -1.1672482 1.1204847
-11:                female -0.91743988 0.18900657          NA         NA        NA
-12:                   age  0.73697667 0.13715573          NA         NA        NA
+                     term estimate p.value adj.p.value lower.adj upper.adj
+ 1:                female -0.91744 0.18901          NA        NA        NA
+ 2:                   age  0.73698 0.13716          NA        NA        NA
+ 3:       PET (serotonin)  0.14969 0.61394     0.99982   -0.6977   0.99712
+ 4:    MR (OFC thickness) -0.87021 0.01060     0.09396   -1.8210   0.08061
+ 5:       EEG (vigilance) -0.05549 0.85470     1.00000   -0.9215   0.81049
+ 6:                 hsCRP  0.54170 0.48043     0.99699   -1.6487   2.73211
+ 7:              Cortisol  0.46282 0.22519     0.88904   -0.6222   1.54790
+ 8: cognition (cluster 2) -1.23228 0.11663     0.65759   -3.4573   0.99276
+ 9: cognition (cluster 3) -1.23212 0.14918     0.75138   -3.6555   1.19129
+10:                HAMD17  0.22865 0.43895     0.99386   -0.6140   1.07128
+11:           Neuroticism -0.02338 0.95341     1.00000   -1.1672   1.12048
+12:                  CATS  0.69398 0.04752     0.34997   -0.2932   1.68113
 \end{verbatim}
 
 At week 4 we see again some evidence for cluster 3 (without adjustment
 for multiple comparisons). At week 12, the most promising biomarkers
-would be OFC thickness and CATS. We also replicated the analysis when
-removing CATS, Cortisol, Neuroticm and using a complete case
-approach. The results are summarized on the following forest plot
-(\autoref{fig:forestPlot}). We note that for some variables (age,
-cognition cluster 2, OFC thickness) the association seemed more and
-more pronounced over the weeks.
+would be OFC thickness and CATS.
 
 \clearpage
+
+We also replicated the analysis when removing CATS, Cortisol,
+Neuroticm and using a complete case approach. The results are
+summarized on the following forest plot (\autoref{fig:forestPlot}) and in the table below for week 8:
+\phantomsection
+\label{}
+\begin{verbatim}
+                     term estimate std.error p.value adj.p.value lower.adj upper.adj
+ 1:                   age   0.4608    0.3319 0.16502          NA        NA        NA
+ 2:                female  -0.4576    0.5955 0.44219          NA        NA        NA
+ 3:       PET (serotonin)  -0.1501    0.2587 0.56169      0.9961   -0.8421    0.5419
+ 4:    MR (OFC thickness)  -0.4546    0.2971 0.12598      0.5899   -1.2493    0.3402
+ 5:       EEG (vigilance)  -0.6594    0.2933 0.02455      0.1544   -1.4440    0.1252
+ 6:                 hsCRP   0.8238    0.6364 0.19551      0.7626   -0.8788    2.5264
+ 7:              Cortisol       NA        NA      NA          NA        NA        NA
+ 8: cognition (cluster 2)  -0.5081    0.6222 0.41419      0.9716   -2.1727    1.1566
+ 9: cognition (cluster 3)  -1.3911    0.6773 0.03999      0.2394   -3.2031    0.4210
+10:                HAMD17   0.2816    0.2897 0.33118      0.9306   -0.4936    1.0568
+11:           Neuroticism       NA        NA      NA          NA        NA        NA
+12:                  CATS       NA        NA      NA          NA        NA        NA
+\end{verbatim}
+
+We note that for some variables (age, cognition cluster 2, OFC
+thickness) the association seemed more and more pronounced over the
+weeks. The odds ratio for cognition cluster 3 and EEG vigilance are
+0.249 and 0.517, respectively.
+
 \begin{figure}[!h]
 \centering
 \includegraphics[trim={0 0 0 0},width=\textwidth]{./../figures/gg-forestplot-OR.pdf}
 \caption{\label{fig:forestPlot}Log-odd ratio estimates (full circles), confidence intervals (thick lines) and adjusted confidence intervals (thin lines) for each analysis at each timepoint. Covariates have been centered and scale to be comparable. Adjustment for multiplicity is performed over biomarkers but not over time.}
 \end{figure}
-
 \subsection{Association study (non-linear)}
-\label{sec:org33e03e4}
+\label{sec:orgdb58d78}
 
 When using random forest with the complete case approach, no biomarker
 appeared relevant at week 8 (see also \autoref{fig:variableImportance}):
+\phantomsection
+\label{}
 \begin{verbatim}
                   param              week4              week8             week12
 1                female -0.0051 (p=0.8771) -0.0052 (p=0.8741) -0.0035 (p=0.7722)
@@ -563,7 +590,7 @@ OFC thickness, to be associated with the recovery.
 \caption{\label{fig:variableImportance}Variable importance (y-axis) and associated statistical significance (size of the point) of the predictors in a random forest model (complete case analysis).}
 \end{figure}
 
-\vfill
+\clearpage
 
 Further investigation using splines reveal an inverted U-shape for the
 PET assocation (\autoref{fig:splineW12}, p=0.022). A similar but non
@@ -573,21 +600,19 @@ p=0.0904).
 
 \begin{figure}[!h]
 \centering
-\includegraphics[trim={0 0 0 0},width=\textwidth]{./../figures/gg-spline-w8.pdf}
+\includegraphics[trim={0 0 0 0},width=0.8\textwidth]{./../figures/gg-spline-w8.pdf}
 \caption{\label{fig:splineW8}Association between recovery at week 8 and PET in a logistic model adjusted for age and sex (complete case).}
 \end{figure}
 
-\clearpage
-
 \begin{figure}[!h]
 \centering
-\includegraphics[trim={0 0 0 0},width=\textwidth]{./../figures/gg-spline-w12.pdf}
+\includegraphics[trim={0 0 0 0},width=0.8\textwidth]{./../figures/gg-spline-w12.pdf}
 \caption{\label{fig:splineW12}Association between recovery at week 12 and PET in a logistic model adjusted for age and sex (complete case).}
 \end{figure}
 
-
+\clearpage
 \subsection{Predictive value}
-\label{sec:orga494bb8}
+\label{sec:org6e03bf3}
 
 \autoref{fig:perfW4-dens}, \autoref{fig:perfW8-dens}, and
 \autoref{fig:perfW12-dens} display the predicted probability obtain
@@ -603,13 +628,13 @@ at week 8 and 12. The corresponding ROC curve are put in appendix
 \caption{\label{fig:perfW4-dens}Distribution of the predicted probability of recovery at week 4 per group according to each model.}
 \end{figure}
 
-\clearpage
-
 \begin{figure}[!h]
 \centering
 \includegraphics[trim={0 0 0 0},width=\textwidth]{./../figures/hist-pred-week8.pdf}
 \caption{\label{fig:perfW8-dens}Distribution of the predicted probability of recovery at week 8 per group according to each model.}
 \end{figure}
+
+\clearpage
 
 \begin{figure}[!h]
 \centering
@@ -631,8 +656,8 @@ None of the prediction methods performed well at week 4 while at week
 an AUC of 0.635 (p=0.044) which is very similar to the AUC=0.622 of
 the model with age and sex alone.
 
-\clearpage
-
+\phantomsection
+\label{}
 \begin{verbatim}
                 model week                                AUC                 Brier
 1: GLM (no biomarker)    4 0.514 (p(IF)=0.812, p(perm)=0.272) 0.245 (p(perm)=0.179)
@@ -646,10 +671,14 @@ the model with age and sex alone.
 9:                      12 0.635 (p(IF)=0.044, p(perm)=0.044) 0.203 (p(perm)=0.050)
 \end{verbatim}
 
+\clearpage
+
 \bigskip
 
 \textbf{Sensitivity analysis}: Similar results were obtained with the
 complete case analysis (which also drop 3 biomarkers):
+\phantomsection
+\label{}
 \begin{verbatim}
                  model       week                                 AUC                 Brier
  1: GLM (no biomarker)          4 0.529 (p(IF)=0.6592, p(perm)=0.215) 0.244 (p(perm)=0.328)
@@ -671,9 +700,8 @@ better (both in term of AUC and brier score) and the logistic model
 worse.
 
 \clearpage
-
 \section{Conclusion}
-\label{sec:org51b26dd}
+\label{sec:org529cacc}
 
 There is some evidence that cognition and EEG (and to a lesser extend
 OFC thickness) are predictive of recovery at week 8. By some evidence,
@@ -699,9 +727,8 @@ Time at which recovery was assessed also appeared to have a impact on
  evidence that the biomarkers were useful at week 4 while there was
  some evidence at week 12, probably due to <due to OFC thickness and
  PET.
-
 \section{References}
-\label{sec:orgddf782e}
+\label{sec:org090f06c}
 \begingroup
 \renewcommand{\section}[2]{}
 \bibliographystyle{apalike}
@@ -724,7 +751,6 @@ Time at which recovery was assessed also appeared to have a impact on
 \setcounter{page}{1}
 
 \clearpage
-
 \section{ROC curves}
 \label{appendix:ROC}
 \begin{figure}[!h]
@@ -747,12 +773,13 @@ Time at which recovery was assessed also appeared to have a impact on
 
 
 \clearpage
-
 \section{Result for the secondary endpoint}
 \label{appendix:trajectory}
 \subsection{Association}
-\label{sec:orgcd78da9}
+\label{sec:orgcb8b922}
 Complete case analysis:
+\phantomsection
+\label{}
 \begin{verbatim}
                      term    estimate    p.value adj.p.value  lower.adj upper.adj
  1:    MR (OFC thickness) -0.57903818 0.06505917   0.3643020 -1.4193293 0.2612529
@@ -770,6 +797,8 @@ Complete case analysis:
 \end{verbatim}
 
 Missing data analysis:
+\phantomsection
+\label{}
 \begin{verbatim}
                      term     estimate     p.value adj.p.value    lower.adj  upper.adj
  1:    MR (OFC thickness) -0.566732901 0.070380409   0.4817701 -1.452753857 0.31928806
@@ -794,10 +823,11 @@ Missing data analysis:
 \end{figure}
 
 \clearpage
-
 \subsection{Prediction}
-\label{sec:orge451c34}
+\label{sec:orgeb1046b}
 
+\phantomsection
+\label{}
 \begin{verbatim}
                  model       week                                AUC                 Brier
  1: GLM (no biomarker)          4 0.514 (p(IF)=0.812, p(perm)=0.272) 0.245 (p(perm)=0.179)

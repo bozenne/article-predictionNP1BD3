@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  2 2022 (12:26) 
 ## Version: 
-## Last-Updated: mar 23 2022 (09:27) 
+## Last-Updated: okt 27 2025 (18:02) 
 ##           By: Brice Ozenne
-##     Update #: 13
+##     Update #: 14
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -32,7 +32,6 @@ library(officer)
 source(file.path(path.code,"0-data-management.R"))
 
 ## * Censoring
-
 table(dfWR.NP1$Y_w4, useNA = "always")
 ## FALSE  TRUE  <NA> 
 ##    52    37     1 

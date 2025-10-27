@@ -4,9 +4,9 @@
 ## Author: Brice Ozenne
 ## Created: nov  1 2021 (13:10) 
 ## Version: 
-## Last-Updated: jul 28 2022 (18:56) 
+## Last-Updated: okt 27 2025 (17:05) 
 ##           By: Brice Ozenne
-##     Update #: 78
+##     Update #: 82
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -77,7 +77,7 @@ findLevels <- function(data1, data2, col1, col2){
 }
 
 ## * Build key variables
-keep.col <- c("CIMBI_ID","sex","age")
+keep.col <- c("CIMBI_ID","sex","age","mdd_diagnosis_screening")
 
 ## ** Sex (men=1; women=2)
 ## findLevels(data1 = dfW.NP1, data2 = source.NP1, col1 = "sex")
@@ -177,14 +177,41 @@ dfW.NP1cc <- dfW.NP1[!is.na(dfW.NP1$neocortex.log),.SD,.SDcols = c("CIMBI_ID",ma
 elvm.PET <- pblapply(1:NROW(dfW.NP1cc), function(iObs){ ## iObs <- 2
     estimate(lvm.PET, data = dfW.NP1cc[-iObs,], control = list(constrain = TRUE))
 })
+## meanTheta <- colMeans(do.call(rbind,lapply(elvm.PET,coef)))
+## round(meanTheta[grep("~eta", names(meanTheta))],2)
+## round(meanTheta[grep("~~", names(meanTheta))],4)
+## round(meanTheta[grep("mass", names(meanTheta))],4)
 
 dfW.NP1$lvpet <- as.numeric(NA)
 for(iObs in 1:NROW(dfW.NP1cc)){ ## iObs <- 1
     iPred <- predict(elvm.PET[[iObs]], data = dfW.NP1cc[iObs,,drop=FALSE], x = manifest(elvm.PET[[iObs]]),  y = latent(elvm.PET[[iObs]]))
     dfW.NP1[dfW.NP1$CIMBI_ID==dfW.NP1cc[iObs,CIMBI_ID], lvpet := as.double(iPred)]
+    ## residuals(elvm.PET[[iObs]])
 }
 
 keep.col <- c(keep.col, "lvpet", "neocortex.log", "hippocampus.log", "caudate.log", "putamen.log")
+
+lvm2weight <- function(model){
+    model.coef <- summary(model)$coef[,"Estimate"]
+    lambda <- model.coef[paste0(endogenous(model),"~",latent(model))]
+    mu <- model.coef[endogenous(model)]
+    tau <- model.coef[paste0(latent(model),"~~",latent(model))]
+    sigma <- model.coef[paste0(endogenous(model),"~~",endogenous(model))]
+    Sigma22 <- tcrossprod(lambda)*tau + diag(sigma)
+    Sigma12 <- rbind(lambda*tau)
+    weight <- as.vector(Sigma12 %*% solve(Sigma22))
+    return(setNames(weight, endogenous(model)))
+}
+Mweight <- do.call(rbind,lapply(elvm.PET,lvm2weight))
+setNames(paste0(round(colMeans(Mweight),3)," (",round(apply(Mweight,2,sd),3),")"), colnames(Mweight))
+##  neocortex.log hippocampus.log     caudate.log     putamen.log 
+## "0.161 (0.005)" "0.134 (0.005)" "0.187 (0.005)" "0.377 (0.009)" 
+
+## Sanity check:
+## cbind(predict(elvm.PET[[1]], x = manifest(elvm.PET[[iObs]]),  y = latent(elvm.PET[[iObs]])),
+##       coef(elvm.PET[[1]])[latent(elvm.PET[[1]])] + as.double(lvm2weight(elvm.PET[[1]]) %*% t(residuals(elvm.PET[[1]]))))
+
+
 
 ## ** EEG
 dfW.NP1$EEG_vigilance <- dfW.NP1$EEG_vigilance_slope_B1_bl
@@ -315,7 +342,7 @@ names(dfWR.NP1)[names(dfWR.NP1)=="HAMD17_total_wk12"] <- "HAMD17_w12"
 
 cat("\n")
 
-
+ 
 ## * Remove non-compliants
 ## dfWR.NP1 <- dfWR.NP1[dfWR.NP1$NP1_comment %in% rm.noncompliant == FALSE,]
 
